@@ -69,21 +69,24 @@ returns uuid language sql stable security definer set search_path = public as $$
   select id from public.players where user_id = auth.uid();
 $$;
 
--- Bij registratie: profiel aanmaken en koppelen aan speler met hetzelfde e-mailadres
+-- Bij registratie: profiel aanmaken. Koppelen aan de speler met hetzelfde e-mailadres
+-- gebeurt pas zodra het e-mailadres BEVESTIGD is (anders kan iemand die een adres kent zich als die speler voordoen).
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
   insert into public.profiles (id, email) values (new.id, lower(new.email))
   on conflict (id) do nothing;
-  update public.players set user_id = new.id
-   where lower(email) = lower(new.email) and user_id is null;
+  if new.email_confirmed_at is not null then
+    update public.players set user_id = new.id
+     where lower(email) = lower(new.email) and user_id is null;
+  end if;
   return new;
 end;
 $$;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
-  after insert on auth.users
+  after insert or update of email_confirmed_at on auth.users
   for each row execute function public.handle_new_user();
 
 -- Als de trainer een speler toevoegt die al geregistreerd is: meteen koppelen
@@ -92,9 +95,17 @@ returns trigger language plpgsql security definer set search_path = public as $$
 begin
   if new.email is not null then
     new.email := lower(trim(new.email));
-    if new.user_id is null then
-      select id into new.user_id from public.profiles where email = new.email;
+    if tg_op = 'UPDATE' and new.email is distinct from old.email then
+      new.user_id := null;  -- ander e-mailadres = oude koppeling vervalt
     end if;
+    if new.user_id is null then
+      select u.id into new.user_id from auth.users u
+       where lower(u.email) = new.email and u.email_confirmed_at is not null
+         and not exists (select 1 from public.players p where p.user_id = u.id and p.id <> new.id)
+       limit 1;
+    end if;
+  else
+    new.user_id := null;
   end if;
   return new;
 end;

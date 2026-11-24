@@ -1,0 +1,134 @@
+import { sb, q, isGeconfigureerd } from './supabase.js';
+import { PLOEGNAAM } from './config.js';
+import { toon, esc, laden, fout, melding } from './ui.js';
+import { spelersView } from './views/spelers.js';
+import { spelerView } from './views/speler.js';
+import { rapportView } from './views/rapport.js';
+import { wedstrijdenView, wedstrijdView } from './views/wedstrijden.js';
+import { importView } from './views/import.js';
+import { vaardighedenView } from './views/vaardigheden.js';
+import { mijnView } from './views/mijn.js';
+
+export const sessie = { user: null, rol: null };
+
+document.title = PLOEGNAAM;
+document.getElementById('ploegnaam').textContent = PLOEGNAAM;
+
+function zetNavigatie() {
+  const nav = document.getElementById('nav');
+  if (!sessie.user) { nav.innerHTML = ''; return; }
+  const links = sessie.rol === 'trainer'
+    ? [['#/spelers', 'Spelers'], ['#/wedstrijden', 'Wedstrijden'], ['#/import', 'Importeren'], ['#/vaardigheden', 'Vaardigheden']]
+    : [['#/mijn', 'Mijn progressie']];
+  nav.innerHTML = links.map(([h, t]) => `<a href="${h}">${t}</a>`).join('') +
+    `<button class="knop-link" id="uitloggen">Uitloggen</button>`;
+  document.getElementById('uitloggen').onclick = async () => { await sb.auth.signOut(); location.hash = '#/'; };
+  markeerActief();
+}
+
+function markeerActief() {
+  const hoofd = location.hash.split('/')[1] || '';
+  document.querySelectorAll('#nav a').forEach(a => {
+    const doel = a.getAttribute('href').split('/')[1];
+    const actief = doel === hoofd || (doel === 'spelers' && ['speler', 'rapport'].includes(hoofd)) ||
+      (doel === 'wedstrijden' && hoofd === 'wedstrijd');
+    a.classList.toggle('actief', actief);
+  });
+}
+
+function nietGeconfigureerd() {
+  toon(`<section class="kaart smal">
+    <h2>Nog even instellen</h2>
+    <p>De app is nog niet verbonden met een database. Open <code>js/config.js</code> en vul je
+    Supabase-gegevens in. In <code>README.md</code> staat stap voor stap hoe dat gaat.</p>
+  </section>`);
+}
+
+function loginView(modus = 'login') {
+  const reg = modus === 'registreer';
+  toon(`<section class="kaart smal login">
+    <h2>${reg ? 'Account aanmaken' : 'Inloggen'}</h2>
+    <p class="zacht">${reg
+      ? 'Gebruik het e-mailadres dat je aan je trainer hebt gegeven.'
+      : 'Log in om je rapporten en goals te bekijken.'}</p>
+    <form id="loginForm" class="formulier">
+      <label>E-mailadres<input type="email" name="email" required autocomplete="email"></label>
+      <label>Wachtwoord<input type="password" name="wachtwoord" required minlength="6"
+        autocomplete="${reg ? 'new-password' : 'current-password'}"></label>
+      <button class="knop" type="submit">${reg ? 'Account aanmaken' : 'Inloggen'}</button>
+    </form>
+    <p class="wissel">${reg
+      ? 'Heb je al een account? <a href="#" id="wissel">Inloggen</a>'
+      : 'Nog geen account? <a href="#" id="wissel">Account aanmaken</a>'}</p>
+  </section>`);
+  document.getElementById('wissel').onclick = e => { e.preventDefault(); loginView(reg ? 'login' : 'registreer'); };
+  document.getElementById('loginForm').onsubmit = async e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const email = f.get('email').trim(), password = f.get('wachtwoord');
+    const knop = e.target.querySelector('button'); knop.disabled = true;
+    try {
+      if (reg) {
+        const { data, error } = await sb.auth.signUp({ email, password });
+        if (error) throw error;
+        if (!data.session) {
+          melding('Account aangemaakt. Bevestig je e-mailadres via de mail die je kreeg, en log daarna in.');
+          loginView('login');
+        }
+      } else {
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) throw new Error(error.message === 'Invalid login credentials'
+          ? 'E-mailadres of wachtwoord klopt niet.' : error.message);
+      }
+    } catch (err) {
+      melding(err.message, 'fout');
+    } finally { knop.disabled = false; }
+  };
+}
+
+async function laadRol() {
+  const p = await q(sb.from('profiles').select('role').eq('id', sessie.user.id).maybeSingle());
+  sessie.rol = p?.role || 'speler';
+}
+
+async function route() {
+  if (!isGeconfigureerd) return nietGeconfigureerd();
+  if (!sessie.user) return loginView();
+  markeerActief();
+  const [, pad, a, b] = location.hash.split('/');
+  try {
+    if (sessie.rol !== 'trainer') return await mijnView();
+    switch (pad) {
+      case 'speler': return await spelerView(a);
+      case 'rapport': return a === 'nieuw' ? await rapportView(null, b) : await rapportView(a);
+      case 'wedstrijden': return await wedstrijdenView();
+      case 'wedstrijd': return await wedstrijdView(a);
+      case 'import': return await importView();
+      case 'vaardigheden': return await vaardighedenView();
+      default: return await spelersView();
+    }
+  } catch (e) { fout(e); }
+}
+
+async function start() {
+  if (!isGeconfigureerd) return nietGeconfigureerd();
+  laden();
+  const { data } = await sb.auth.getSession();
+  sessie.user = data.session?.user || null;
+  if (sessie.user) await laadRol().catch(fout);
+  zetNavigatie();
+  await route();
+
+  sb.auth.onAuthStateChange(async (event, s) => {
+    const nieuw = s?.user || null;
+    if (nieuw?.id === sessie.user?.id) return;
+    sessie.user = nieuw;
+    sessie.rol = null;
+    if (nieuw) await laadRol().catch(fout);
+    zetNavigatie();
+    if (location.hash === '#/') route(); else location.hash = '#/';
+  });
+  window.addEventListener('hashchange', route);
+}
+
+start();
