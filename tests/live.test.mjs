@@ -111,3 +111,27 @@ test('filterHelft', () => {
   assert.equal(filterHelft(ev, 1).length, 1);
   assert.equal(filterHelft(ev, 2).length, 2);
 });
+
+import { perMatchOverzicht } from '../js/lib/live.js';
+
+test('perMatchOverzicht: Clubee-cijfers en live schoten per wedstrijd, nieuwste eerst', () => {
+  const goals = [
+    { aantal: 4, zeven_m: 1, twee_min: 0, matches: { id: 'm1', datum: '2026-10-10', tegenstander: 'Merksplas', thuis: true, score_voor: 34, score_tegen: 24 } },
+    { aantal: 2, zeven_m: 0, twee_min: 1, matches: { id: 'm2', datum: '2026-11-14', tegenstander: 'Schoten', thuis: true, score_voor: 38, score_tegen: 38 } },
+  ];
+  const events = [
+    { match_id: 'm2', soort: 'schot', resultaat: 'goal' }, { match_id: 'm2', soort: 'schot', resultaat: 'mis' },
+    { match_id: 'm3', soort: 'schot', resultaat: 'redding' },
+  ];
+  const matches = [{ id: 'm3', datum: '2026-11-25', tegenstander: 'Kreasa', thuis: false, score_voor: null, score_tegen: null }];
+  const r = perMatchOverzicht(goals, events, matches);
+  assert.deepEqual(r.map(x => x.match.id), ['m3', 'm2', 'm1']);
+  assert.deepEqual(r[1], {
+    match: goals[1].matches, goals: 2, zeven_m: 0, twee_min: 1, uitslag: 'G',
+    live: { schoten: 2, goal: 1, redding: 0, mis: 1 },
+  });
+  assert.equal(r[2].uitslag, 'W');
+  assert.equal(r[0].goals, null);          // nog geen Clubee-cijfers
+  assert.equal(r[0].uitslag, null);
+  assert.deepEqual(r[0].live, { schoten: 1, goal: 0, redding: 1, mis: 0 });
+});

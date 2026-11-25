@@ -36,7 +36,7 @@ export async function liveView(matchId) {
   let events = lokaleEvents(matchId);
 
   toon(`<div class="live">
-    <a class="terug" href="${sessie.rol === 'watcher' ? '#/watcher' : `#/wedstrijd/${match.id}`}">← ${sessie.rol === 'watcher' ? 'Wedstrijden' : 'Wedstrijd'}</a>
+    <a class="terug" href="${sessie.rol !== 'trainer' ? '#/watcher' : `#/wedstrijd/${match.id}`}">← ${sessie.rol !== 'trainer' ? 'Wedstrijden' : 'Wedstrijd'}</a>
     <section class="scorebord">
       <div class="ploegen"><span>${esc(PLOEGNAAM)}</span><b id="score">0 – 0</b><span>${esc(match.tegenstander)}</span></div>
       <div class="klokrij">

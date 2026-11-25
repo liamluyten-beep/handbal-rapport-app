@@ -93,3 +93,25 @@ export function resultaatVerdeling(events) {
 
 // 0 = hele match, anders enkel die helft
 export const filterHelft = (events, helft) => (helft ? events.filter(e => e.helft === helft) : events);
+
+// Overzicht per wedstrijd voor één speler.
+// goals: rijen met matches(*) (Clubee/handmatig), events: zijn live schoten, matches: extra wedstrijden met enkel live data
+export function perMatchOverzicht(goals, events, matches = []) {
+  const per = new Map();
+  const leeg = m => ({ match: m, goals: null, zeven_m: null, twee_min: null, uitslag: null, live: null });
+  for (const g of goals) {
+    if (!g.matches) continue;
+    per.set(g.matches.id, { ...leeg(g.matches), goals: g.aantal, zeven_m: g.zeven_m ?? 0, twee_min: g.twee_min ?? 0 });
+  }
+  for (const m of matches) if (!per.has(m.id)) per.set(m.id, leeg(m));
+  for (const r of per.values()) {
+    const m = r.match;
+    if (m.score_voor != null && m.score_tegen != null) r.uitslag = m.score_voor > m.score_tegen ? 'W' : m.score_voor < m.score_tegen ? 'V' : 'G';
+    const eigen = events.filter(e => e.match_id === m.id && e.soort === 'schot');
+    if (eigen.length) {
+      const tel = x => eigen.filter(e => e.resultaat === x).length;
+      r.live = { schoten: eigen.length, goal: tel('goal'), redding: tel('redding'), mis: tel('mis') };
+    }
+  }
+  return [...per.values()].sort((a, b) => b.match.datum.localeCompare(a.match.datum));
+}

@@ -288,3 +288,23 @@ details.ouder summary { cursor: pointer; font-weight: 600; padding: .4rem 0; }
 .pos-balk { display: flex; height: 14px; background: var(--lijn); border-radius: 999px; overflow: hidden; }
 .pb-goal { background: var(--accent); } .pb-rest { background: color-mix(in srgb, var(--tekst-zacht) 45%, transparent); }
 .pos-rij b { text-align: right; font-family: var(--display); font-size: 1.1rem; }
+
+/* ---------- Home ---------- */
+.home h1 { margin-bottom: 1rem; }
+.tegels { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); margin-bottom: 1.2rem; }
+.tegel { display: grid; gap: .3rem; padding: 1.2rem; border-radius: var(--radius); background: var(--kaart); box-shadow: var(--schaduw);
+  color: var(--tekst); text-decoration: none; border: 2px solid transparent; transition: border-color .15s, transform .15s; }
+.tegel:hover { border-color: var(--accent); transform: translateY(-2px); }
+.tegel-icoon { font-size: 1.8rem; }
+.tegel b { font: 700 1.25rem var(--display); text-transform: uppercase; letter-spacing: .03em; }
+.match-start { border: 2px solid var(--accent); }
+.match-vandaag { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap;
+  padding: .8rem 0; border-bottom: 1px solid var(--lijn); }
+.match-lijst { display: grid; gap: .8rem; }
+.match-kaart { margin: 0; }
+.match-goals { text-align: center; }
+.match-goals b { display: block; font: 800 2rem/1 var(--display); color: var(--accent); }
+.match-details { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: .6rem; font-size: .95rem; color: var(--tekst-zacht); }
+.match-details b { color: var(--tekst); }
+.schakelaar { display: inline-flex; align-items: center; gap: .5rem; cursor: pointer; font-weight: 600; }
+.schakelaar input { width: 20px; height: 20px; accent-color: var(--accent); }

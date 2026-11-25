@@ -65,9 +65,11 @@ Zet daarna in Supabase onder **Authentication → URL Configuration** de **Site 
 - **Afdrukken / PDF:** op een spelerspagina kies je in de browser **Afdrukken → Opslaan als PDF**. Knoppen en menu worden dan automatisch weggelaten.
 
 ### Live matchwatcher en live statistieken
-Eenmalig: voer [`supabase/update-5-live.sql`](supabase/update-5-live.sql) en [`supabase/update-6-watcher.sql`](supabase/update-6-watcher.sql) uit in de SQL Editor.
+Eenmalig: voer [`supabase/update-5-live.sql`](supabase/update-5-live.sql), [`supabase/update-6-watcher.sql`](supabase/update-6-watcher.sql) en [`supabase/update-7-home.sql`](supabase/update-7-home.sql) uit in de SQL Editor.
 
-**Een matchwatcher aanduiden:** laat de persoon een account aanmaken op de site (zonder speler te kiezen). Ga dan naar **Accounts** en klik **Maak matchwatcher**. Een watcher ziet enkel de wedstrijden, geen rapporten.
+**Startpagina:** na het inloggen ziet iedereen zijn eigen taken. Spelers: mijn rapport, mijn matchen, zelfevaluatie. Watchers: daarbovenop **Match van vandaag** (volgen of aanmaken). Trainer: alles, met bovenaan de match van vandaag (live statistieken of zelf ingeven).
+
+**Een matchwatcher aanduiden:** ga naar **Accounts** en zet het vinkje **Matchwatcher** aan. Dat kan bij een speler (bv. een geblesseerde speler) of bij iemand zonder speler (bv. een ouder). Een watcher zonder speler ziet geen rapporten.
 
 **De watcher, tijdens de match:**
 1. Kiest de wedstrijd (of maakt ze aan: zelfde datum en tegenstandersnaam als in Clubee, bv. `Merksplas`).

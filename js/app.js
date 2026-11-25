@@ -13,8 +13,10 @@ import { zelfevaluatieView } from './views/zelfevaluatie.js';
 import { watcherView } from './views/watcher.js';
 import { statsView } from './views/stats.js';
 import { accountsView } from './views/accounts.js';
+import { homeView } from './views/home.js';
+import { mijnMatchenView } from './views/matchen.js';
 
-export const sessie = { user: null, rol: null };
+export const sessie = { user: null, rol: null, watcher: false };
 
 document.title = PLOEGNAAM;
 document.getElementById('ploegnaam').textContent = PLOEGNAAM;
@@ -23,10 +25,10 @@ function zetNavigatie() {
   const nav = document.getElementById('nav');
   if (!sessie.user) { nav.innerHTML = ''; return; }
   const links = sessie.rol === 'trainer'
-    ? [['#/spelers', 'Spelers'], ['#/wedstrijden', 'Wedstrijden'], ['#/import', 'Importeren'],
-       ['#/vaardigheden', 'Vaardigheden'], ['#/accounts', 'Accounts']]
-    : sessie.rol === 'watcher' ? [['#/watcher', 'Wedstrijden']]
-    : [['#/mijn', 'Mijn progressie']];
+    ? [['#/', 'Home'], ['#/spelers', 'Spelers'], ['#/wedstrijden', 'Wedstrijden'], ['#/import', 'Importeren'],
+       ['#/accounts', 'Accounts']]
+    : [['#/', 'Home'], ['#/mijn', 'Mijn rapport'], ['#/matchen', 'Mijn matchen'],
+       ...(sessie.watcher ? [['#/watcher', 'Match volgen']] : [])];
   nav.innerHTML = links.map(([h, t]) => `<a href="${h}">${t}</a>`).join('') +
     `<button class="knop-link" id="uitloggen">Uitloggen</button>`;
   document.getElementById('uitloggen').onclick = async () => { await sb.auth.signOut(); location.hash = '#/'; };
@@ -34,12 +36,13 @@ function zetNavigatie() {
 }
 
 function markeerActief() {
-  const hoofd = location.hash.split('/')[1] || '';
+  const hoofd = location.hash.split('/')[1] || '';   // '' = home
   document.querySelectorAll('#nav a').forEach(a => {
-    const doel = a.getAttribute('href').split('/')[1];
+    const doel = a.getAttribute('href').split('/')[1] || '';
     const actief = doel === hoofd || (doel === 'spelers' && ['speler', 'rapport'].includes(hoofd)) ||
       (doel === 'wedstrijden' && ['wedstrijd', 'live', 'stats'].includes(hoofd)) ||
       (doel === 'watcher' && hoofd === 'live') ||
+      (doel === 'spelers' && hoofd === 'vaardigheden') ||
       (doel === 'mijn' && hoofd === 'zelfevaluatie');
     a.classList.toggle('actief', actief);
   });
@@ -128,8 +131,11 @@ function nietBevestigd(email) {
 }
 
 async function laadRol() {
-  const p = await q(sb.from('profiles').select('role').eq('id', sessie.user.id).maybeSingle());
-  sessie.rol = p?.role || 'speler';
+  // kan_watchen bestaat pas na update-7; zonder die kolom gewoon de rol lezen
+  const p = await q(sb.from('profiles').select('role, kan_watchen').eq('id', sessie.user.id).maybeSingle())
+    .catch(() => q(sb.from('profiles').select('role').eq('id', sessie.user.id).maybeSingle()));
+  sessie.rol = p?.role === 'watcher' ? 'speler' : (p?.role || 'speler');
+  sessie.watcher = p?.role === 'watcher' || !!p?.kan_watchen;
 }
 
 async function route() {
@@ -138,13 +144,13 @@ async function route() {
   markeerActief();
   const [, pad, a, b] = location.hash.split('/');
   try {
-    if (sessie.rol === 'watcher') {
-      if (pad === 'live') return await liveView(a);
-      return await watcherView();
-    }
     if (sessie.rol !== 'trainer') {
+      if (sessie.watcher && pad === 'live') return await liveView(a);
+      if (sessie.watcher && pad === 'watcher') return await watcherView();
       if (pad === 'zelfevaluatie') return await zelfevaluatieView(a === 'nieuw' ? null : a);
-      return await mijnView();
+      if (pad === 'mijn' || pad === 'kies') return await mijnView();
+      if (pad === 'matchen') return await mijnMatchenView();
+      return await homeView();
     }
     switch (pad) {
       case 'speler': return await spelerView(a);
@@ -156,7 +162,8 @@ async function route() {
       case 'accounts': return await accountsView();
       case 'import': return await importView();
       case 'vaardigheden': return await vaardighedenView();
-      default: return await spelersView();
+      case 'spelers': return await spelersView();
+      default: return await homeView();
     }
   } catch (e) { fout(e); }
 }
