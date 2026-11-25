@@ -55,16 +55,31 @@ export const volgendeHelft = k => ({ ...k, helft: k.helft + 1, basis: 0, sinds: 
 export const absoluteSeconde = (e, helftDuur) => (e.helft - 1) * helftDuur + e.seconde;
 
 // Lopende 2 minuten op dit moment van de wedstrijdklok
+// Eigen spelers: een nieuwe straf tijdens een lopende straf komt erbij (start pas als de vorige afloopt),
+// dus één bolletje per speler. Tegenstander: elke straf apart (we weten niet welke speler).
 export function actieveStraffen(events, nu, helftDuur) {
   const nuAbs = absoluteSeconde(nu, helftDuur);
-  return events
-    .filter(e => e.soort === 'twee_min' || e.soort === 'twee_min_tegen')
-    .map(e => ({
-      player_id: e.soort === 'twee_min' ? e.player_id : null,
-      tegen: e.soort === 'twee_min_tegen',
-      resterend: STRAF_SECONDEN - (nuAbs - absoluteSeconde(e, helftDuur)),
-    }))
-    .filter(s => s.resterend > 0 && s.resterend <= STRAF_SECONDEN);
+  const opTijd = (a, b) => absoluteSeconde(a, helftDuur) - absoluteSeconde(b, helftDuur);
+  const straffen = events.filter(e => e.soort === 'twee_min' || e.soort === 'twee_min_tegen')
+    .filter(e => absoluteSeconde(e, helftDuur) <= nuAbs)
+    .sort(opTijd);
+
+  const eindePerSpeler = new Map();
+  const res = [];
+  for (const e of straffen) {
+    const start = absoluteSeconde(e, helftDuur);
+    if (e.soort === 'twee_min_tegen') {
+      res.push({ player_id: null, tegen: true, einde: start + STRAF_SECONDEN });
+    } else {
+      const vorige = eindePerSpeler.get(e.player_id) ?? 0;
+      eindePerSpeler.set(e.player_id, Math.max(vorige, start) + STRAF_SECONDEN);
+    }
+  }
+  for (const [player_id, einde] of eindePerSpeler) res.push({ player_id, tegen: false, einde });
+  return res
+    .map(s => ({ player_id: s.player_id, tegen: s.tegen, resterend: s.einde - nuAbs }))
+    .filter(s => s.resterend > 0)
+    .sort((a, b) => a.resterend - b.resterend);
 }
 
 // Spelers waar het aantal live goals verschilt van Clubee (goals-rijen: {player_id, aantal})

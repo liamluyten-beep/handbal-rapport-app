@@ -135,3 +135,21 @@ test('perMatchOverzicht: Clubee-cijfers en live schoten per wedstrijd, nieuwste 
   assert.equal(r[0].uitslag, null);
   assert.deepEqual(r[0].live, { schoten: 1, goal: 0, redding: 1, mis: 0 });
 });
+
+test('actieveStraffen: tweede 2 min van dezelfde speler wordt erbij geteld (één bolletje)', () => {
+  const ev = [
+    { soort: 'twee_min', player_id: 'a', helft: 1, seconde: 100 },
+    { soort: 'twee_min', player_id: 'a', helft: 1, seconde: 121 },   // na 21 s: 1:39 over + 2:00
+  ];
+  assert.deepEqual(actieveStraffen(ev, { helft: 1, seconde: 121 }, 1500), [{ player_id: 'a', tegen: false, resterend: 219 }]);
+  // na de eerste straf loopt de tweede gewoon verder
+  assert.deepEqual(actieveStraffen(ev, { helft: 1, seconde: 300 }, 1500), [{ player_id: 'a', tegen: false, resterend: 40 }]);
+  // straf die al lang voorbij is, telt niet mee voor een nieuwe
+  const later = [{ soort: 'twee_min', player_id: 'a', helft: 1, seconde: 0 }, { soort: 'twee_min', player_id: 'a', helft: 1, seconde: 500 }];
+  assert.deepEqual(actieveStraffen(later, { helft: 1, seconde: 510 }, 1500), [{ player_id: 'a', tegen: false, resterend: 110 }]);
+});
+
+test('actieveStraffen: straffen van de tegenstander blijven apart', () => {
+  const ev = [{ soort: 'twee_min_tegen', helft: 1, seconde: 100 }, { soort: 'twee_min_tegen', helft: 1, seconde: 110 }];
+  assert.equal(actieveStraffen(ev, { helft: 1, seconde: 120 }, 1500).length, 2);
+});
