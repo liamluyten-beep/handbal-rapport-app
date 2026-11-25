@@ -6,6 +6,7 @@ import {
   VELDPOSITIES, RESULTATEN, positieNaam, scoreUitEvents, actieveStraffen, formatKlok,
   klokSeconden, startKlok, pauzeerKlok, volgendeHelft,
 } from '../lib/live.js';
+import { sessie } from '../app.js';
 import { leesKlok, bewaarKlok, lokaleEvents, haalVanServer, voegToe, verwijder, synchroniseer, wachtend } from '../live-opslag.js';
 
 const ZONE_PIJL = ['↖', '↑', '↗', '←', '•', '→', '↙', '↓', '↘'];
@@ -25,10 +26,17 @@ export async function liveView(matchId) {
   const spelerVan = id => spelers.find(s => s.id === id);
   const kort = s => s ? `#${s.rugnummer ?? '?'} ${s.naam.split(' ')[0]}` : 'Onbekend';
   let klok = leesKlok(matchId, match.helft_minuten || 25);
+  // Klok van de server nemen als die recenter is (bv. andere gsm)
+  if (match.klok && (match.klok.bijgewerkt || 0) > (klok.bijgewerkt || 0)) klok = match.klok;
+  const deelKlok = () => {
+    klok = { ...klok, bijgewerkt: Date.now() };
+    bewaarKlok(matchId, klok);
+    sb.rpc('zet_klok', { wedstrijd: matchId, klok }).then(() => {}, () => {});
+  };
   let events = lokaleEvents(matchId);
 
   toon(`<div class="live">
-    <a class="terug" href="#/wedstrijd/${match.id}">← Wedstrijd</a>
+    <a class="terug" href="${sessie.rol === 'watcher' ? '#/watcher' : `#/wedstrijd/${match.id}`}">← ${sessie.rol === 'watcher' ? 'Wedstrijden' : 'Wedstrijd'}</a>
     <section class="scorebord">
       <div class="ploegen"><span>${esc(PLOEGNAAM)}</span><b id="score">0 – 0</b><span>${esc(match.tegenstander)}</span></div>
       <div class="klokrij">
@@ -175,12 +183,12 @@ export async function liveView(matchId) {
   };
   document.getElementById('klokKnop').onclick = () => {
     klok = klok.sinds != null ? pauzeerKlok(klok, Date.now()) : startKlok(klok, Date.now());
-    bewaarKlok(matchId, klok); tekenKlok();
+    deelKlok(); tekenKlok();
   };
   document.getElementById('helftKnop').onclick = () => {
     if (!confirm(`Naar de ${klok.helft + 1}e helft? De klok begint dan opnieuw op 0:00.`)) return;
     klok = volgendeHelft(pauzeerKlok(klok, Date.now()));
-    bewaarKlok(matchId, klok); tekenKlok();
+    deelKlok(); tekenKlok();
   };
 
   // ---------- Timers, verbinding en scherm wakker houden ----------

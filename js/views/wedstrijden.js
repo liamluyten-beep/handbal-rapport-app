@@ -59,7 +59,8 @@ export async function wedstrijdView(id) {
     <section class="kaart">
       <div class="rapport-kop"><div><h1>${esc(m.tegenstander)}</h1>
         <p class="zacht">${formatDatum(m.datum)} · ${m.thuis ? 'thuis' : 'uit'}${m.score_voor != null ? ` · <b>${m.score_voor} – ${m.score_tegen}</b> (Clubee)` : ''}</p></div>
-        <a class="knop" href="#/live/${m.id}">▶ Live volgen</a></div>
+        <div class="rij"><a class="knop tweede" href="#/stats/${m.id}">📊 Live statistieken</a>
+          <a class="knop" href="#/live/${m.id}">▶ Zelf ingeven</a></div></div>
       <form id="goalsForm">
         <table class="tabel"><thead><tr><th>#</th><th>Speler</th><th>Goals</th><th>Pogingen (optioneel)</th></tr></thead>
         <tbody>${spelers.map(s => `<tr>

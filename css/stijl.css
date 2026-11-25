@@ -274,3 +274,17 @@ details.ouder summary { cursor: pointer; font-weight: 600; padding: .4rem 0; }
 .doel-raster button:active { background: var(--accent); }
 .doelkaart .vak { border-radius: 8px; display: grid; place-items: center; text-align: center; font-size: .8rem; line-height: 1.2; color: var(--tekst); }
 .doelkaart .vak b { font: 800 1.3rem var(--display); display: block; }
+
+/* ---------- Live statistieken (trainer) ---------- */
+.tabs { display: inline-flex; background: var(--kaart); border-radius: 999px; padding: 4px; box-shadow: var(--schaduw); }
+.tabs button { border: 0; background: none; color: var(--tekst-zacht); font: 600 .95rem var(--body); padding: .45rem .9rem;
+  border-radius: 999px; cursor: pointer; }
+.tabs button.actief { background: var(--accent); color: #fff; }
+.ok-kleur { color: var(--goed); } .beter-kleur { color: var(--beter); }
+.stat .waarde.rood { color: var(--fout); }
+.verdeling { display: flex; height: 14px; border-radius: 999px; overflow: hidden; margin: -.4rem 0 1.2rem; background: var(--lijn); }
+.v-goal { background: var(--goed); } .v-redding { background: var(--beter); } .v-mis { background: var(--fout); }
+.pos-rij { display: grid; grid-template-columns: 7.5rem 1fr 3rem 2.6rem; gap: .6rem; align-items: center; padding: .35rem 0; }
+.pos-balk { display: flex; height: 14px; background: var(--lijn); border-radius: 999px; overflow: hidden; }
+.pb-goal { background: var(--accent); } .pb-rest { background: color-mix(in srgb, var(--tekst-zacht) 45%, transparent); }
+.pos-rij b { text-align: right; font-family: var(--display); font-size: 1.1rem; }

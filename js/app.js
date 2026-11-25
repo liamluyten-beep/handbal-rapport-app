@@ -10,6 +10,9 @@ import { liveView } from './views/live.js';
 import { vaardighedenView } from './views/vaardigheden.js';
 import { mijnView } from './views/mijn.js';
 import { zelfevaluatieView } from './views/zelfevaluatie.js';
+import { watcherView } from './views/watcher.js';
+import { statsView } from './views/stats.js';
+import { accountsView } from './views/accounts.js';
 
 export const sessie = { user: null, rol: null };
 
@@ -20,7 +23,9 @@ function zetNavigatie() {
   const nav = document.getElementById('nav');
   if (!sessie.user) { nav.innerHTML = ''; return; }
   const links = sessie.rol === 'trainer'
-    ? [['#/spelers', 'Spelers'], ['#/wedstrijden', 'Wedstrijden'], ['#/import', 'Importeren'], ['#/vaardigheden', 'Vaardigheden']]
+    ? [['#/spelers', 'Spelers'], ['#/wedstrijden', 'Wedstrijden'], ['#/import', 'Importeren'],
+       ['#/vaardigheden', 'Vaardigheden'], ['#/accounts', 'Accounts']]
+    : sessie.rol === 'watcher' ? [['#/watcher', 'Wedstrijden']]
     : [['#/mijn', 'Mijn progressie']];
   nav.innerHTML = links.map(([h, t]) => `<a href="${h}">${t}</a>`).join('') +
     `<button class="knop-link" id="uitloggen">Uitloggen</button>`;
@@ -33,7 +38,8 @@ function markeerActief() {
   document.querySelectorAll('#nav a').forEach(a => {
     const doel = a.getAttribute('href').split('/')[1];
     const actief = doel === hoofd || (doel === 'spelers' && ['speler', 'rapport'].includes(hoofd)) ||
-      (doel === 'wedstrijden' && ['wedstrijd', 'live'].includes(hoofd)) ||
+      (doel === 'wedstrijden' && ['wedstrijd', 'live', 'stats'].includes(hoofd)) ||
+      (doel === 'watcher' && hoofd === 'live') ||
       (doel === 'mijn' && hoofd === 'zelfevaluatie');
     a.classList.toggle('actief', actief);
   });
@@ -132,6 +138,10 @@ async function route() {
   markeerActief();
   const [, pad, a, b] = location.hash.split('/');
   try {
+    if (sessie.rol === 'watcher') {
+      if (pad === 'live') return await liveView(a);
+      return await watcherView();
+    }
     if (sessie.rol !== 'trainer') {
       if (pad === 'zelfevaluatie') return await zelfevaluatieView(a === 'nieuw' ? null : a);
       return await mijnView();
@@ -142,6 +152,8 @@ async function route() {
       case 'wedstrijden': return await wedstrijdenView();
       case 'wedstrijd': return await wedstrijdView(a);
       case 'live': return await liveView(a);
+      case 'stats': return await statsView(a);
+      case 'accounts': return await accountsView();
       case 'import': return await importView();
       case 'vaardigheden': return await vaardighedenView();
       default: return await spelersView();

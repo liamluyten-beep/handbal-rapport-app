@@ -91,3 +91,23 @@ test('verschilMetClubee: enkel spelers waar het aantal goals afwijkt', () => {
     { player_id: 'd', live: 0, clubee: 1 },
   ]);
 });
+
+import { resultaatVerdeling, filterHelft } from '../js/lib/live.js';
+
+test('resultaatVerdeling: aantallen en percentages van goals, reddingen, missers', () => {
+  const ev = [schot('a', 'LO', 'goal'), schot('a', 'LO', 'goal'), schot('b', 'RH', 'redding'), schot('b', 'RH', 'mis'), { soort: 'tegengoal' }];
+  assert.deepEqual(resultaatVerdeling(ev), {
+    schoten: 4,
+    goal: { aantal: 2, pct: 50 }, redding: { aantal: 1, pct: 25 }, mis: { aantal: 1, pct: 25 },
+  });
+  assert.deepEqual(resultaatVerdeling([]), {
+    schoten: 0, goal: { aantal: 0, pct: null }, redding: { aantal: 0, pct: null }, mis: { aantal: 0, pct: null },
+  });
+});
+
+test('filterHelft', () => {
+  const ev = [schot('a', 'LO', 'goal', null, 1), schot('a', 'LO', 'mis', null, 2), { soort: 'tegengoal', helft: 2 }];
+  assert.equal(filterHelft(ev, 0).length, 3);
+  assert.equal(filterHelft(ev, 1).length, 1);
+  assert.equal(filterHelft(ev, 2).length, 2);
+});

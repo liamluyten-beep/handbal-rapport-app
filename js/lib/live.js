@@ -80,3 +80,16 @@ export function verschilMetClubee(events, clubeeGoals) {
 }
 
 export { positieNaam };
+
+// Verdeling van alle schoten over goal / redding / mis
+export function resultaatVerdeling(events) {
+  const schoten = events.filter(e => e.soort === 'schot');
+  const tel = r => {
+    const aantal = schoten.filter(e => e.resultaat === r).length;
+    return { aantal, pct: pct(aantal, schoten.length) };
+  };
+  return { schoten: schoten.length, goal: tel('goal'), redding: tel('redding'), mis: tel('mis') };
+}
+
+// 0 = hele match, anders enkel die helft
+export const filterHelft = (events, helft) => (helft ? events.filter(e => e.helft === helft) : events);

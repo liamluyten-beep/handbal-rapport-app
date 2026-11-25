@@ -64,14 +64,19 @@ Zet daarna in Supabase onder **Authentication → URL Configuration** de **Site 
 - **Vaardigheden aanpassen:** via **Vaardigheden** kun je ze hernoemen, toevoegen of verwijderen.
 - **Afdrukken / PDF:** op een spelerspagina kies je in de browser **Afdrukken → Opslaan als PDF**. Knoppen en menu worden dan automatisch weggelaten.
 
-### Live matchwatcher
-Eenmalig: voer [`supabase/update-5-live.sql`](supabase/update-5-live.sql) uit in de SQL Editor.
+### Live matchwatcher en live statistieken
+Eenmalig: voer [`supabase/update-5-live.sql`](supabase/update-5-live.sql) en [`supabase/update-6-watcher.sql`](supabase/update-6-watcher.sql) uit in de SQL Editor.
 
-1. Maak de wedstrijd aan bij **Wedstrijden** (zelfde datum en tegenstandersnaam als in Clubee, bv. `Merksplas`, dan koppelt de Clubee-import ze later automatisch).
-2. Open de wedstrijd en klik **▶ Live volgen**. Start de klok bij het begin van de match.
-3. **Schot**: speler → positie → goal/redding/mis → plek in het doel (mag je overslaan). **Tegengoal**: één tik. **2 min**: speler of tegenstander; bovenaan loopt een aftelklok.
-4. Elke tik wordt eerst op je gsm bewaard en verstuurd zodra er verbinding is. Je scherm blijft aan zolang het livescherm open is.
-5. Achteraf zie je bij de wedstrijd een overzicht per speler, en bij elke speler zijn schoten per positie en een doelkaart. Spelers zien enkel hun eigen schoten. Goals en 2 minuten van Clubee blijven officieel; bij een verschil zie je een waarschuwing.
+**Een matchwatcher aanduiden:** laat de persoon een account aanmaken op de site (zonder speler te kiezen). Ga dan naar **Accounts** en klik **Maak matchwatcher**. Een watcher ziet enkel de wedstrijden, geen rapporten.
+
+**De watcher, tijdens de match:**
+1. Kiest de wedstrijd (of maakt ze aan: zelfde datum en tegenstandersnaam als in Clubee, bv. `Merksplas`).
+2. Start de klok bij het begin. **Schot**: speler → positie → goal/redding/mis → plek in het doel. **Tegengoal**: één tik. **2 min**: speler of tegenstander.
+3. Elke tik wordt eerst op de gsm bewaard en verstuurd zodra er verbinding is. Het scherm blijft aan.
+
+**De trainer, tijdens de match:** open de wedstrijd en klik **📊 Live statistieken**. Je ziet de score en klok, het percentage goals / reddingen / missers, van waar er geschoten wordt, waar in het doel, en de cijfers per speler. Kies **1e helft**, **2e helft** of **Hele match**. Het scherm ververst vanzelf.
+
+Achteraf zie je bij elke speler zijn schoten per positie en een doelkaart. Spelers zien enkel hun eigen schoten. Goals en 2 minuten van Clubee blijven officieel; bij een verschil zie je een waarschuwing bij de wedstrijd.
 
 ### Wedstrijden uit Clubee
 De gespeelde wedstrijden en line-up-statistieken (goals, 7 meters, kaarten, 2 minuten) van de ploeg in `clubee.config.json` worden opgehaald in `data/clubee.json`.

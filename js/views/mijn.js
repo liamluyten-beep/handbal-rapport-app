@@ -65,6 +65,7 @@ async function wieBenJij() {
   toon(`<section class="kaart smal" style="max-width:560px">
       <h1>Wie ben jij?</h1>
       <p class="zacht">Kies jezelf in de lijst. Daarna zie je je eigen rapporten en goals.</p>
+      <p class="zacht" style="font-size:.9rem">Ben je geen speler maar <b>matchwatcher</b>? Kies hier niets en vraag de trainer om je matchwatcher te maken.</p>
       ${vrij.length ? `<label>Zoek je naam<input id="zoek" placeholder="Naam of rugnummer" autocomplete="off"></label>
         <div id="lijst" class="kies-lijst"></div>` : '<p>Er staan nog geen spelers klaar om te kiezen.</p>'}
     </section>
