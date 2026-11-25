@@ -1,7 +1,7 @@
 // Profielfoto's: verkleinen in de browser, uploaden naar Supabase Storage, tijdelijke links ophalen.
 import { sb } from './supabase.js';
 import { esc, melding } from './ui.js';
-import { FOTO_ZIJDE, fotoPad, vierkantUitsnede } from './lib/foto.js';
+import { FOTO_ZIJDE, fotoPad, uitsnede } from './lib/foto.js';
 
 const BUCKET = 'profielfotos';
 
@@ -17,18 +17,20 @@ export async function fotoUrls(ids) {
   } catch { return {}; }
 }
 
-async function naarVierkantJpg(file) {
+// Foto bijsnijden in een verhouding en verkleinen tot doelbreedte (jpg)
+async function naarJpg(file, verhouding, doelBreedte) {
   const bron = await createImageBitmap(file).catch(() => null);
   if (!bron) throw new Error('Deze foto kan niet gelezen worden. Probeer een JPG of PNG.');
-  const { sx, sy, zijde } = vierkantUitsnede(bron.width, bron.height);
+  const { sx, sy, b, h } = uitsnede(bron.width, bron.height, verhouding);
   const doek = document.createElement('canvas');
-  doek.width = doek.height = FOTO_ZIJDE;
-  doek.getContext('2d').drawImage(bron, sx, sy, zijde, zijde, 0, 0, FOTO_ZIJDE, FOTO_ZIJDE);
+  doek.width = Math.min(doelBreedte, b);
+  doek.height = Math.round(doek.width / verhouding);
+  doek.getContext('2d').drawImage(bron, sx, sy, b, h, 0, 0, doek.width, doek.height);
   return new Promise((ok, nok) => doek.toBlob(b => b ? ok(b) : nok(new Error('Foto verkleinen mislukt.')), 'image/jpeg', 0.85));
 }
 
 export async function uploadFoto(playerId, file) {
-  const blob = await naarVierkantJpg(file);
+  const blob = await naarJpg(file, 1, FOTO_ZIJDE);
   const { error } = await sb.storage.from(BUCKET).upload(fotoPad(playerId), blob, { upsert: true, contentType: 'image/jpeg' });
   if (error) throw new Error(/bucket not found|not found/i.test(error.message)
     ? 'De fotomap bestaat nog niet. De trainer moet eerst update-4-fotos.sql uitvoeren in Supabase.' : error.message);
@@ -71,4 +73,21 @@ export function fotoKnoppenHtml(heeftFoto) {
   return `<button type="button" class="knop tweede" id="fotoKies">${heeftFoto ? 'Foto wijzigen' : 'Foto toevoegen'}</button>
     ${heeftFoto ? '<button type="button" class="knop-link zacht" id="fotoWeg">Foto verwijderen</button>' : ''}
     <input type="file" id="fotoBestand" accept="image/*" hidden>`;
+}
+
+// ---------- Ploegfoto (breedbeeld, voor de startpagina) ----------
+const PLOEG = 'ploeg.jpg';
+
+export async function ploegFotoUrl() {
+  try {
+    const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(PLOEG, 3600);
+    return error ? null : data?.signedUrl ?? null;
+  } catch { return null; }
+}
+
+export async function uploadPloegFoto(file) {
+  const blob = await naarJpg(file, 16 / 9, 1600);
+  const { error } = await sb.storage.from(BUCKET).upload(PLOEG, blob, { upsert: true, contentType: 'image/jpeg' });
+  if (error) throw new Error(/bucket not found/i.test(error.message)
+    ? 'De fotomap bestaat nog niet. Voer eerst update-4-fotos.sql uit in Supabase.' : error.message);
 }

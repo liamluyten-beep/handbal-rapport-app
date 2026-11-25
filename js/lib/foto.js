@@ -12,3 +12,13 @@ export function vierkantUitsnede(breedte, hoogte) {
     zijde,
   };
 }
+
+// Uitsnede in een vaste verhouding (breedte/hoogte). Te hoog: iets boven het midden (gezichten); te breed: midden.
+export function uitsnede(breedte, hoogte, verhouding) {
+  if (breedte / hoogte > verhouding) {
+    const b = Math.round(hoogte * verhouding);
+    return { sx: Math.round((breedte - b) / 2), sy: 0, b, h: hoogte };
+  }
+  const h = Math.round(breedte / verhouding);
+  return { sx: 0, sy: Math.round((hoogte - h) * 0.25), b: breedte, h };
+}

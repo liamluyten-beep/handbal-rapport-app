@@ -7,6 +7,7 @@ import { laadMatchenVanVandaag, matchStartHtml, koppelMatchStart } from './match
 import { mijnView } from './mijn.js';
 import { openTraining } from './trainingen.js';
 import { installeerHtml, koppelInstalleer } from '../installeer.js';
+import { heroHtml, koppelHero } from './hero.js';
 import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
 
 const tegel = (href, icoon, titel, sub = '') =>
@@ -45,8 +46,9 @@ export async function homeView() {
       ${tegel('#/kies', '🙋', 'Ben je ook speler?', 'kies wie je bent')}</div>`);
   }
 
+  const held = await heroHtml({ groet: `Hoi ${speler ? voornaam(speler.naam) : 'matchwatcher'} 👋` });
   toon(`<div class="home">
-    <h1>Hoi ${speler ? voornaam(speler.naam) : ''}${speler ? '' : 'matchwatcher'} 👋</h1>
+    ${held}
     ${delen.join('')}
     ${installeerHtml()}
   </div>`);
@@ -64,8 +66,9 @@ async function trainerHome() {
   const zonderRapport = spelers.filter(s => !metRapport.has(s.id)).length;
   const zonderNummer = spelers.filter(s => s.rugnummer == null).length;
 
+  const held = await heroHtml({ groet: 'Hoi coach 👋', trainer: true });
   toon(`<div class="home">
-    <h1>Hoi coach 👋</h1>
+    ${held}
     ${matchStartHtml(matchen, { trainer: true })}
     <div class="tegels">
       ${tegel('#/spelers', '👥', 'Spelers', `${spelers.length} spelers${zonderRapport ? ` · ${zonderRapport} zonder rapport dit seizoen` : ''}${zonderNummer ? ` · ${zonderNummer} zonder nummer` : ''}`)}
@@ -81,5 +84,6 @@ async function trainerHome() {
   </div>`);
   koppelInstalleer();
   koppelMatchStart({ trainer: true, herlaad: trainerHome });
+  koppelHero(trainerHome);
   document.getElementById('trainingVandaag').onclick = e => { e.preventDefault(); openTraining().catch(err => melding(err.message, 'fout')); };
 }

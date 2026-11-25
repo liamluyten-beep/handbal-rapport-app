@@ -690,6 +690,13 @@ grant execute on function public.doelman_rapport(uuid) to authenticated;
 
 
 
+-- ---------- Ploegfoto (zie ook update-12-ploegfoto.sql) ------------ De ploegfoto (ploeg.jpg) staat in dezelfde afgeschermde map als de profielfoto's:
+-- iedereen die ingelogd is mag ze zien, enkel de trainer mag ze wijzigen (dat kon al).
+
+drop policy if exists "ploegfoto lezen" on storage.objects;
+create policy "ploegfoto lezen" on storage.objects for select to authenticated
+  using (bucket_id = 'profielfotos' and name = 'ploeg.jpg');
+
 -- =========================================================
 -- NA JE EIGEN REGISTRATIE in de app: maak jezelf trainer.
 -- Vervang het e-mailadres en voer enkel deze regel uit:

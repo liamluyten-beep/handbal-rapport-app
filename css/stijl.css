@@ -1,31 +1,33 @@
+/* Kleuren uit het clublogo van Uilenspiegel (rood + antraciet) en de sporthal (parketgeel, krijtwit) */
 :root {
-  --bg: #f3f1ec;
+  --bg: #eef0f3;
   --kaart: #ffffff;
-  --tekst: #14213d;
-  --tekst-zacht: #5b6478;
-  --lijn: #e3e0d8;
-  --kop: #14213d;
-  --kop-tekst: #f3f1ec;
-  --accent: #ff6b2c;
-  --accent-donker: #e0531a;
-  --goed: #1f9d6b;
-  --goed-bg: #e6f5ee;
-  --beter: #d98a00;
-  --beter-bg: #fdf3e0;
-  --fout: #c8372d;
-  --c1: #ff6b2c; --c2: #2a6fdb; --c3: #1f9d6b; --c4: #9b51e0;
-  --c5: #d98a00; --c6: #e0457b; --c7: #12a1b8; --c8: #6b7280;
-  --radius: 14px;
-  --schaduw: 0 1px 2px rgba(20,33,61,.06), 0 4px 16px rgba(20,33,61,.06);
+  --tekst: #191b21;
+  --tekst-zacht: #5c6270;
+  --lijn: #dfe2e8;
+  --kop: #191b21;
+  --kop-tekst: #f4f5f7;
+  --accent: #d2142c;
+  --accent-donker: #a80f22;
+  --goed: #13865b;
+  --goed-bg: #e3f4ec;
+  --beter: #b9801a;
+  --beter-bg: #fbf1dc;
+  --parket: #e8b04a;
+  --fout: #c4314b;
+  --c1: #d2142c; --c2: #2f6fd6; --c3: #13865b; --c4: #8a5cd6;
+  --c5: #e8b04a; --c6: #e0457b; --c7: #12a1b8; --c8: #6b7280;
+  --radius: 12px;
+  --schaduw: 0 1px 0 rgba(25,27,33,.04);
   --display: 'Barlow Condensed', 'Arial Narrow', sans-serif;
   --body: 'Barlow', system-ui, sans-serif;
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0e1526; --kaart: #172036; --tekst: #eef0f5; --tekst-zacht: #9aa3b8;
-    --lijn: #26304a; --kop: #0a101e; --goed-bg: #12352a; --beter-bg: #3a2c0c;
+    --bg: #15171c; --kaart: #20232a; --tekst: #f4f5f7; --tekst-zacht: #a1a7b4;
+    --lijn: #2f333c; --kop: #0f1115; --goed: #2fbf86; --goed-bg: #143325; --beter: #e8b04a; --beter-bg: #3a2d10;
+    --accent: #e3283f; --fout: #ff6b81;
   }
-  .nummer { background: var(--accent) !important; }
 }
 
 * { box-sizing: border-box; }
@@ -370,3 +372,90 @@ details.ouder summary { cursor: pointer; font-weight: 600; padding: .4rem 0; }
   background-color: rgba(255,255,255,.08); color: var(--kop-tekst); border: 1px solid rgba(255,255,255,.15); }
 .seizoen-keuze option { color: #14213d; }
 .installeer { border: 2px dashed var(--lijn); box-shadow: none; }
+
+/* =========================================================
+   Ontwerp "Sporthal": clubkleuren, veldlijnen, shirtnummers
+   ========================================================= */
+
+/* Rustiger: dunne randen in plaats van schaduwen, labels in gewone zinsvorm */
+.kaart, .stat, .tegel, .speler-kaart { border: 1px solid var(--lijn); box-shadow: none; }
+h3 { text-transform: none; letter-spacing: .01em; font-size: 1.3rem; }
+.stat .titel, .tabel th, .keuze-titel { text-transform: none; letter-spacing: 0; font-size: .85rem; }
+.tabel th { font-weight: 600; }
+.nummer { background: var(--accent); }
+.kop { border-bottom-width: 3px; }
+#nav a.actief, .tabs button.actief, .chips button.actief { background: var(--accent); border-color: var(--accent); }
+a { color: var(--accent); }
+.knop:focus-visible, a:focus-visible, button:focus-visible, select:focus-visible { outline: 3px solid var(--parket); outline-offset: 2px; }
+
+/* Spelers zonder rugnummer: nog in te vullen (parketgeel), geen fout */
+.speler-kaart.zonder-nummer { border-color: var(--parket); background: color-mix(in srgb, var(--parket) 10%, var(--kaart)); }
+.speler-kaart.zonder-nummer .nummer { background: var(--parket) !important; color: #191b21; }
+.speler-kaart .rood { color: var(--beter); }
+
+/* ---------- Banner startpagina ---------- */
+.held { position: relative; overflow: hidden; border-radius: 16px; min-height: 250px; margin-bottom: 1.2rem;
+  display: flex; flex-direction: column; justify-content: flex-end; padding: 1.4rem 1.5rem; color: #fff;
+  background:
+    radial-gradient(120% 90% at 85% 0%, color-mix(in srgb, var(--accent) 45%, transparent), transparent 60%),
+    linear-gradient(160deg, #2a2d35, #15171c); }
+.held.met-foto { min-height: 300px;
+  background: linear-gradient(180deg, rgba(15,17,21,.05) 20%, rgba(15,17,21,.88) 85%), var(--ploegfoto) center / cover; }
+.veldlijnen { position: absolute; inset: 0 0 auto 0; width: 100%; height: 75%; pointer-events: none; }
+.veldlijnen path { fill: none; stroke: rgba(255,255,255,.55); stroke-width: 2.2; vector-effect: non-scaling-stroke; }
+.veldlijnen .stippel { stroke-dasharray: 10 8; stroke: rgba(255,255,255,.4); }
+.veldlijnen .doel { stroke: var(--accent); stroke-width: 6; }
+.veldlijnen .zeven { stroke-width: 3; }
+.held-groet { position: absolute; top: .9rem; left: 1.2rem; margin: 0; font-weight: 600; opacity: .9; }
+.held-tekst { position: relative; }
+.held h1 { font-size: clamp(2.6rem, 9vw, 4.6rem); line-height: .9; margin: 0; letter-spacing: .01em;
+  text-shadow: 0 2px 18px rgba(0,0,0,.35); }
+.held-seizoen { margin: .35rem 0 0; font-weight: 600; opacity: .85; }
+.balans { display: flex; gap: 1.1rem; margin: .8rem 0 0; flex-wrap: wrap; }
+.balans span { font-size: .95rem; opacity: .9; }
+.balans b { font: 800 1.7rem/1 var(--display); margin-right: .2rem; color: #fff; }
+.balans span:first-child b { color: #7ee2b4; }
+.held-foto-knop { position: absolute; top: .7rem; right: .8rem; border: 1px solid rgba(255,255,255,.35); background: rgba(15,17,21,.45);
+  color: #fff; border-radius: 999px; padding: .35rem .8rem; font: 600 .85rem var(--body); cursor: pointer; backdrop-filter: blur(4px); }
+.held-foto-knop:hover { background: rgba(15,17,21,.7); }
+
+/* Tegels: icoon in een rondje in clubkleur */
+.tegel-icoon { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; font-size: 1.35rem;
+  background: color-mix(in srgb, var(--accent) 12%, var(--kaart)); }
+.tegel b { font-size: 1.3rem; }
+.match-start { border: 2px solid var(--accent); }
+
+/* ---------- Spelerspagina: rugnummer als shirtcijfer ---------- */
+.speler-kop { position: relative; overflow: hidden; min-height: 9rem; align-items: center; padding: .6rem 0; }
+.rug-groot { position: absolute; right: .2rem; top: 50%; transform: translateY(-50%); z-index: 0; pointer-events: none;
+  font: 800 8.5rem/1 var(--display); color: transparent; opacity: .55;
+  -webkit-text-stroke: 2px var(--accent); paint-order: stroke; }
+@media (min-width: 721px) { .rug-groot { right: auto; left: 46%; } }
+@media (max-width: 720px) { .rug-groot { font-size: 6.5rem; opacity: .35; } }
+.speler-kop > :not(.rug-groot) { position: relative; z-index: 1; }
+
+/* ---------- Menubalk onderaan (gsm) ---------- */
+#onderbalk { display: none; }
+@media (max-width: 720px) {
+  #nav a, #nav #uitloggen { display: none; }
+  #nav { margin-left: auto; }
+  .kop-binnen { flex-wrap: nowrap; padding: .55rem .9rem; }
+  .logo { font-size: 1.2rem; min-width: 0; }
+  .logo #ploegnaam { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .seizoen-keuze { font-size: .8rem; padding: .3rem 1.6rem .3rem .6rem; }
+  body.met-onderbalk { padding-bottom: calc(68px + env(safe-area-inset-bottom)); }
+  body.met-onderbalk #onderbalk { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; position: fixed; z-index: 30;
+    left: 0; right: 0; bottom: 0; background: var(--kop); border-top: 3px solid var(--accent);
+    padding: .3rem .3rem calc(.3rem + env(safe-area-inset-bottom)); }
+  #onderbalk > a, #onderbalk > button { display: grid; justify-items: center; gap: .1rem; padding: .35rem 0; border: 0; background: none;
+    color: var(--kop-tekst); opacity: .7; text-decoration: none; font: 600 .72rem var(--body); cursor: pointer; border-radius: 10px; }
+  #onderbalk > a.actief { opacity: 1; color: #fff; background: color-mix(in srgb, var(--accent) 30%, transparent); }
+  .ob-icoon { font-size: 1.3rem; line-height: 1; }
+  .ob-meer { position: fixed; right: .6rem; bottom: calc(76px + env(safe-area-inset-bottom)); min-width: 220px; display: grid;
+    background: var(--kaart); border: 1px solid var(--lijn); border-radius: 14px; padding: .4rem; box-shadow: 0 12px 40px rgba(0,0,0,.35); }
+  .ob-meer[hidden] { display: none; }
+  .ob-meer a, .ob-meer .knop-link { color: var(--tekst); padding: .75rem .9rem; border-radius: 10px; text-decoration: none; font-weight: 600; text-align: left; opacity: 1; }
+  .ob-meer a:hover, .ob-meer .knop-link:hover { background: var(--bg); }
+  .toast { bottom: calc(80px + env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

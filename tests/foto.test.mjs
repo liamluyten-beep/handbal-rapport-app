@@ -17,3 +17,13 @@ test('vierkantUitsnede: vierkant blijft gelijk', () => {
 test('fotoPad per speler', () => {
   assert.equal(fotoPad('abc-123'), 'abc-123.jpg');
 });
+
+import { uitsnede } from '../js/lib/foto.js';
+
+test('uitsnede 16:9: te hoge foto wordt boven het midden bijgesneden', () => {
+  assert.deepEqual(uitsnede(1600, 1200, 16 / 9), { sx: 0, sy: 75, b: 1600, h: 900 });
+});
+
+test('uitsnede 16:9: te brede foto wordt in het midden bijgesneden', () => {
+  assert.deepEqual(uitsnede(4000, 1000, 16 / 9), { sx: 1111, sy: 0, b: 1778, h: 1000 });
+});

@@ -182,7 +182,8 @@ export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], f
     : null;
 
   const html = `
-    <div class="paginakop">
+    <div class="paginakop speler-kop">
+      ${speler.rugnummer != null ? `<span class="rug-groot" aria-hidden="true">${esc(speler.rugnummer)}</span>` : ''}
       <div class="rij">
         ${avatarHtml(fotoUrl, speler.rugnummer, 'groot')}
         <div><h1>${esc(speler.naam)}</h1><p class="zacht">${esc(speler.positie || '')}</p>

@@ -25,9 +25,32 @@ export const sessie = { user: null, rol: null, watcher: false };
 document.title = PLOEGNAAM;
 document.getElementById('ploegnaam').textContent = PLOEGNAAM;
 
+const ICOON = { '#/': '🏠', '#/spelers': '👥', '#/wedstrijden': '🤾', '#/trainingen': '📅', '#/import': '⬇️',
+  '#/accounts': '🔑', '#/mijn': '📋', '#/matchen': '🤾', '#/watcher': '📝' };
+
+// Menubalk onderaan op de gsm: de eerste 4 links + "Meer" (de rest en uitloggen)
+function zetOnderbalk(links) {
+  let balk = document.getElementById('onderbalk');
+  if (!balk) { balk = document.createElement('nav'); balk.id = 'onderbalk'; balk.setAttribute('aria-label', 'Hoofdmenu'); document.body.appendChild(balk); }
+  if (!sessie.user) { balk.innerHTML = ''; document.body.classList.remove('met-onderbalk'); return; }
+  document.body.classList.add('met-onderbalk');
+  const kort = t => { const k = t.replace('Mijn ', '').replace('Wedstrijden', 'Matchen'); return k[0].toUpperCase() + k.slice(1); };
+  const hoofd = links.slice(0, 4), rest = links.slice(4);
+  balk.innerHTML = hoofd.map(([h, t]) => `<a href="${h}"><span class="ob-icoon">${ICOON[h] || '•'}</span>${kort(t)}</a>`).join('') +
+    `<button id="obMeer" aria-expanded="false"><span class="ob-icoon">☰</span>Meer</button>
+     <div class="ob-meer" id="obMenu" hidden>
+       ${rest.map(([h, t]) => `<a href="${h}">${ICOON[h] || ''} ${t}</a>`).join('')}
+       <button class="knop-link" id="obUit">Uitloggen</button>
+     </div>`;
+  const menu = document.getElementById('obMenu'), meer = document.getElementById('obMeer');
+  meer.onclick = () => { menu.hidden = !menu.hidden; meer.setAttribute('aria-expanded', String(!menu.hidden)); };
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { menu.hidden = true; }));
+  document.getElementById('obUit').onclick = async () => { await sb.auth.signOut(); location.hash = '#/'; };
+}
+
 function zetNavigatie() {
   const nav = document.getElementById('nav');
-  if (!sessie.user) { nav.innerHTML = ''; return; }
+  if (!sessie.user) { nav.innerHTML = ''; zetOnderbalk([]); return; }
   const links = sessie.rol === 'trainer'
     ? [['#/', 'Home'], ['#/spelers', 'Spelers'], ['#/wedstrijden', 'Wedstrijden'], ['#/trainingen', 'Trainingen'], ['#/import', 'Importeren'],
        ['#/accounts', 'Accounts']]
@@ -42,12 +65,13 @@ function zetNavigatie() {
     document.getElementById('seizoenKeuze').onchange = e => { kiesSeizoen(e.target.value); route(); };
   });
   document.getElementById('uitloggen').onclick = async () => { await sb.auth.signOut(); location.hash = '#/'; };
+  zetOnderbalk(links);
   markeerActief();
 }
 
 function markeerActief() {
   const hoofd = location.hash.split('/')[1] || '';   // '' = home
-  document.querySelectorAll('#nav a').forEach(a => {
+  document.querySelectorAll('#nav a, #onderbalk a').forEach(a => {
     const doel = a.getAttribute('href').split('/')[1] || '';
     const actief = doel === hoofd || (doel === 'spelers' && ['speler', 'rapport'].includes(hoofd)) ||
       (doel === 'wedstrijden' && ['wedstrijd', 'live', 'stats'].includes(hoofd)) ||
