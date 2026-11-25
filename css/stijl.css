@@ -182,3 +182,10 @@ details.ouder summary { cursor: pointer; font-weight: 600; padding: .4rem 0; }
 .positie input:checked + span { background: var(--accent); border-color: var(--accent); color: #fff; }
 .positie input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 .positie input:disabled + span { opacity: .4; cursor: not-allowed; }
+
+/* ---------- Wie ben jij? ---------- */
+.kies-lijst { display: grid; gap: .5rem; margin-top: 1rem; max-height: 420px; overflow-y: auto; }
+.kies-speler { display: flex; align-items: center; gap: .8rem; padding: .6rem .8rem; border-radius: 12px; cursor: pointer;
+  background: var(--bg); color: var(--tekst); border: 2px solid var(--lijn); font: 600 1rem var(--body); text-align: left; }
+.kies-speler:hover { border-color: var(--accent); }
+.klein-nummer { width: 38px; height: 38px; font-size: 1.2rem; border-radius: 10px; }

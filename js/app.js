@@ -51,7 +51,7 @@ function loginView(modus = 'login') {
   toon(`<section class="kaart smal login">
     <h2>${reg ? 'Account aanmaken' : 'Inloggen'}</h2>
     <p class="zacht">${reg
-      ? 'Gebruik het e-mailadres dat je aan je trainer hebt gegeven.'
+      ? 'Maak een account aan met je e-mailadres. Daarna kies je wie je bent.'
       : 'Log in om je rapporten en goals te bekijken.'}</p>
     <form id="loginForm" class="formulier">
       <label>E-mailadres<input type="email" name="email" required autocomplete="email"></label>

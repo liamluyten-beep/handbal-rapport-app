@@ -47,11 +47,12 @@ Zet daarna in Supabase onder **Authentication → URL Configuration** de **Site 
    Je ziet nu één rij met `trainer`. Zie je 0 rijen, registreer je dan eerst op de site.
 3. Herlaad de website. Je ziet nu bovenaan **Spelers, Wedstrijden, Importeren, Vaardigheden**.
 
-## Stap 4: Spelers uitnodigen
+## Stap 4: Spelers laten inloggen
 
-1. Ga naar **Spelers → + Speler toevoegen** en vul naam, rugnummer, positie en het **e-mailadres** van de speler (of een ouder) in.
-2. Stuur de speler de link naar de website. Hij klikt **Account aanmaken** met **datzelfde e-mailadres** en ziet daarna meteen zijn eigen pagina.
-3. Op de spelerskaart zie je "kan inloggen" zodra de speler zich geregistreerd heeft.
+1. Voer eenmalig [`supabase/update-2-speler.sql`](supabase/update-2-speler.sql) en [`supabase/update-3-zelf-koppelen.sql`](supabase/update-3-zelf-koppelen.sql) uit in de SQL Editor (bij een nieuwe installatie zitten ze al in `schema.sql`).
+2. Stuur je spelers de link naar de website. Ze klikken **Account aanmaken**, en kiezen daarna bij **Wie ben jij?** zichzelf uit de lijst, of maken zichzelf aan als ze er nog niet tussen staan.
+3. In de lijst staan alleen spelers die nog niemand gekozen heeft. Vul je bij een speler zelf een e-mailadres in, dan kan alleen iemand met dat adres hem kiezen.
+4. Koos iemand de verkeerde speler? Open die speler, klik **Gegevens → Account ontkoppelen**.
 
 ---
 

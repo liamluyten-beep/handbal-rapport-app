@@ -109,3 +109,10 @@ export function parseSpelersTekst(tekst) {
   });
   return { rijen, fouten };
 }
+
+// Filter een spelerslijst op (deel van) naam of op rugnummer
+export function zoekSpelers(spelers, tekst) {
+  const t = normaliseer(tekst);
+  if (!t) return spelers;
+  return spelers.filter(s => normaliseer(s.naam).includes(t) || (s.rugnummer != null && String(s.rugnummer) === t));
+}

@@ -15,13 +15,26 @@ export async function spelerView(id) {
     <section class="kaart" id="gegevensKaart" hidden>
       <h2>Gegevens van ${esc(speler.naam)}</h2>
       <form id="spelerForm" class="formulier">${spelerFormulier(speler)}
-        <div class="rij tussen"><button class="knop">Opslaan</button>
+        ${speler.user_id ? `<p class="zacht">Er is een account aan deze speler gekoppeld${speler.email ? ` (${esc(speler.email)})` : ''}.
+          Koos iemand de verkeerde speler? Ontkoppel het account; die persoon kiest dan opnieuw bij het inloggen.</p>` : ''}
+        <div class="rij tussen"><div class="rij"><button class="knop">Opslaan</button>
+          ${speler.user_id ? '<button type="button" class="knop tweede" id="ontkoppel">Account ontkoppelen</button>' : ''}</div>
           <button type="button" class="knop gevaar" id="verwijder">Speler verwijderen</button></div>
       </form>
     </section>
     ${html}`);
   tekenGrafieken();
   koppelPositieVakjes(document);
+
+  const ontkoppel = document.getElementById('ontkoppel');
+  if (ontkoppel) ontkoppel.onclick = async () => {
+    if (!confirm(`Het account loskoppelen van ${speler.naam}? Die persoon ziet dit rapport dan niet meer.`)) return;
+    try {
+      await q(sb.from('players').update({ user_id: null, email: null }).eq('id', id));
+      melding('Account ontkoppeld');
+      spelerView(id);
+    } catch (err) { melding(err.message, 'fout'); }
+  };
 
   document.getElementById('bewerkSpeler').onclick = () => {
     const k = document.getElementById('gegevensKaart'); k.hidden = !k.hidden;

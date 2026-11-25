@@ -51,3 +51,13 @@ test('koppelSpeler onbekend geeft null', () => {
   assert.equal(koppelSpeler('Onbekend', spelers), null);
   assert.equal(koppelSpeler('99', spelers), null);
 });
+
+import { zoekSpelers } from '../js/lib/importeer.js';
+
+test('zoekSpelers op deel van naam of rugnummer, zonder accenten/hoofdletters', () => {
+  const lijst = [{ naam: 'Lars Peeters', rugnummer: 7 }, { naam: 'Émile Smet', rugnummer: 12 }, { naam: 'Noah Janssens', rugnummer: null }];
+  assert.deepEqual(zoekSpelers(lijst, 'pee').map(s => s.naam), ['Lars Peeters']);
+  assert.deepEqual(zoekSpelers(lijst, 'emile').map(s => s.naam), ['Émile Smet']);
+  assert.deepEqual(zoekSpelers(lijst, '12').map(s => s.naam), ['Émile Smet']);
+  assert.equal(zoekSpelers(lijst, '  ').length, 3);
+});
