@@ -1,5 +1,6 @@
 import { sb, q } from '../supabase.js';
 import { toon, esc, laden, melding } from '../ui.js';
+import { parseSpelersTekst, normaliseer } from '../lib/importeer.js';
 
 export function spelerFormulier(s = {}) {
   return `<div class="velden">
@@ -26,9 +27,12 @@ export function leesSpeler(form) {
 export async function spelersView() {
   laden();
   const spelers = await q(sb.from('players').select('*, reports(datum)').order('rugnummer', { nullsFirst: false }).order('naam'));
+  const zonderNummer = spelers.filter(s => s.rugnummer == null).length;
   toon(`
-    <div class="paginakop"><div><h1>Spelers</h1><p class="zacht">${spelers.length} spelers in de ploeg</p></div>
-      <button class="knop" id="toonNieuw">+ Speler toevoegen</button></div>
+    <div class="paginakop"><div><h1>Spelers</h1><p class="zacht">${spelers.length} spelers in de ploeg
+      ${zonderNummer ? ` · <span class="rood">${zonderNummer} zonder rugnummer</span>` : ''}</p></div>
+      <div class="rij"><button class="knop tweede" id="toonImport">Lijst importeren</button>
+        <button class="knop" id="toonNieuw">+ Speler toevoegen</button></div></div>
 
     <section class="kaart" id="nieuwKaart" hidden>
       <h2>Nieuwe speler</h2>
@@ -37,20 +41,39 @@ export async function spelersView() {
         <div class="rij"><button class="knop">Opslaan</button></div></form>
     </section>
 
-    ${spelers.length ? `<div class="spelers">${spelers.map(s => {
-      return `<a class="speler-kaart" href="#/speler/${s.id}">
-        <div class="nummer">${esc(s.rugnummer ?? '–')}</div>
+    <section class="kaart" id="importKaart" hidden>
+      <h2>Meerdere spelers tegelijk toevoegen</h2>
+      <p>Eén speler per regel: <code>naam;rugnummer</code>. Het rugnummer mag je weglaten. Plakken uit Excel kan ook
+        (kolom A naam, kolom B rugnummer).</p>
+      <pre class="zacht"><code>Naam;Rugnummer
+Lars Peeters;7
+Emma De Smet;12
+Noah Janssens</code></pre>
+      <div class="formulier">
+        <label>CSV-bestand<input type="file" id="spelersBestand" accept=".csv,.txt,text/csv"></label>
+        <label>Of plak hier<textarea id="spelersTekst" rows="8"></textarea></label>
+        <div><button class="knop tweede" id="controleerSpelers">Controleren</button></div>
+      </div>
+      <div id="spelersVoorbeeld"></div>
+    </section>
+
+    ${spelers.length ? `<div class="spelers">${spelers.map(s => `
+      <a class="speler-kaart ${s.rugnummer == null ? 'zonder-nummer' : ''}" href="#/speler/${s.id}">
+        <div class="nummer">${esc(s.rugnummer ?? '?')}</div>
         <div><div class="naam">${esc(s.naam)}</div>
-          <div class="info">${esc(s.positie || 'Geen positie')} · ${s.reports.length} rapport${s.reports.length === 1 ? '' : 'en'}</div>
-          <div class="info">${s.user_id ? '<span class="label ok">kan inloggen</span>' : s.email ? '<span class="label">nog niet geregistreerd</span>' : '<span class="label">geen e-mail</span>'}</div></div></a>`;
-    }).join('')}</div>`
-      : `<section class="kaart leeg"><span class="bal"></span><p>Nog geen spelers. Voeg je eerste speler toe.</p></section>`}
+          <div class="info">${s.rugnummer == null ? '<span class="rood">Nog geen rugnummer</span> · ' : ''}${esc(s.positie || 'Geen positie')} · ${s.reports.length} rapport${s.reports.length === 1 ? '' : 'en'}</div>
+          <div class="info">${s.user_id ? '<span class="label ok">kan inloggen</span>' : s.email ? '<span class="label">nog niet geregistreerd</span>' : '<span class="label">geen e-mail</span>'}</div></div></a>`).join('')}</div>`
+      : `<section class="kaart leeg"><span class="bal"></span><p>Nog geen spelers. Voeg je eerste speler toe of importeer een lijst.</p></section>`}
   `);
 
-  document.getElementById('toonNieuw').onclick = () => {
-    const k = document.getElementById('nieuwKaart'); k.hidden = !k.hidden;
-    if (!k.hidden) k.querySelector('input').focus();
+  const wissel = (id, ander) => () => {
+    const k = document.getElementById(id); k.hidden = !k.hidden;
+    document.getElementById(ander).hidden = true;
+    if (!k.hidden) k.querySelector('input, textarea').focus();
   };
+  document.getElementById('toonNieuw').onclick = wissel('nieuwKaart', 'importKaart');
+  document.getElementById('toonImport').onclick = wissel('importKaart', 'nieuwKaart');
+
   document.getElementById('nieuwForm').onsubmit = async e => {
     e.preventDefault();
     try {
@@ -61,4 +84,51 @@ export async function spelersView() {
       melding(err.message.includes('duplicate') ? 'Dit e-mailadres wordt al gebruikt door een andere speler.' : err.message, 'fout');
     }
   };
+
+  // ---------- Lijst importeren ----------
+  const tekstEl = document.getElementById('spelersTekst');
+  document.getElementById('spelersBestand').onchange = async e => {
+    const file = e.target.files[0];
+    if (file) { tekstEl.value = await file.text(); controleer(); }
+  };
+  document.getElementById('controleerSpelers').onclick = controleer;
+
+  function controleer() {
+    const { rijen, fouten } = parseSpelersTekst(tekstEl.value);
+    const bestaand = new Set(spelers.map(s => normaliseer(s.naam)));
+    const nummers = new Map(spelers.filter(s => s.rugnummer != null).map(s => [s.rugnummer, s.naam]));
+    const nieuw = rijen.filter(r => !bestaand.has(normaliseer(r.naam)));
+    const alAanwezig = rijen.length - nieuw.length;
+    const vb = document.getElementById('spelersVoorbeeld');
+    if (!rijen.length && !fouten.length) { vb.innerHTML = ''; return melding('Er is niets om te importeren.', 'fout'); }
+
+    // Dubbele rugnummers (binnen de lijst of met bestaande spelers) melden
+    const gebruikt = new Map(nummers);
+    const waarschuwing = r => {
+      if (r.rugnummer == null) return '<span class="rood">geen rugnummer</span>';
+      const ander = gebruikt.get(r.rugnummer);
+      gebruikt.set(r.rugnummer, r.naam);
+      return ander ? `<span class="rood">nummer ook van ${esc(ander)}</span>` : '';
+    };
+
+    vb.innerHTML = `<h3 style="margin-top:1rem">Voorbeeld</h3>
+      <p>${nieuw.length} nieuwe speler(s).
+        ${alAanwezig ? `${alAanwezig} staan er al in en worden overgeslagen.` : ''}
+        ${fouten.length ? `<b class="rood">${fouten.length} regel(s) met fouten</b>.` : ''}</p>
+      ${fouten.length ? `<ul>${fouten.map(f => `<li>${esc(f)}</li>`).join('')}</ul>` : ''}
+      ${nieuw.length ? `<table class="tabel"><thead><tr><th>#</th><th>Naam</th><th></th></tr></thead><tbody>
+        ${nieuw.map(r => `<tr class="${r.rugnummer == null ? 'fout' : ''}"><td>${r.rugnummer ?? '?'}</td>
+          <td>${esc(r.naam)}</td><td>${waarschuwing(r)}</td></tr>`).join('')}</tbody></table>
+        <div style="margin-top:1rem"><button class="knop" id="spelersOpslaan">${nieuw.length} speler(s) toevoegen</button></div>` : ''}`;
+
+    const knop = document.getElementById('spelersOpslaan');
+    if (knop) knop.onclick = async () => {
+      knop.disabled = true;
+      try {
+        await q(sb.from('players').insert(nieuw.map(r => ({ naam: r.naam, rugnummer: r.rugnummer }))));
+        melding(`${nieuw.length} speler(s) toegevoegd`);
+        spelersView();
+      } catch (err) { melding(err.message, 'fout'); knop.disabled = false; }
+    };
+  }
 }

@@ -167,3 +167,9 @@ details.ouder summary { cursor: pointer; font-weight: 600; padding: .4rem 0; }
   .kaart, .stat { box-shadow: none; border: 1px solid #ddd; }
   body { background: #fff; }
 }
+
+/* ---------- Spelers zonder rugnummer ---------- */
+.rood { color: var(--fout); font-weight: 600; }
+.speler-kaart.zonder-nummer { border-color: var(--fout); background: color-mix(in srgb, var(--fout) 8%, var(--kaart)); }
+.speler-kaart.zonder-nummer .nummer { background: var(--fout) !important; }
+.speler-kaart.zonder-nummer:hover { border-color: var(--fout); }

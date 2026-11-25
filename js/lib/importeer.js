@@ -80,3 +80,32 @@ export function koppelSpeler(spelerTekst, spelers) {
   const n = normaliseer(t);
   return spelers.find(s => normaliseer(s.naam) === n) || null;
 }
+
+// Spelerslijst inlezen: per regel "naam;rugnummer" (rugnummer mag ontbreken of eerst staan).
+export function parseSpelersTekst(tekst) {
+  const rijen = [], fouten = [], gezien = new Set();
+  const regels = (tekst || '').split(/\r?\n/);
+  if (!regels.some(r => r.trim())) return { rijen, fouten };
+  regels.forEach((regel, i) => {
+    if (!regel.trim()) return;
+    const nr = i + 1;
+    let velden = splitsRegel(regel, detecteerScheiding(regel)).filter((v, j) => j < 2);
+    if (/^(naam|name|speler)$/i.test(velden[0] || '')) return; // header
+    if (velden.length === 2 && /^#?\d+$/.test(velden[0]) && !/^#?\d*$/.test(velden[1])) velden = [velden[1], velden[0]];
+    const [naam, nummerTxt = ''] = velden.map(v => v.trim());
+    if (!naam) { fouten.push(`Regel ${nr}: naam ontbreekt.`); return; }
+    let rugnummer = null;
+    if (nummerTxt !== '') {
+      const n = nummerTxt.replace(/^#/, '');
+      if (!/^\d+$/.test(n) || Number(n) > 99) {
+        fouten.push(`Regel ${nr}: rugnummer "${nummerTxt}" is ongeldig (0 tot 99).`); return;
+      }
+      rugnummer = Number(n);
+    }
+    const sleutel = normaliseer(naam);
+    if (gezien.has(sleutel)) { fouten.push(`Regel ${nr}: "${naam}" staat dubbel in de lijst.`); return; }
+    gezien.add(sleutel);
+    rijen.push({ naam: naam.replace(/\s+/g, ' '), rugnummer });
+  });
+  return { rijen, fouten };
+}
