@@ -5,6 +5,10 @@ import { PLOEGNAAM } from '../config.js';
 import { ploegFotoUrl, uploadPloegFoto } from '../foto.js';
 import { gekozenSeizoen, opSeizoen } from '../seizoen-keuze.js';
 
+// Officiële ploegfoto die met de site meekomt; een foto die de trainer uploadt krijgt voorrang
+const STANDAARD_FOTO = 'img/ploeg.jpg';
+const STANDAARD_CREDIT = 'Denis Luyten';
+
 // 6-meterlijn (volle lijn) en 9-meterlijn (stippellijn) rond het doel, zoals op de vloer van de sporthal
 const VELDLIJNEN = `<svg class="veldlijnen" viewBox="0 0 400 150" preserveAspectRatio="xMidYMin slice" aria-hidden="true">
   <path d="M150 0 h100" class="doel"/>
@@ -14,10 +18,12 @@ const VELDLIJNEN = `<svg class="veldlijnen" viewBox="0 0 400 150" preserveAspect
 </svg>`;
 
 export async function heroHtml({ groet, trainer = false }) {
-  const [foto, matchen] = await Promise.all([
+  const [eigenFoto, matchen] = await Promise.all([
     ploegFotoUrl(),
     q(sb.from('matches').select('datum, score_voor, score_tegen').not('score_voor', 'is', null)).catch(() => []),
   ]);
+  // Volledig adres: een relatief pad in een CSS-variabele zou vanuit css/ opgezocht worden
+  const foto = eigenFoto || new URL(STANDAARD_FOTO, location.href).href;
   const gespeeld = opSeizoen(matchen, m => m.datum);
   const w = gespeeld.filter(m => m.score_voor > m.score_tegen).length;
   const g = gespeeld.filter(m => m.score_voor === m.score_tegen).length;
@@ -32,7 +38,8 @@ export async function heroHtml({ groet, trainer = false }) {
       <p class="held-seizoen">${seizoen}</p>
       ${gespeeld.length ? `<p class="balans"><span><b>${w}</b> gewonnen</span><span><b>${g}</b> gelijk</span><span><b>${v}</b> verloren</span></p>` : ''}
     </div>
-    ${trainer ? `<button class="held-foto-knop" id="ploegFotoKies">${foto ? 'Ploegfoto wijzigen' : 'Ploegfoto toevoegen'}</button>
+    ${eigenFoto ? '' : `<p class="held-credit">📷 ${esc(STANDAARD_CREDIT)}</p>`}
+    ${trainer ? `<button class="held-foto-knop" id="ploegFotoKies">${eigenFoto ? 'Ploegfoto wijzigen' : 'Andere ploegfoto'}</button>
       <input type="file" id="ploegFotoBestand" accept="image/*" hidden>` : ''}
   </section>`;
 }

@@ -461,3 +461,4 @@ a { color: var(--accent); }
   .toast { bottom: calc(80px + env(safe-area-inset-bottom)); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+.held-credit { position: absolute; right: .9rem; bottom: .6rem; margin: 0; font-size: .75rem; opacity: .7; }
