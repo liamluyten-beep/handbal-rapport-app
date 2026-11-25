@@ -11,7 +11,7 @@ export function zetInWachtrij(wachtrij, actie) {
 export function pasToeOpLijst(server, wachtrij) {
   let lijst = [...server];
   for (const o of wachtrij) {
-    if (o.op === 'insert' && !lijst.some(r => r.id === o.rij.id)) lijst.push(o.rij);
+    if (o.op === 'insert') lijst = [...lijst.filter(r => r.id !== o.rij.id), o.rij];   // nieuw of bijgewerkt
     if (o.op === 'delete') lijst = lijst.filter(r => r.id !== o.id);
   }
   return lijst;

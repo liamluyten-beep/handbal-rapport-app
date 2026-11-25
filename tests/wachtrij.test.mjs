@@ -18,5 +18,11 @@ test('verwijderen van iets dat nog niet verstuurd is: beide verdwijnen', () => {
 test('pasToeOpLijst: lokale lijst = server + wachtrij', () => {
   const server = [{ id: 'a' }, { id: 'b' }];
   const w = [{ op: 'insert', rij: { id: 'c' } }, { op: 'delete', id: 'a' }, { op: 'insert', rij: { id: 'b' } }];
-  assert.deepEqual(pasToeOpLijst(server, w).map(r => r.id), ['b', 'c']);
+  assert.deepEqual(pasToeOpLijst(server, w).map(r => r.id).sort(), ['b', 'c']);
+});
+
+test('pasToeOpLijst: een nieuwere versie van dezelfde rij vervangt de oude (bijwerken)', () => {
+  const server = [{ id: 's1', gestopt_op: null }];
+  const w = [{ op: 'insert', rij: { id: 's1', gestopt_op: '2026-11-25T18:00' } }];
+  assert.deepEqual(pasToeOpLijst(server, w), [{ id: 's1', gestopt_op: '2026-11-25T18:00' }]);
 });

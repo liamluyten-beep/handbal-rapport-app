@@ -6,10 +6,10 @@ import { scoreReeksen, goalsReeks, formatDatum } from '../lib/voortgang.js';
 import { fotoUrls, avatarHtml, fotoKnoppenHtml } from '../foto.js';
 import { schotStats, telSoort } from '../lib/live.js';
 import { aanwezigheidStats } from '../lib/aanwezig.js';
-import { alsSchoten, doelmanStats } from '../lib/schiet.js';
+import { alsSchoten, doelmanStats, groepeerDoelmanRapport } from '../lib/schiet.js';
 
 export async function laadSpelerData(playerId) {
-  const [skills, rapporten, goals, zelf, fotos, events, aanwezig, schiet, alsDoelman, doelmannen] = await Promise.all([
+  const [skills, rapporten, goals, zelf, fotos, events, aanwezig, schiet, alsDoelman, doelmannen, sessies, dmRapport] = await Promise.all([
     q(sb.from('skills').select('*').order('volgorde')),
     q(sb.from('reports').select('*, report_scores(skill_id, score)').eq('player_id', playerId)
       .order('datum', { ascending: false }).order('created_at', { ascending: false })),
@@ -25,8 +25,11 @@ export async function laadSpelerData(playerId) {
     q(sb.from('training_schoten').select('*').eq('player_id', playerId)).catch(() => []),
     q(sb.from('training_schoten').select('*').eq('doelman_id', playerId)).catch(() => []),
     q(sb.rpc('doelmannen')).catch(() => []),
+    // Schietsessies en doelmanrapport (bestaan pas na update-11)
+    q(sb.from('schiet_sessies').select('*').eq('player_id', playerId).not('gestopt_op', 'is', null).order('gestart_op', { ascending: false })).catch(() => []),
+    q(sb.rpc('doelman_rapport', { doelman: playerId })).catch(() => null),
   ]);
-  return { skills, rapporten, goals, zelf, fotoUrl: fotos[playerId] || null, events, aanwezig, schiet, alsDoelman, doelmannen };
+  return { skills, rapporten, goals, zelf, fotoUrl: fotos[playerId] || null, events, aanwezig, schiet, alsDoelman, doelmannen, sessies, dmRapport };
 }
 
 const som = (goals, k) => goals.reduce((t, g) => t + (g[k] || 0), 0);
@@ -103,18 +106,36 @@ function schotenHtml(events, titel = 'Schoten <span class="zacht">(live genoteer
     </div>${extra}</section>`;
 }
 
-function schietHtml(schiet, alsDoelman, doelmannen) {
+function schietHtml(schiet, alsDoelman, doelmannen, sessies = [], dmRapport = null) {
   const naam = id => (id ? doelmannen.find(d => d.id === id)?.naam ?? 'doelman' : 'andere doelman');
   const perDoelman = doelmanStats(schiet).filter(d => d.opDoel);
   const tegen = perDoelman.length ? `<h3 style="margin-top:1rem">Tegen welke doelman?</h3><table class="tabel"><thead><tr><th>Doelman</th><th>Goals</th><th>Gestopt</th><th>Raak</th></tr></thead><tbody>
     ${perDoelman.map(d => `<tr><td>${esc(naam(d.doelman_id))}</td><td>${d.tegen}</td><td>${d.gestopt}</td><td>${100 - d.pct}%</td></tr>`).join('')}</tbody></table>` : '';
+  // Doelman: per training opgeteld over alle schutters (enkel afgesloten sessies)
+  const dagen = dmRapport ? groepeerDoelmanRapport(dmRapport) : [];
   const keeper = doelmanStats(alsDoelman)[0];
-  const doelmanKaart = keeper && keeper.opDoel ? `<section class="kaart"><h3>Als doelman <span class="zacht">(schiettraining)</span></h3>
-    <div class="schiet-teller"><b>${keeper.pct}%</b><span>gestopt · ${keeper.gestopt} van ${keeper.opDoel} schoten op doel</span></div></section>` : '';
-  return schotenHtml(alsSchoten(schiet), 'Schiettraining', tegen) + doelmanKaart;
+  const doelmanKaart = dagen.length ? `<section class="kaart"><h3>Doelmanrapport <span class="zacht">(schiettraining)</span></h3>
+      ${dagen.map((d, i) => `<details class="ouder" ${i === 0 ? 'open' : ''}><summary>${formatDatum(d.datum)} ·
+        <b>${d.pct ?? '–'}${d.pct != null ? '%' : ''} gestopt</b> <span class="zacht">(${d.reddingen} van ${d.opDoel} op doel${d.mis ? `, ${d.mis} naast` : ''})</span></summary>
+        <table class="tabel"><thead><tr><th>Schutter</th><th>Goals / schoten</th><th>Gestopt</th><th>Naast</th></tr></thead><tbody>
+        ${d.schutters.map(s => `<tr><td>${esc(s.schutter)}</td><td>${s.goals}/${s.schoten}</td><td>${s.reddingen}</td><td>${s.mis || ''}</td></tr>`).join('')}
+        <tr><td><b>Samen</b></td><td><b>${d.goals}/${d.schoten}</b></td><td><b>${d.reddingen}</b></td><td>${d.mis || ''}</td></tr>
+        </tbody></table></details>`).join('')}</section>`
+    : keeper && keeper.opDoel ? `<section class="kaart"><h3>Als doelman <span class="zacht">(schiettraining)</span></h3>
+      <div class="schiet-teller"><b>${keeper.pct}%</b><span>gestopt · ${keeper.gestopt} van ${keeper.opDoel} schoten op doel</span></div></section>` : '';
+
+  // Trainingsrapporten: elke afgesloten sessie apart
+  const sessieKaart = sessies.length ? `<section class="kaart"><h3>Trainingsrapporten <span class="zacht">(schiettraining)</span></h3>
+      ${sessies.map(s => {
+        const st = schotStats(alsSchoten(schiet.filter(r => r.sessie_id === s.id)));
+        return `<details class="ouder"><summary>${formatDatum(s.datum)} · <b>${st.goals}/${st.schoten}</b> ${st.pct != null ? `(${st.pct}%)` : ''}</summary>
+          ${st.perPositie.map(p => `<span class="label">${esc(p.naam)} ${p.goals}/${p.schoten}</span>`).join(' ')}</details>`;
+      }).join('')}</section>` : '';
+
+  return schotenHtml(alsSchoten(schiet), 'Schiettraining <span class="zacht">(alle sessies)</span>', tegen) + sessieKaart + doelmanKaart;
 }
 
-export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], fotoUrl = null, events = [], aanwezig = [], schiet = [], alsDoelman = [], doelmannen = [] }, { trainer = false, eigen = false } = {}) {
+export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], fotoUrl = null, events = [], aanwezig = [], schiet = [], alsDoelman = [], doelmannen = [], sessies = [], dmRapport = null }, { trainer = false, eigen = false } = {}) {
   const aw = aanwezigheidStats(aanwezig);
   const verlies = telSoort(events, 'balverlies');
   const gr = goalsReeks(goals);
@@ -174,7 +195,7 @@ export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], f
     </div>
 
     ${schotenHtml(events)}
-    ${schietHtml(schiet, alsDoelman, doelmannen)}
+    ${schietHtml(schiet, alsDoelman, doelmannen, sessies, dmRapport)}
 
     ${rapporten.length > 1 ? `<section class="kaart"><h3>Eerdere rapporten</h3>
       ${rapporten.slice(1).map((r, i) => `<details class="ouder"><summary>${formatDatum(r.datum)}

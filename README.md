@@ -78,11 +78,13 @@ Zet in Supabase onder **Authentication → URL Configuration → Redirect URLs**
   "Iedereen aanwezig" en dan wie er niet was). Elke speler ziet zijn aanwezigheidspercentage op zijn pagina.
 
 ### Schiettraining
-Eenmalig: voer [`supabase/update-10-schiettraining.sql`](supabase/update-10-schiettraining.sql) uit in de SQL Editor.
+Eenmalig: voer [`supabase/update-10-schiettraining.sql`](supabase/update-10-schiettraining.sql) en [`supabase/update-11-schietsessies.sql`](supabase/update-11-schietsessies.sql) uit in de SQL Editor.
 Geef je doelmannen de positie **Doelman** (bij Gegevens of door de speler zelf), dan kunnen spelers ze kiezen.
 
-- De speler opent **Home → Schiettraining**, kiest de **doelman** en zijn **positie** (die blijven staan), en tikt na elk schot
+- De speler opent **Home → Schiettraining** en klikt **▶ Start**. Hij kiest de **doelman** en zijn **positie** (die blijven staan), en tikt na elk schot
   waar het ging in het doel → **Goal** of **Gestopt**. Een misser is één tik: **Naast / over / paal**. Werkt ook met slechte wifi.
+- Op het einde: **■ Stop training** → hij ziet meteen zijn resultaten; de sessie komt bij zijn **trainingsrapporten**.
+- De **doelman** krijgt per training een doelmanrapport: alle schutters samen (bv. Alex 3/4 + Warre 5/6 = 8/10 → 20% gestopt), telkens zodra een schutter zijn sessie afsluit. Schoten naast tellen niet mee in het percentage.
 - Op de spelerspagina: trefzekerheid per positie, per doelman en een doelkaart. Een doelman ziet ook zijn reddingspercentage.
 - Bij **Trainingen** ziet de trainer de trefzekerheid per speler en het reddingspercentage per doelman.
 
