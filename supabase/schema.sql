@@ -238,7 +238,7 @@ create policy selfscores_eigen on public.self_report_scores for all
 
 -- ---------- Posities: speler mag enkel dit veld van zichzelf aanpassen ----------
 create or replace function public.zet_mijn_posities(posities text[])
-returns text language plpgsql security definer set search_path = public as $
+returns text language plpgsql security definer set search_path = public as $$
 declare
   toegelaten text[] := array['Doelman','Linkerhoek','Linkeropbouw','Spelverdeler','Rechteropbouw','Rechterhoek','Cirkelloper'];
   p text;
@@ -255,7 +255,7 @@ begin
   if not found then raise exception 'Je account is nog niet gekoppeld aan een speler.'; end if;
   return resultaat;
 end;
-$;
+$$;
 
 revoke all on function public.zet_mijn_posities(text[]) from public, anon;
 grant execute on function public.zet_mijn_posities(text[]) to authenticated;
@@ -266,7 +266,7 @@ grant execute on function public.zet_mijn_posities(text[]) to authenticated;
 -- E-mail van een gekoppelde speler wijzigen naar het adres van zijn eigen account
 -- mag de koppeling niet verbreken.
 create or replace function public.link_player_to_user()
-returns trigger language plpgsql security definer set search_path = public as $
+returns trigger language plpgsql security definer set search_path = public as $$
 begin
   if new.email is not null then
     new.email := lower(trim(new.email));
@@ -285,29 +285,29 @@ begin
   end if;
   return new;
 end;
-$;
+$$;
 
 -- Hulp: e-mailadres van de ingelogde gebruiker
 create or replace function public.mijn_email()
-returns text language sql stable security definer set search_path = public as $
+returns text language sql stable security definer set search_path = public as $$
   select lower(email) from auth.users where id = auth.uid();
-$;
+$$;
 
 -- Lijst van spelers die nog niemand gekozen heeft (enkel naam en nummer)
 create or replace function public.vrije_spelers()
 returns table (id uuid, naam text, rugnummer int)
-language sql stable security definer set search_path = public as $
+language sql stable security definer set search_path = public as $$
   select p.id, p.naam, p.rugnummer from public.players p
    where p.user_id is null
      and auth.uid() is not null
      and (p.email is null or p.email = public.mijn_email())
      and public.my_player_id() is null
    order by p.naam;
-$;
+$$;
 
 -- "Dit ben ik": koppel het account aan een bestaande, vrije speler
 create or replace function public.kies_mijn_speler(speler uuid)
-returns void language plpgsql security definer set search_path = public as $
+returns void language plpgsql security definer set search_path = public as $$
 declare
   mail text := public.mijn_email();
 begin
@@ -320,11 +320,11 @@ begin
    where id = speler and user_id is null and (email is null or email = mail);
   if not found then raise exception 'Deze speler is niet (meer) beschikbaar.'; end if;
 end;
-$;
+$$;
 
 -- "Ik sta er niet tussen": maak een nieuwe speler aan voor dit account
 create or replace function public.maak_mijn_speler(naam text, rugnummer int default null)
-returns uuid language plpgsql security definer set search_path = public as $
+returns uuid language plpgsql security definer set search_path = public as $$
 declare
   mail text := public.mijn_email();
   schoon text := regexp_replace(trim(coalesce(naam, '')), '\s+', ' ', 'g');
@@ -345,7 +345,7 @@ begin
   returning id into nieuw;
   return nieuw;
 end;
-$;
+$$;
 
 revoke all on function public.vrije_spelers() from public, anon;
 revoke all on function public.kies_mijn_speler(uuid) from public, anon;
@@ -424,13 +424,13 @@ alter table public.profiles drop constraint if exists profiles_role_check;
 alter table public.profiles add constraint profiles_role_check check (role in ('trainer', 'speler', 'watcher'));
 
 create or replace function public.is_watcher()
-returns boolean language sql stable security definer set search_path = public as $
+returns boolean language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.profiles where id = auth.uid() and role = 'watcher');
-$;
+$$;
 
 -- Trainer geeft (of neemt) iemand de watcher-rol. Trainer-rol kan zo niet uitgedeeld worden.
 create or replace function public.zet_rol(gebruiker uuid, rol text)
-returns void language plpgsql security definer set search_path = public as $
+returns void language plpgsql security definer set search_path = public as $$
 begin
   if not public.is_trainer() then raise exception 'Enkel de trainer kan rollen wijzigen.'; end if;
   if rol not in ('speler', 'watcher') then raise exception 'Ongeldige rol.'; end if;
@@ -441,7 +441,7 @@ begin
   update public.profiles set role = rol where id = gebruiker;
   if not found then raise exception 'Account niet gevonden.'; end if;
 end;
-$;
+$$;
 revoke all on function public.zet_rol(uuid, text) from public, anon;
 grant execute on function public.zet_rol(uuid, text) to authenticated;
 
@@ -463,17 +463,17 @@ create policy events_watcher on public.match_events for all
 alter table public.matches add column if not exists klok jsonb;
 
 create or replace function public.zet_klok(wedstrijd uuid, klok jsonb)
-returns void language plpgsql security definer set search_path = public as $
+returns void language plpgsql security definer set search_path = public as $$
 begin
   if not (public.is_trainer() or public.is_watcher()) then raise exception 'Geen toegang.'; end if;
   update public.matches set klok = zet_klok.klok where id = wedstrijd;
 end;
-$;
+$$;
 revoke all on function public.zet_klok(uuid, jsonb) from public, anon;
 grant execute on function public.zet_klok(uuid, jsonb) to authenticated;
 
 -- ---------- Live updates (Supabase Realtime) ----------
-do $
+do $$
 begin
   if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'match_events') then
     alter publication supabase_realtime add table public.match_events;
@@ -481,7 +481,7 @@ begin
   if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'matches') then
     alter publication supabase_realtime add table public.matches;
   end if;
-end $;
+end $$;
 
 
 
@@ -492,19 +492,19 @@ alter table public.profiles add column if not exists kan_watchen boolean not nul
 update public.profiles set kan_watchen = true, role = 'speler' where role = 'watcher';
 
 create or replace function public.is_watcher()
-returns boolean language sql stable security definer set search_path = public as $
+returns boolean language sql stable security definer set search_path = public as $$
   select exists (select 1 from public.profiles where id = auth.uid() and (kan_watchen or role = 'watcher'));
-$;
+$$;
 
 -- Trainer zet het watcher-vinkje aan of uit
 create or replace function public.zet_watcher(gebruiker uuid, aan boolean)
-returns void language plpgsql security definer set search_path = public as $
+returns void language plpgsql security definer set search_path = public as $$
 begin
   if not public.is_trainer() then raise exception 'Enkel de trainer kan dit wijzigen.'; end if;
   update public.profiles set kan_watchen = coalesce(aan, false) where id = gebruiker;
   if not found then raise exception 'Account niet gevonden.'; end if;
 end;
-$;
+$$;
 revoke all on function public.zet_watcher(uuid, boolean) from public, anon;
 grant execute on function public.zet_watcher(uuid, boolean) to authenticated;
 
@@ -516,7 +516,7 @@ grant execute on function public.zet_watcher(uuid, boolean) to authenticated;
 --                     die persoon zich niet automatisch opnieuw kan koppelen).
 -- Live schoten in wedstrijden blijven bestaan, zonder speler (ploegstatistieken blijven kloppen).
 create or replace function public.verwijder_account(gebruiker uuid, ook_speler boolean default false)
-returns void language plpgsql security definer set search_path = public, auth as $
+returns void language plpgsql security definer set search_path = public, auth as $$
 begin
   if not public.is_trainer() then raise exception 'Enkel de trainer kan accounts verwijderen.'; end if;
   if gebruiker = auth.uid() then raise exception 'Je kunt je eigen account hier niet verwijderen.'; end if;
@@ -534,7 +534,7 @@ begin
   delete from auth.users where id = gebruiker;                          -- login, sessies en identiteiten gaan mee
   if not found then raise exception 'Account niet gevonden.'; end if;
 end;
-$;
+$$;
 revoke all on function public.verwijder_account(uuid, boolean) from public, anon;
 grant execute on function public.verwijder_account(uuid, boolean) to authenticated;
 
@@ -579,7 +579,7 @@ create policy aanwezig_eigen on public.aanwezigheden for select using (player_id
 create extension if not exists pgcrypto with schema extensions;
 
 create or replace function public.zet_wachtwoord(gebruiker uuid, wachtwoord text)
-returns void language plpgsql security definer set search_path = public, auth, extensions as $
+returns void language plpgsql security definer set search_path = public, auth, extensions as $$
 begin
   if not public.is_trainer() then raise exception 'Enkel de trainer kan dit.'; end if;
   if gebruiker = auth.uid() then raise exception 'Wijzig je eigen wachtwoord via "Wachtwoord vergeten".'; end if;
@@ -591,7 +591,7 @@ begin
    where id = gebruiker;
   if not found then raise exception 'Account niet gevonden.'; end if;
 end;
-$;
+$$;
 revoke all on function public.zet_wachtwoord(uuid, text) from public, anon;
 grant execute on function public.zet_wachtwoord(uuid, text) to authenticated;
 
@@ -631,11 +631,11 @@ create policy ts_doelman on public.training_schoten for select
 -- Lijst van doelmannen om uit te kiezen (enkel naam en nummer, voor elke ingelogde speler)
 create or replace function public.doelmannen()
 returns table (id uuid, naam text, rugnummer int)
-language sql stable security definer set search_path = public as $
+language sql stable security definer set search_path = public as $$
   select p.id, p.naam, p.rugnummer from public.players p
    where auth.uid() is not null and p.positie ilike '%doelman%'
    order by p.naam;
-$;
+$$;
 revoke all on function public.doelmannen() from public, anon;
 grant execute on function public.doelmannen() to authenticated;
 
@@ -666,7 +666,7 @@ create policy sessies_eigen on public.schiet_sessies for all
 -- Mag opgevraagd worden door de trainer of door de doelman zelf.
 create or replace function public.doelman_rapport(doelman uuid)
 returns table (datum date, schutter text, schoten int, goals int, reddingen int, mis int)
-language plpgsql stable security definer set search_path = public as $
+language plpgsql stable security definer set search_path = public as $$
 begin
   if not (public.is_trainer() or doelman = public.my_player_id()) then
     raise exception 'Geen toegang tot dit doelmanrapport.';
@@ -684,7 +684,7 @@ begin
      group by t.datum, p.naam
      order by t.datum desc, p.naam;
 end;
-$;
+$$;
 revoke all on function public.doelman_rapport(uuid) from public, anon;
 grant execute on function public.doelman_rapport(uuid) to authenticated;
 
