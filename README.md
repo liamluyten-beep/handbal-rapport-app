@@ -70,7 +70,7 @@ De gespeelde wedstrijden en line-up-statistieken (goals, 7 meters, kaarten, 2 mi
 2. Ga naar **Importeren → Van Clubee**. Clubee toont alleen initialen (bv. `#11 N... L...`). De app koppelt die automatisch aan je spelers via initialen en rugnummer. Kies bij twijfel zelf de juiste speler. Je keuze wordt onthouden.
 3. Klik **Importeren**. Je kunt dit gerust opnieuw doen: wedstrijden worden bijgewerkt, niet verdubbeld.
 
-**Nieuwe wedstrijden ophalen:** voer `node tools/clubee-ophalen.mjs` uit in deze map en push `data/clubee.json` naar GitHub.
+**Nieuwe wedstrijden ophalen:** dat gebeurt elke ochtend automatisch via GitHub Actions (`.github/workflows/clubee.yml`). Meteen ophalen? Ga op GitHub naar **Actions → Clubee-wedstrijden ophalen → Run workflow**. Lokaal kan ook: `node tools/clubee-ophalen.mjs`.
 Een andere competitie of ploeg? Pas `clubee.config.json` aan.
 
 ---
