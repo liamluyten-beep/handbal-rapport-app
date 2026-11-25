@@ -4,6 +4,7 @@ import { sessie } from '../app.js';
 import { laadSpelerData, renderOverzicht } from './overzicht.js';
 import { leesPosities, controleerPosities, positieVakjesHtml, koppelPositieVakjes } from '../lib/posities.js';
 import { zoekSpelers } from '../lib/importeer.js';
+import { koppelFotoKnoppen } from '../foto.js';
 
 export async function mijnView() {
   laden();
@@ -24,6 +25,7 @@ export async function mijnView() {
     ${html}`);
   tekenGrafieken();
   koppelPositieVakjes(document);
+  koppelFotoKnoppen(speler.id, !!data.fotoUrl, mijnView);
 
   document.getElementById('mijnPosities').onclick = () => {
     const k = document.getElementById('positieKaart'); k.hidden = !k.hidden;

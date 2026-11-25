@@ -2,6 +2,7 @@ import { sb, q } from '../supabase.js';
 import { toon, esc, laden, melding } from '../ui.js';
 import { parseSpelersTekst, normaliseer } from '../lib/importeer.js';
 import { leesPosities, positieVakjesHtml, koppelPositieVakjes } from '../lib/posities.js';
+import { fotoUrls, avatarHtml } from '../foto.js';
 
 export function spelerFormulier(s = {}) {
   return `<div class="velden">
@@ -26,6 +27,7 @@ export async function spelersView() {
   laden();
   const spelers = await q(sb.from('players').select('*, reports(datum)').order('rugnummer', { nullsFirst: false }).order('naam'));
   const zonderNummer = spelers.filter(s => s.rugnummer == null).length;
+  const fotos = await fotoUrls(spelers.map(s => s.id));
   toon(`
     <div class="paginakop"><div><h1>Spelers</h1><p class="zacht">${spelers.length} spelers in de ploeg
       ${zonderNummer ? ` · <span class="rood">${zonderNummer} zonder rugnummer</span>` : ''}</p></div>
@@ -57,7 +59,7 @@ Noah Janssens</code></pre>
 
     ${spelers.length ? `<div class="spelers">${spelers.map(s => `
       <a class="speler-kaart ${s.rugnummer == null ? 'zonder-nummer' : ''}" href="#/speler/${s.id}">
-        <div class="nummer">${esc(s.rugnummer ?? '?')}</div>
+        ${avatarHtml(fotos[s.id], s.rugnummer)}
         <div><div class="naam">${esc(s.naam)}</div>
           <div class="info">${s.rugnummer == null ? '<span class="rood">Nog geen rugnummer</span> · ' : ''}${esc(s.positie || 'Geen positie')} · ${s.reports.length} rapport${s.reports.length === 1 ? '' : 'en'}</div>
           <div class="info">${s.user_id ? '<span class="label ok">kan inloggen</span>' : s.email ? '<span class="label">nog niet geregistreerd</span>' : '<span class="label">geen e-mail</span>'}</div></div></a>`).join('')}</div>`

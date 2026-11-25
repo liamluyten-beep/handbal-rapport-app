@@ -3,9 +3,10 @@
 import { sb, q } from '../supabase.js';
 import { esc, tekstBlok, lijnGrafiek, staafGrafiek } from '../ui.js';
 import { scoreReeksen, goalsReeks, formatDatum } from '../lib/voortgang.js';
+import { fotoUrls, avatarHtml, fotoKnoppenHtml } from '../foto.js';
 
 export async function laadSpelerData(playerId) {
-  const [skills, rapporten, goals, zelf] = await Promise.all([
+  const [skills, rapporten, goals, zelf, fotos] = await Promise.all([
     q(sb.from('skills').select('*').order('volgorde')),
     q(sb.from('reports').select('*, report_scores(skill_id, score)').eq('player_id', playerId)
       .order('datum', { ascending: false }).order('created_at', { ascending: false })),
@@ -13,8 +14,9 @@ export async function laadSpelerData(playerId) {
     // Zelfevaluaties (bestaat pas na update-2-speler.sql; zonder die tabel gewoon leeg)
     q(sb.from('self_reports').select('*, self_report_scores(skill_id, score)').eq('player_id', playerId)
       .order('datum', { ascending: false }).order('created_at', { ascending: false })).catch(() => []),
+    fotoUrls([playerId]),
   ]);
-  return { skills, rapporten, goals, zelf };
+  return { skills, rapporten, goals, zelf, fotoUrl: fotos[playerId] || null };
 }
 
 const som = (goals, k) => goals.reduce((t, g) => t + (g[k] || 0), 0);
@@ -72,7 +74,7 @@ function zelfHtml(z, rapport, skills, eigen) {
       <tbody>${rijen}</tbody></table>` : ''}`;
 }
 
-export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [] }, { trainer = false, eigen = false } = {}) {
+export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], fotoUrl = null }, { trainer = false, eigen = false } = {}) {
   const gr = goalsReeks(goals);
   const sr = scoreReeksen(rapporten, skills);
   const laatste = rapporten[0];
@@ -84,8 +86,9 @@ export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [] },
   const html = `
     <div class="paginakop">
       <div class="rij">
-        <div class="nummer">${esc(speler.rugnummer ?? '–')}</div>
-        <div><h1>${esc(speler.naam)}</h1><p class="zacht">${esc(speler.positie || '')}</p></div>
+        ${avatarHtml(fotoUrl, speler.rugnummer, 'groot')}
+        <div><h1>${esc(speler.naam)}</h1><p class="zacht">${esc(speler.positie || '')}</p>
+          ${trainer || eigen ? `<div class="rij geen-print" style="gap:.4rem;margin-top:.4rem">${fotoKnoppenHtml(!!fotoUrl)}</div>` : ''}</div>
       </div>
       ${trainer ? `<div class="rij geen-print">
         <a class="knop" href="#/rapport/nieuw/${speler.id}">+ Nieuw rapport</a>

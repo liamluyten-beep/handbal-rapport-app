@@ -48,7 +48,7 @@ function nietGeconfigureerd() {
 
 function loginView(modus = 'login') {
   const reg = modus === 'registreer';
-  toon(`<section class="kaart smal login">
+  toon(`<section class="kaart smal login"><img class="login-logo" src="img/logo.png" alt="Logo">
     <h2>${reg ? 'Account aanmaken' : 'Inloggen'}</h2>
     <p class="zacht">${reg
       ? 'Maak een account aan met je e-mailadres. Daarna kies je wie je bent.'

@@ -3,6 +3,7 @@ import { toon, laden, melding, esc } from '../ui.js';
 import { laadSpelerData, renderOverzicht } from './overzicht.js';
 import { spelerFormulier, leesSpeler } from './spelers.js';
 import { koppelPositieVakjes } from '../lib/posities.js';
+import { koppelFotoKnoppen, verwijderFoto } from '../foto.js';
 
 export async function spelerView(id) {
   laden();
@@ -25,6 +26,7 @@ export async function spelerView(id) {
     ${html}`);
   tekenGrafieken();
   koppelPositieVakjes(document);
+  koppelFotoKnoppen(id, !!data.fotoUrl, () => spelerView(id));
 
   const ontkoppel = document.getElementById('ontkoppel');
   if (ontkoppel) ontkoppel.onclick = async () => {
@@ -50,6 +52,7 @@ export async function spelerView(id) {
   document.getElementById('verwijder').onclick = async () => {
     if (!confirm(`${speler.naam} en al zijn/haar rapporten en goals definitief verwijderen?`)) return;
     try {
+      await verwijderFoto(id).catch(() => {});
       await q(sb.from('players').delete().eq('id', id));
       melding('Speler verwijderd');
       location.hash = '#/spelers';
