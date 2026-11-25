@@ -6,9 +6,10 @@ import { scoreReeksen, goalsReeks, formatDatum } from '../lib/voortgang.js';
 import { fotoUrls, avatarHtml, fotoKnoppenHtml } from '../foto.js';
 import { schotStats, telSoort } from '../lib/live.js';
 import { aanwezigheidStats } from '../lib/aanwezig.js';
+import { alsSchoten, doelmanStats } from '../lib/schiet.js';
 
 export async function laadSpelerData(playerId) {
-  const [skills, rapporten, goals, zelf, fotos, events, aanwezig] = await Promise.all([
+  const [skills, rapporten, goals, zelf, fotos, events, aanwezig, schiet, alsDoelman, doelmannen] = await Promise.all([
     q(sb.from('skills').select('*').order('volgorde')),
     q(sb.from('reports').select('*, report_scores(skill_id, score)').eq('player_id', playerId)
       .order('datum', { ascending: false }).order('created_at', { ascending: false })),
@@ -20,8 +21,12 @@ export async function laadSpelerData(playerId) {
     q(sb.from('match_events').select('*').eq('player_id', playerId).in('soort', ['schot', 'balverlies'])).catch(() => []),
     // Aanwezigheden (bestaat pas na update-9)
     q(sb.from('aanwezigheden').select('status, trainingen(datum)').eq('player_id', playerId)).catch(() => []),
+    // Schiettraining (bestaat pas na update-10)
+    q(sb.from('training_schoten').select('*').eq('player_id', playerId)).catch(() => []),
+    q(sb.from('training_schoten').select('*').eq('doelman_id', playerId)).catch(() => []),
+    q(sb.rpc('doelmannen')).catch(() => []),
   ]);
-  return { skills, rapporten, goals, zelf, fotoUrl: fotos[playerId] || null, events, aanwezig };
+  return { skills, rapporten, goals, zelf, fotoUrl: fotos[playerId] || null, events, aanwezig, schiet, alsDoelman, doelmannen };
 }
 
 const som = (goals, k) => goals.reduce((t, g) => t + (g[k] || 0), 0);
@@ -79,11 +84,11 @@ function zelfHtml(z, rapport, skills, eigen) {
       <tbody>${rijen}</tbody></table>` : ''}`;
 }
 
-function schotenHtml(events) {
+function schotenHtml(events, titel = 'Schoten <span class="zacht">(live genoteerd)</span>', extra = '') {
   const s = schotStats(events);
   if (!s.schoten) return '';
   const max = Math.max(1, ...s.perZone.map(z => z.goals + z.gestopt));
-  return `<section class="kaart"><h3>Schoten <span class="zacht">(live genoteerd)</span></h3>
+  return `<section class="kaart"><h3>${titel}</h3>
     <p><b>${s.goals}</b> goals op <b>${s.schoten}</b> schoten · <b>${s.pct}%</b></p>
     <div class="raster">
       <div><table class="tabel"><thead><tr><th>Positie</th><th>Goals/schoten</th><th>%</th></tr></thead><tbody>
@@ -95,10 +100,21 @@ function schotenHtml(events) {
           return `<div class="vak" style="background:color-mix(in srgb, var(--goed) ${z.goals + z.gestopt ? Math.max(12, Math.round(sterkte * (z.goals / Math.max(1, z.goals + z.gestopt)))) : 0}%, var(--kaart))">
             ${z.goals + z.gestopt ? `<span><b>${z.goals}</b>${z.gestopt ? `${z.gestopt} gestopt` : 'goal' + (z.goals === 1 ? '' : 's')}</span>` : ''}</div>`;
         }).join('')}</div></div>
-    </div></section>`;
+    </div>${extra}</section>`;
 }
 
-export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], fotoUrl = null, events = [], aanwezig = [] }, { trainer = false, eigen = false } = {}) {
+function schietHtml(schiet, alsDoelman, doelmannen) {
+  const naam = id => (id ? doelmannen.find(d => d.id === id)?.naam ?? 'doelman' : 'andere doelman');
+  const perDoelman = doelmanStats(schiet).filter(d => d.opDoel);
+  const tegen = perDoelman.length ? `<h3 style="margin-top:1rem">Tegen welke doelman?</h3><table class="tabel"><thead><tr><th>Doelman</th><th>Goals</th><th>Gestopt</th><th>Raak</th></tr></thead><tbody>
+    ${perDoelman.map(d => `<tr><td>${esc(naam(d.doelman_id))}</td><td>${d.tegen}</td><td>${d.gestopt}</td><td>${100 - d.pct}%</td></tr>`).join('')}</tbody></table>` : '';
+  const keeper = doelmanStats(alsDoelman)[0];
+  const doelmanKaart = keeper && keeper.opDoel ? `<section class="kaart"><h3>Als doelman <span class="zacht">(schiettraining)</span></h3>
+    <div class="schiet-teller"><b>${keeper.pct}%</b><span>gestopt · ${keeper.gestopt} van ${keeper.opDoel} schoten op doel</span></div></section>` : '';
+  return schotenHtml(alsSchoten(schiet), 'Schiettraining', tegen) + doelmanKaart;
+}
+
+export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], fotoUrl = null, events = [], aanwezig = [], schiet = [], alsDoelman = [], doelmannen = [] }, { trainer = false, eigen = false } = {}) {
   const aw = aanwezigheidStats(aanwezig);
   const verlies = telSoort(events, 'balverlies');
   const gr = goalsReeks(goals);
@@ -158,6 +174,7 @@ export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], f
     </div>
 
     ${schotenHtml(events)}
+    ${schietHtml(schiet, alsDoelman, doelmannen)}
 
     ${rapporten.length > 1 ? `<section class="kaart"><h3>Eerdere rapporten</h3>
       ${rapporten.slice(1).map((r, i) => `<details class="ouder"><summary>${formatDatum(r.datum)}

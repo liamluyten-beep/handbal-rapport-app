@@ -34,6 +34,7 @@ export async function homeView() {
     delen.push(`<div class="tegels">
       ${tegel('#/mijn', '📋', 'Mijn rapport', rapport[0] ? `laatste: ${formatDatum(rapport[0].datum)}` : 'nog geen rapport')}
       ${tegel('#/matchen', '🤾', 'Mijn matchen', `${goals.length} matchen · ${totaal} goals`)}
+      ${tegel('#/schieten', '🎯', 'Schiettraining', 'noteer je schoten')}
       ${tegel('#/zelfevaluatie/nieuw', '🪞', 'Zelfevaluatie', 'hoe vind jij dat het gaat?')}
       ${sessie.watcher ? tegel('#/watcher', '📝', 'Alle matchen volgen', 'als matchwatcher') : ''}
     </div>`);

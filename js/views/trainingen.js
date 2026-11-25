@@ -3,6 +3,7 @@ import { sb, q } from '../supabase.js';
 import { toon, esc, laden, melding, vandaag } from '../ui.js';
 import { formatDatum } from '../lib/voortgang.js';
 import { STATUSSEN, volgendeStatus, aanwezigheidStats } from '../lib/aanwezig.js';
+import { doelmanStats } from '../lib/schiet.js';
 
 const NIET_KLAAR = /trainingen|aanwezigheden|schema cache/i;
 const nietKlaar = err => (NIET_KLAAR.test(err.message) ? new Error('Voer eerst supabase/update-9-balverlies-training.sql uit in Supabase.') : err);
@@ -16,9 +17,10 @@ export async function openTraining(datum = vandaag()) {
 
 export async function trainingenView() {
   laden();
-  const [trainingen, spelers] = await Promise.all([
+  const [trainingen, spelers, schoten] = await Promise.all([
     q(sb.from('trainingen').select('*, aanwezigheden(player_id, status)').order('datum', { ascending: false })).catch(e => { throw nietKlaar(e); }),
     q(sb.from('players').select('id, naam, rugnummer').order('naam')),
+    q(sb.from('training_schoten').select('player_id, doelman_id, resultaat')).catch(() => []),
   ]);
   const alle = trainingen.flatMap(t => t.aanwezigheden);
   const perSpeler = spelers.map(s => ({ s, st: aanwezigheidStats(alle.filter(a => a.player_id === s.id)) }))
@@ -43,7 +45,8 @@ export async function trainingenView() {
           <b>${st.pct == null ? '–' : st.pct + '%'}</b><small class="zacht">${st.aanwezig}/${st.totaal}</small></div>`).join('')}
         <p class="zacht" style="font-size:.85rem">Wie het minst aanwezig was, staat bovenaan.</p>
       </section>
-    </div>`);
+    </div>
+    ${schietOverzicht(schoten, spelers)}`);
 
   document.getElementById('vandaag').onclick = () => openTraining().catch(e => melding(e.message, 'fout'));
   document.getElementById('openDatum').onclick = () =>
@@ -122,4 +125,29 @@ export async function trainingView(id) {
     catch (err) { melding(err.message, 'fout'); }
   };
   teken();
+}
+
+// Ploegoverzicht van de schiettraining: trefzekerheid per speler en reddingen per doelman
+function schietOverzicht(schoten, spelers) {
+  if (!schoten.length) return '';
+  const naam = id => spelers.find(s => s.id === id)?.naam ?? 'andere doelman';
+  const perSpeler = spelers.map(s => {
+    const eigen = schoten.filter(r => r.player_id === s.id);
+    const goals = eigen.filter(r => r.resultaat === 'goal').length;
+    return { s, n: eigen.length, goals, pct: eigen.length ? Math.round(100 * goals / eigen.length) : null };
+  }).filter(x => x.n).sort((a, b) => b.pct - a.pct);
+  const keepers = doelmanStats(schoten).filter(d => d.opDoel);
+  return `<div class="raster">
+    <section class="kaart"><h3>Schiettraining: trefzekerheid</h3>
+      ${perSpeler.map(x => `<div class="pos-rij"><span><a href="#/speler/${x.s.id}">${esc(x.s.naam)}</a></span>
+        <div class="pos-balk"><span class="pb-goal" style="width:${x.pct}%"></span></div>
+        <b>${x.pct}%</b><small class="zacht">${x.goals}/${x.n}</small></div>`).join('')}
+    </section>
+    <section class="kaart"><h3>Schiettraining: doelmannen</h3>
+      ${keepers.length ? keepers.map(d => `<div class="pos-rij"><span>${esc(naam(d.doelman_id))}</span>
+        <div class="pos-balk"><span class="pb-goal" style="width:${d.pct}%;background:var(--goed)"></span></div>
+        <b>${d.pct}%</b><small class="zacht">${d.gestopt}/${d.opDoel}</small></div>`).join('') : '<p class="zacht">Nog geen schoten op een doelman.</p>'}
+      <p class="zacht" style="font-size:.85rem">Percentage gestopt van de schoten op doel.</p>
+    </section>
+  </div>`;
 }

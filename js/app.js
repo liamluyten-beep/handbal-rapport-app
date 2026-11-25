@@ -16,6 +16,7 @@ import { accountsView } from './views/accounts.js';
 import { homeView } from './views/home.js';
 import { mijnMatchenView } from './views/matchen.js';
 import { trainingenView, trainingView } from './views/trainingen.js';
+import { schietenView } from './views/schieten.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
 
@@ -211,6 +212,7 @@ async function route() {
       if (pad === 'zelfevaluatie') return await zelfevaluatieView(a === 'nieuw' ? null : a);
       if (pad === 'mijn' || pad === 'kies') return await mijnView();
       if (pad === 'matchen') return await mijnMatchenView();
+      if (pad === 'schieten') return await schietenView();
       return await homeView();
     }
     switch (pad) {

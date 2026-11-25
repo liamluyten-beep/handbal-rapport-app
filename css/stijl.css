@@ -341,3 +341,13 @@ details.ouder summary { cursor: pointer; font-weight: 600; padding: .4rem 0; }
 .aanwezig-tegel[data-status="afwezig"] { border-color: var(--fout); }
 .aanwezig-tegel[data-status="afwezig"] .aw-nr { background: var(--fout); color: #fff; }
 .aanwezig-tegel[data-status="afwezig"] .aw-status { color: var(--fout); }
+
+/* ---------- Schiettraining ---------- */
+.kaart.compact { padding: 1rem; }
+.keuze-titel { font: 700 .8rem var(--body); text-transform: uppercase; letter-spacing: .06em; color: var(--tekst-zacht); margin: .2rem 0 .4rem; }
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .6rem; }
+.chips button { border: 2px solid var(--lijn); background: var(--bg); color: var(--tekst); border-radius: 999px;
+  padding: .5rem .85rem; font: 600 .9rem var(--body); cursor: pointer; touch-action: manipulation; }
+.chips button.actief { background: var(--accent); border-color: var(--accent); color: #fff; }
+.schiet-teller { display: flex; align-items: baseline; gap: .6rem; margin-bottom: .5rem; }
+.schiet-teller b { font: 800 2.4rem/1 var(--display); color: var(--accent); }
