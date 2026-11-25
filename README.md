@@ -36,10 +36,15 @@ Zet daarna in Supabase onder **Authentication → URL Configuration** de **Site 
 ## Stap 3: Jezelf trainer maken
 
 1. Open je website, klik **Account aanmaken** en registreer je met je eigen e-mailadres.
-2. Ga in Supabase naar de **SQL Editor** en voer dit uit, met je eigen e-mailadres:
+2. Ga in Supabase naar de **SQL Editor** en voer dit uit, met je eigen e-mailadres (hoofdletters maken niet uit):
    ```sql
-   update public.profiles set role = 'trainer' where email = 'jouw@email.be';
+   insert into public.profiles (id, email, role)
+   select id, lower(email), 'trainer' from auth.users
+   where lower(email) = lower('jouw@email.be')
+   on conflict (id) do update set role = 'trainer'
+   returning email, role;
    ```
+   Je ziet nu één rij met `trainer`. Zie je 0 rijen, registreer je dan eerst op de site.
 3. Herlaad de website. Je ziet nu bovenaan **Spelers, Wedstrijden, Importeren, Vaardigheden**.
 
 ## Stap 4: Spelers uitnodigen

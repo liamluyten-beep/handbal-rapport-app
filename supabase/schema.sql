@@ -189,5 +189,5 @@ on conflict (naam) do nothing;
 -- NA JE EIGEN REGISTRATIE in de app: maak jezelf trainer.
 -- Vervang het e-mailadres en voer enkel deze regel uit:
 --
---   update public.profiles set role = 'trainer' where email = 'jouw@email.be';
+--   update public.profiles set role = 'trainer' where email = lower('jouw@email.be') returning email, role;
 -- =========================================================
