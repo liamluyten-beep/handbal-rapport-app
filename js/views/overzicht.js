@@ -4,10 +4,11 @@ import { sb, q } from '../supabase.js';
 import { esc, tekstBlok, lijnGrafiek, staafGrafiek } from '../ui.js';
 import { scoreReeksen, goalsReeks, formatDatum } from '../lib/voortgang.js';
 import { fotoUrls, avatarHtml, fotoKnoppenHtml } from '../foto.js';
-import { schotStats } from '../lib/live.js';
+import { schotStats, telSoort } from '../lib/live.js';
+import { aanwezigheidStats } from '../lib/aanwezig.js';
 
 export async function laadSpelerData(playerId) {
-  const [skills, rapporten, goals, zelf, fotos, events] = await Promise.all([
+  const [skills, rapporten, goals, zelf, fotos, events, aanwezig] = await Promise.all([
     q(sb.from('skills').select('*').order('volgorde')),
     q(sb.from('reports').select('*, report_scores(skill_id, score)').eq('player_id', playerId)
       .order('datum', { ascending: false }).order('created_at', { ascending: false })),
@@ -16,9 +17,11 @@ export async function laadSpelerData(playerId) {
     q(sb.from('self_reports').select('*, self_report_scores(skill_id, score)').eq('player_id', playerId)
       .order('datum', { ascending: false }).order('created_at', { ascending: false })).catch(() => []),
     fotoUrls([playerId]),
-    q(sb.from('match_events').select('*').eq('player_id', playerId).eq('soort', 'schot')).catch(() => []),
+    q(sb.from('match_events').select('*').eq('player_id', playerId).in('soort', ['schot', 'balverlies'])).catch(() => []),
+    // Aanwezigheden (bestaat pas na update-9)
+    q(sb.from('aanwezigheden').select('status, trainingen(datum)').eq('player_id', playerId)).catch(() => []),
   ]);
-  return { skills, rapporten, goals, zelf, fotoUrl: fotos[playerId] || null, events };
+  return { skills, rapporten, goals, zelf, fotoUrl: fotos[playerId] || null, events, aanwezig };
 }
 
 const som = (goals, k) => goals.reduce((t, g) => t + (g[k] || 0), 0);
@@ -95,7 +98,9 @@ function schotenHtml(events) {
     </div></section>`;
 }
 
-export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], fotoUrl = null, events = [] }, { trainer = false, eigen = false } = {}) {
+export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], fotoUrl = null, events = [], aanwezig = [] }, { trainer = false, eigen = false } = {}) {
+  const aw = aanwezigheidStats(aanwezig);
+  const verlies = telSoort(events, 'balverlies');
   const gr = goalsReeks(goals);
   const sr = scoreReeksen(rapporten, skills);
   const laatste = rapporten[0];
@@ -127,6 +132,8 @@ export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], f
       ${som(goals, 'zeven_m') || som(goals, 'zeven_m_mis') ? `<div class="stat"><div class="titel">7 meters</div><div class="waarde">${som(goals, 'zeven_m')}<small class="zacht"> / ${som(goals, 'zeven_m') + som(goals, 'zeven_m_mis')}</small></div></div>` : ''}
       ${som(goals, 'twee_min') ? `<div class="stat"><div class="titel">2 minuten</div><div class="waarde">${som(goals, 'twee_min')}</div></div>` : ''}
       ${som(goals, 'geel') + som(goals, 'rood') + som(goals, 'blauw') ? `<div class="stat"><div class="titel">Kaarten</div><div class="waarde">${kaarten(goals)}</div></div>` : ''}
+      ${verlies ? `<div class="stat"><div class="titel">Balverlies</div><div class="waarde">${verlies}</div><small class="zacht">live genoteerd</small></div>` : ''}
+      ${aw.totaal ? `<div class="stat"><div class="titel">Op training</div><div class="waarde">${aw.pct}%</div><small class="zacht">${aw.aanwezig}/${aw.totaal} aanwezig${aw.verwittigd ? ` · ${aw.verwittigd} verwittigd` : ''}</small></div>` : ''}
       <div class="stat"><div class="titel">Laatste rapport</div><div class="waarde">${gemiddelde(laatste) ?? '–'}<small class="zacht"> / 5</small></div></div>
     </div>
 

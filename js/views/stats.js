@@ -3,7 +3,7 @@ import { sb, q } from '../supabase.js';
 import { toon, esc, laden, bijVerlaten } from '../ui.js';
 import { PLOEGNAAM } from '../config.js';
 import {
-  scoreUitEvents, schotStats, resultaatVerdeling, filterHelft, actieveStraffen, formatKlok, klokSeconden,
+  scoreUitEvents, schotStats, resultaatVerdeling, filterHelft, actieveStraffen, formatKlok, klokSeconden, telSoort,
 } from '../lib/live.js';
 
 const ZONE_PIJL = ['↖', '↑', '↗', '←', '•', '→', '↙', '↓', '↘'];
@@ -64,8 +64,9 @@ export async function statsView(matchId) {
       const eigen = ev.filter(e => e.player_id === sp.id);
       const r = resultaatVerdeling(eigen);
       const straf = eigen.filter(e => e.soort === 'twee_min').length;
-      if (!r.schoten && !straf) return null;
-      return { sp, r, straf };
+      const verlies = telSoort(eigen, 'balverlies');
+      if (!r.schoten && !straf && !verlies) return null;
+      return { sp, r, straf, verlies };
     }).filter(Boolean).sort((a, b) => b.r.schoten - a.r.schoten);
 
     document.getElementById('sInhoud').innerHTML = !ev.length
@@ -76,6 +77,7 @@ export async function statsView(matchId) {
         <div class="stat"><div class="titel">Goals</div><div class="waarde ok-kleur">${pctTekst(v.goal.pct)}</div><small class="zacht">${v.goal.aantal} goals</small></div>
         <div class="stat"><div class="titel">Gestopt door keeper</div><div class="waarde beter-kleur">${pctTekst(v.redding.pct)}</div><small class="zacht">${v.redding.aantal} reddingen</small></div>
         <div class="stat"><div class="titel">Mis (naast/over/paal)</div><div class="waarde rood">${pctTekst(v.mis.pct)}</div><small class="zacht">${v.mis.aantal} missers</small></div>
+        <div class="stat"><div class="titel">Balverlies</div><div class="waarde">${telSoort(ev, 'balverlies')}</div></div>
         <div class="stat"><div class="titel">Tegengoals</div><div class="waarde">${sc.tegen}</div></div>
       </div>
       <div class="verdeling" title="Goals / reddingen / missers">
@@ -101,9 +103,9 @@ export async function statsView(matchId) {
       </div>
 
       <section class="kaart"><h3>Per speler</h3>
-        <table class="tabel"><thead><tr><th>Speler</th><th>Goals</th><th>Schoten</th><th>%</th><th>Gestopt</th><th>Mis</th><th>2 min</th></tr></thead>
-        <tbody>${perSpeler.map(({ sp, r, straf }) => `<tr><td>${esc(kort(sp))}</td><td><b>${r.goal.aantal}</b></td><td>${r.schoten}</td>
-          <td>${pctTekst(r.goal.pct)}</td><td>${r.redding.aantal}</td><td>${r.mis.aantal}</td><td>${straf || ''}</td></tr>`).join('')}</tbody></table>
+        <table class="tabel"><thead><tr><th>Speler</th><th>Goals</th><th>Schoten</th><th>%</th><th>Gestopt</th><th>Mis</th><th>Balverlies</th><th>2 min</th></tr></thead>
+        <tbody>${perSpeler.map(({ sp, r, straf, verlies }) => `<tr><td>${esc(kort(sp))}</td><td><b>${r.goal.aantal}</b></td><td>${r.schoten}</td>
+          <td>${pctTekst(r.goal.pct)}</td><td>${r.redding.aantal}</td><td>${r.mis.aantal}</td><td>${verlies || ''}</td><td>${straf || ''}</td></tr>`).join('')}</tbody></table>
       </section>`;
     tekenKlok();
   }

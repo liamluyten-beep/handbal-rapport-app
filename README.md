@@ -65,6 +65,18 @@ Zet daarna in Supabase onder **Authentication → URL Configuration** de **Site 
 - **Vaardigheden aanpassen:** via **Vaardigheden** kun je ze hernoemen, toevoegen of verwijderen.
 - **Afdrukken / PDF:** op een spelerspagina kies je in de browser **Afdrukken → Opslaan als PDF**. Knoppen en menu worden dan automatisch weggelaten.
 
+### Wachtwoord vergeten, balverlies en trainingen
+Eenmalig: voer [`supabase/update-9-balverlies-training.sql`](supabase/update-9-balverlies-training.sql) uit in de SQL Editor.
+Zet in Supabase onder **Authentication → URL Configuration → Redirect URLs** het adres van je site erbij
+(bv. `https://liamluyten-beep.github.io/handbal-rapport-app/`), anders werkt de link in de wachtwoord-mail niet.
+
+- **Wachtwoord vergeten**: link op het inlogscherm; de speler krijgt een mail en kiest een nieuw wachtwoord.
+  De gratis mailservice van Supabase verstuurt maar enkele mails per uur. Lukt het niet, dan stelt de trainer via
+  **Accounts → Nieuw wachtwoord** zelf een wachtwoord in en geeft het door.
+- **Balverlies**: extra knop voor de matchwatcher; zichtbaar in de live statistieken, bij de wedstrijd en bij de speler.
+- **Trainingen**: via **Home → Training vandaag** tik je per speler aanwezig → verwittigd → afwezig (of eerst
+  "Iedereen aanwezig" en dan wie er niet was). Elke speler ziet zijn aanwezigheidspercentage op zijn pagina.
+
 ### Live matchwatcher en live statistieken
 Eenmalig: voer [`supabase/update-5-live.sql`](supabase/update-5-live.sql), [`supabase/update-6-watcher.sql`](supabase/update-6-watcher.sql) en [`supabase/update-7-home.sql`](supabase/update-7-home.sql) uit in de SQL Editor.
 

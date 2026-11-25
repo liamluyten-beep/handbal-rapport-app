@@ -321,3 +321,23 @@ details.ouder summary { cursor: pointer; font-weight: 600; padding: .4rem 0; }
 .keuze input { width: auto; margin-top: .25rem; accent-color: var(--fout); }
 .knop.gevaar-vol { background: var(--fout); }
 .knop.gevaar-vol:disabled { opacity: .4; cursor: not-allowed; }
+.live-knop.verlies { background: #8a4fd8; }
+.live-knop.breed { grid-column: 1 / -1; padding: .9rem; }
+
+/* ---------- Aanwezigheden ---------- */
+.aanwezig-tegels { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.aanwezig-tegel { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 0 .6rem; align-items: center;
+  text-align: left; padding: .7rem; border-radius: 12px; cursor: pointer; background: var(--bg); color: var(--tekst);
+  border: 2px solid var(--lijn); font: 600 .95rem var(--body); touch-action: manipulation; }
+.aw-nr { grid-row: 1 / 3; width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center;
+  background: var(--lijn); font: 800 1.2rem var(--display); }
+.aw-status { font-size: .8rem; font-weight: 700; min-height: 1em; }
+.aanwezig-tegel[data-status="aanwezig"] { border-color: var(--goed); background: var(--goed-bg); }
+.aanwezig-tegel[data-status="aanwezig"] .aw-nr { background: var(--goed); color: #fff; }
+.aanwezig-tegel[data-status="aanwezig"] .aw-status { color: var(--goed); }
+.aanwezig-tegel[data-status="verwittigd"] { border-color: var(--beter); background: var(--beter-bg); }
+.aanwezig-tegel[data-status="verwittigd"] .aw-nr { background: var(--beter); color: #fff; }
+.aanwezig-tegel[data-status="verwittigd"] .aw-status { color: var(--beter); }
+.aanwezig-tegel[data-status="afwezig"] { border-color: var(--fout); }
+.aanwezig-tegel[data-status="afwezig"] .aw-nr { background: var(--fout); color: #fff; }
+.aanwezig-tegel[data-status="afwezig"] .aw-status { color: var(--fout); }

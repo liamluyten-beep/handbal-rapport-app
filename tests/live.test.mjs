@@ -127,7 +127,7 @@ test('perMatchOverzicht: Clubee-cijfers en live schoten per wedstrijd, nieuwste 
   const r = perMatchOverzicht(goals, events, matches);
   assert.deepEqual(r.map(x => x.match.id), ['m3', 'm2', 'm1']);
   assert.deepEqual(r[1], {
-    match: goals[1].matches, goals: 2, zeven_m: 0, twee_min: 1, uitslag: 'G',
+    match: goals[1].matches, goals: 2, zeven_m: 0, twee_min: 1, uitslag: 'G', balverlies: 0,
     live: { schoten: 2, goal: 1, redding: 0, mis: 1 },
   });
   assert.equal(r[2].uitslag, 'W');
@@ -152,4 +152,19 @@ test('actieveStraffen: tweede 2 min van dezelfde speler wordt erbij geteld (éé
 test('actieveStraffen: straffen van de tegenstander blijven apart', () => {
   const ev = [{ soort: 'twee_min_tegen', helft: 1, seconde: 100 }, { soort: 'twee_min_tegen', helft: 1, seconde: 110 }];
   assert.equal(actieveStraffen(ev, { helft: 1, seconde: 120 }, 1500).length, 2);
+});
+
+test('perMatchOverzicht telt balverlies', () => {
+  const goals = [{ aantal: 1, matches: { id: 'm1', datum: '2026-10-10', tegenstander: 'X', thuis: true } }];
+  const ev = [{ match_id: 'm1', soort: 'balverlies' }, { match_id: 'm1', soort: 'balverlies' }, { match_id: 'm1', soort: 'schot', resultaat: 'goal' }];
+  const r = perMatchOverzicht(goals, ev);
+  assert.equal(r[0].balverlies, 2);
+  assert.equal(r[0].live.schoten, 1);
+});
+
+test('telSoort', async () => {
+  const { telSoort } = await import('../js/lib/live.js');
+  const ev = [{ soort: 'balverlies', player_id: 'a' }, { soort: 'balverlies', player_id: 'b' }, { soort: 'schot', player_id: 'a' }];
+  assert.equal(telSoort(ev, 'balverlies'), 2);
+  assert.equal(telSoort(ev, 'balverlies', 'a'), 1);
 });

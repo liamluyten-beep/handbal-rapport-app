@@ -50,7 +50,8 @@ export async function liveView(matchId) {
       <button class="live-knop schot" id="kSchot">Schot</button>
       <button class="live-knop tegen" id="kTegen">Tegengoal</button>
       <button class="live-knop straf" id="kStraf">2 min</button>
-      <button class="live-knop terugdraai" id="kOngedaan">↶ Ongedaan</button>
+      <button class="live-knop verlies" id="kVerlies">Balverlies</button>
+      <button class="live-knop terugdraai breed" id="kOngedaan">↶ Ongedaan</button>
     </div>
     <p class="sync zacht" id="sync"></p>
     <section class="kaart"><h3>Verloop</h3><div id="log"></div></section>
@@ -76,6 +77,7 @@ export async function liveView(matchId) {
     if (e.soort === 'tegengoal') return `<span class="rood">Tegengoal</span>`;
     if (e.soort === 'twee_min_tegen') return `2 min ${esc(match.tegenstander)}`;
     if (e.soort === 'twee_min') return `2 min <b>${esc(kort(spelerVan(e.player_id)))}</b>`;
+    if (e.soort === 'balverlies') return `Balverlies <b>${esc(kort(spelerVan(e.player_id)))}</b>`;
     const res = e.resultaat === 'goal' ? '<span class="ok">GOAL</span>' : esc(RESULTATEN[e.resultaat] || '');
     return `<b>${esc(kort(spelerVan(e.player_id)))}</b> · ${esc(positieNaam(e.positie))} → ${res} ${e.doelzone ? ZONE_PIJL[e.doelzone - 1] : ''}`;
   }
@@ -174,6 +176,12 @@ export async function liveView(matchId) {
     });
     const t = paneel.querySelector('[data-tegen]');
     if (t) t.onclick = () => { bewaar({ soort: 'twee_min_tegen', helft: m.helft, seconde: m.seconde }); sluit(); };
+  };
+  document.getElementById('kVerlies').onclick = () => {
+    const m = nuKlok();
+    kiesSpeler('Wie verloor de bal?', '', id => {
+      bewaar({ soort: 'balverlies', player_id: id, helft: m.helft, seconde: m.seconde }); sluit();
+    });
   };
   document.getElementById('kOngedaan').onclick = () => {
     const laatste = [...events].sort((a, b) => String(a.created_at).localeCompare(String(b.created_at))).pop();

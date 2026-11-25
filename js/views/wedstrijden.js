@@ -113,20 +113,21 @@ function liveSamenvatting(events, spelers, goals) {
     const eigen = events.filter(e => e.player_id === s.id);
     const st = schotStats(eigen);
     const straf = eigen.filter(e => e.soort === 'twee_min').length;
-    if (!st.schoten && !straf) return '';
+    const verlies = eigen.filter(e => e.soort === 'balverlies').length;
+    if (!st.schoten && !straf && !verlies) return '';
     return `<tr><td>${esc(s.rugnummer ?? '')}</td><td>${esc(s.naam)}</td><td>${st.goals}/${st.schoten}</td>
-      <td>${st.pct ?? '–'}${st.pct != null ? '%' : ''}</td><td>${straf || ''}</td></tr>`;
+      <td>${st.pct ?? '–'}${st.pct != null ? '%' : ''}</td><td>${verlies || ''}</td><td>${straf || ''}</td></tr>`;
   }).join('');
   return `<section class="kaart">
     <h2>Live ingegeven: ${score.voor} – ${score.tegen}</h2>
     ${goals.length && verschil.length ? `<p class="rood">Verschil met Clubee (officieel): ${verschil.map(v =>
       `${esc(naam(v.player_id))} live ${v.live}, Clubee ${v.clubee}`).join(' · ')}</p>` : ''}
-    <table class="tabel"><thead><tr><th>#</th><th>Speler</th><th>Goals/schoten</th><th>%</th><th>2 min</th></tr></thead>
+    <table class="tabel"><thead><tr><th>#</th><th>Speler</th><th>Goals/schoten</th><th>%</th><th>Balverlies</th><th>2 min</th></tr></thead>
       <tbody>${rijen}</tbody></table>
     <details class="ouder"><summary>Volledig verloop (${events.length} acties)</summary>
       ${[...events].sort((a, b) => (a.helft - b.helft) || (a.seconde - b.seconde)).map(e => `<div class="logrij">
         <span class="zacht">${e.helft}e ${formatKlok(e.seconde)}</span>
         <span>${e.soort === 'tegengoal' ? 'Tegengoal' : e.soort === 'twee_min_tegen' ? '2 min tegenstander' :
-          e.soort === 'twee_min' ? `2 min ${esc(naam(e.player_id))}` : `${esc(naam(e.player_id))}: ${esc(e.resultaat)} (${esc(e.positie)})`}</span><span></span></div>`).join('')}
+          e.soort === 'twee_min' ? `2 min ${esc(naam(e.player_id))}` : e.soort === 'balverlies' ? `Balverlies ${esc(naam(e.player_id))}` : `${esc(naam(e.player_id))}: ${esc(e.resultaat)} (${esc(e.positie)})`}</span><span></span></div>`).join('')}
     </details></section>`;
 }

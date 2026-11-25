@@ -113,7 +113,7 @@ export const filterHelft = (events, helft) => (helft ? events.filter(e => e.helf
 // goals: rijen met matches(*) (Clubee/handmatig), events: zijn live schoten, matches: extra wedstrijden met enkel live data
 export function perMatchOverzicht(goals, events, matches = []) {
   const per = new Map();
-  const leeg = m => ({ match: m, goals: null, zeven_m: null, twee_min: null, uitslag: null, live: null });
+  const leeg = m => ({ match: m, goals: null, zeven_m: null, twee_min: null, uitslag: null, live: null, balverlies: 0 });
   for (const g of goals) {
     if (!g.matches) continue;
     per.set(g.matches.id, { ...leeg(g.matches), goals: g.aantal, zeven_m: g.zeven_m ?? 0, twee_min: g.twee_min ?? 0 });
@@ -122,6 +122,7 @@ export function perMatchOverzicht(goals, events, matches = []) {
   for (const r of per.values()) {
     const m = r.match;
     if (m.score_voor != null && m.score_tegen != null) r.uitslag = m.score_voor > m.score_tegen ? 'W' : m.score_voor < m.score_tegen ? 'V' : 'G';
+    r.balverlies = events.filter(e => e.match_id === m.id && e.soort === 'balverlies').length;
     const eigen = events.filter(e => e.match_id === m.id && e.soort === 'schot');
     if (eigen.length) {
       const tel = x => eigen.filter(e => e.resultaat === x).length;
@@ -130,3 +131,7 @@ export function perMatchOverzicht(goals, events, matches = []) {
   }
   return [...per.values()].sort((a, b) => b.match.datum.localeCompare(a.match.datum));
 }
+
+// Aantal gebeurtenissen van een soort (optioneel voor één speler)
+export const telSoort = (events, soort, playerId) =>
+  events.filter(e => e.soort === soort && (playerId === undefined || e.player_id === playerId)).length;

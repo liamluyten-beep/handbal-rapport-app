@@ -1,10 +1,11 @@
 // Startpagina: elke persoon ziet zijn eigen taken.
 import { sb, q } from '../supabase.js';
-import { toon, esc, laden } from '../ui.js';
+import { toon, esc, laden, melding } from '../ui.js';
 import { sessie } from '../app.js';
 import { formatDatum } from '../lib/voortgang.js';
 import { laadMatchenVanVandaag, matchStartHtml, koppelMatchStart } from './matchstart.js';
 import { mijnView } from './mijn.js';
+import { openTraining } from './trainingen.js';
 
 const tegel = (href, icoon, titel, sub = '') =>
   `<a class="tegel" href="${href}"><span class="tegel-icoon">${icoon}</span><b>${titel}</b>${sub ? `<small class="zacht">${sub}</small>` : ''}</a>`;
@@ -64,10 +65,13 @@ async function trainerHome() {
     <div class="tegels">
       ${tegel('#/spelers', '👥', 'Spelers', `${spelers.length} spelers${zonderRapport ? ` · ${zonderRapport} zonder rapport` : ''}${zonderNummer ? ` · ${zonderNummer} zonder nummer` : ''}`)}
       ${tegel('#/wedstrijden', '🤾', 'Wedstrijden', 'uitslagen, live stats, verloop')}
+      <a class="tegel" href="#" id="trainingVandaag"><span class="tegel-icoon">✅</span><b>Training vandaag</b><small class="zacht">aanwezigheden afvinken</small></a>
+      ${tegel('#/trainingen', '📅', 'Trainingen', 'aanwezigheid per speler')}
       ${tegel('#/import', '⬇️', 'Importeren', 'Clubee of een lijst plakken')}
       ${tegel('#/accounts', '🔑', 'Accounts', 'matchwatchers aanduiden')}
       ${tegel('#/vaardigheden', '🎯', 'Vaardigheden', 'scores in de rapporten')}
     </div>
   </div>`);
   koppelMatchStart({ trainer: true, herlaad: trainerHome });
+  document.getElementById('trainingVandaag').onclick = e => { e.preventDefault(); openTraining().catch(err => melding(err.message, 'fout')); };
 }

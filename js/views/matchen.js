@@ -30,6 +30,7 @@ export async function mijnMatchenView() {
         <div class="match-details">
           ${r.zeven_m ? `<span>7m: <b>${r.zeven_m}</b></span>` : ''}
           ${r.twee_min ? `<span>2 min: <b>${r.twee_min}</b></span>` : ''}
+          ${r.balverlies ? `<span>Balverlies: <b>${r.balverlies}</b></span>` : ''}
           ${r.live ? `<span>Schoten: <b>${r.live.goal}/${r.live.schoten}</b> (${Math.round(100 * r.live.goal / r.live.schoten)}%)</span>
             <span>Gestopt: <b>${r.live.redding}</b></span><span>Mis: <b>${r.live.mis}</b></span>` : ''}
         </div>

@@ -27,7 +27,8 @@ export async function accountsView() {
         <td>${p.role === 'trainer' || p.id === sessie.user.id ? '<span class="zacht">alles</span>' : `
           <label class="schakelaar"><input type="checkbox" data-id="${p.id}" ${isWatcher(p) ? 'checked' : ''}>
           <span>${isWatcher(p) ? 'ja' : 'nee'}</span></label>`}</td>
-        <td>${p.role === 'trainer' || p.id === sessie.user.id ? '' : `<button class="knop gevaar klein" data-weg="${p.id}">Verwijderen</button>`}</td></tr>`).join('')}
+        <td>${p.role === 'trainer' || p.id === sessie.user.id ? '' : `<div class="rij" style="gap:.4rem"><button class="knop tweede klein" data-ww="${p.id}">Nieuw wachtwoord</button>
+          <button class="knop gevaar klein" data-weg="${p.id}">Verwijderen</button></div>`}</td></tr>`).join('')}
       </tbody></table>
     </section>`);
 
@@ -35,6 +36,22 @@ export async function accountsView() {
     const p = profielen.find(x => x.id === b.dataset.weg);
     const weg = await verwijderAccountVenster({ userId: p.id, email: p.email, spelerId: spelerIdVan[p.id] || null, spelerNaam: spelerVan[p.id] || null });
     if (weg) accountsView();
+  });
+
+  document.querySelectorAll('[data-ww]').forEach(b => b.onclick = async () => {
+    const p = profielen.find(x => x.id === b.dataset.ww);
+    const voorstel = 'handbal-' + String(Math.floor(1000 + Math.random() * 9000));
+    const ww = prompt(`Nieuw wachtwoord voor ${p.email} (minstens 6 tekens).
+Geef het daarna door; de persoon kan het zelf nog wijzigen via "Wachtwoord vergeten".`, voorstel);
+    if (ww == null) return;
+    try {
+      await q(sb.rpc('zet_wachtwoord', { gebruiker: p.id, wachtwoord: ww.trim() }));
+      alert(`Klaar! ${p.email} kan nu inloggen met:
+
+${ww.trim()}`);
+    } catch (err) {
+      melding(/zet_wachtwoord|schema cache|function/i.test(err.message) ? 'Voer eerst supabase/update-9-balverlies-training.sql uit in Supabase.' : err.message, 'fout');
+    }
   });
 
   document.querySelectorAll('.schakelaar input').forEach(v => v.onchange = async () => {
