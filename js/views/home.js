@@ -6,6 +6,8 @@ import { formatDatum } from '../lib/voortgang.js';
 import { laadMatchenVanVandaag, matchStartHtml, koppelMatchStart } from './matchstart.js';
 import { mijnView } from './mijn.js';
 import { openTraining } from './trainingen.js';
+import { installeerHtml, koppelInstalleer } from '../installeer.js';
+import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
 
 const tegel = (href, icoon, titel, sub = '') =>
   `<a class="tegel" href="${href}"><span class="tegel-icoon">${icoon}</span><b>${titel}</b>${sub ? `<small class="zacht">${sub}</small>` : ''}</a>`;
@@ -28,7 +30,7 @@ export async function homeView() {
   if (speler) {
     const [rapport, goals] = await Promise.all([
       q(sb.from('reports').select('datum').eq('player_id', speler.id).order('datum', { ascending: false }).limit(1)),
-      q(sb.from('goals').select('aantal').eq('player_id', speler.id)),
+      q(sb.from('goals').select('aantal, matches(datum)').eq('player_id', speler.id)).then(g => opSeizoen(g, x => x.matches?.datum)),
     ]);
     const totaal = goals.reduce((t, g) => t + g.aantal, 0);
     delen.push(`<div class="tegels">
@@ -46,15 +48,17 @@ export async function homeView() {
   toon(`<div class="home">
     <h1>Hoi ${speler ? voornaam(speler.naam) : ''}${speler ? '' : 'matchwatcher'} 👋</h1>
     ${delen.join('')}
+    ${installeerHtml()}
   </div>`);
   koppelMatchStart({ herlaad: homeView });
+  koppelInstalleer();
 }
 
 async function trainerHome() {
   const [matchen, spelers, rapporten] = await Promise.all([
     laadMatchenVanVandaag(),
     q(sb.from('players').select('id, rugnummer')),
-    q(sb.from('reports').select('player_id')),
+    q(sb.from('reports').select('player_id, datum')).then(r => opSeizoen(r, x => x.datum)),
   ]);
   const metRapport = new Set(rapporten.map(r => r.player_id));
   const zonderRapport = spelers.filter(s => !metRapport.has(s.id)).length;
@@ -64,7 +68,7 @@ async function trainerHome() {
     <h1>Hoi coach 👋</h1>
     ${matchStartHtml(matchen, { trainer: true })}
     <div class="tegels">
-      ${tegel('#/spelers', '👥', 'Spelers', `${spelers.length} spelers${zonderRapport ? ` · ${zonderRapport} zonder rapport` : ''}${zonderNummer ? ` · ${zonderNummer} zonder nummer` : ''}`)}
+      ${tegel('#/spelers', '👥', 'Spelers', `${spelers.length} spelers${zonderRapport ? ` · ${zonderRapport} zonder rapport dit seizoen` : ''}${zonderNummer ? ` · ${zonderNummer} zonder nummer` : ''}`)}
       ${tegel('#/wedstrijden', '🤾', 'Wedstrijden', 'uitslagen, live stats, verloop')}
       <a class="tegel" href="#" id="trainingVandaag"><span class="tegel-icoon">✅</span><b>Training vandaag</b><small class="zacht">aanwezigheden afvinken</small></a>
       ${tegel('#/trainingen', '📅', 'Trainingen', 'aanwezigheid per speler')}
@@ -73,7 +77,9 @@ async function trainerHome() {
       ${tegel('#/accounts', '🔑', 'Accounts', 'matchwatchers aanduiden')}
       ${tegel('#/vaardigheden', '🎯', 'Vaardigheden', 'scores in de rapporten')}
     </div>
+    ${installeerHtml()}
   </div>`);
+  koppelInstalleer();
   koppelMatchStart({ trainer: true, herlaad: trainerHome });
   document.getElementById('trainingVandaag').onclick = e => { e.preventDefault(); openTraining().catch(err => melding(err.message, 'fout')); };
 }

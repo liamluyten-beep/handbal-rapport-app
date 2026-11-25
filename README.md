@@ -117,6 +117,12 @@ Een andere competitie of ploeg? Pas `clubee.config.json` aan.
 
 ---
 
+### Seizoenen
+Bovenaan staat de keuze **Seizoen 2026-27** (een seizoen loopt van 1 augustus tot 31 juli). Rapporten, matchen, trainingen, schiettraining en ranglijsten tonen enkel dat seizoen. Kies **Alle seizoenen** om over de jaren heen te kijken. De keuze wordt per toestel onthouden.
+
+### App op je gsm
+Op de startpagina staat **📲 Zet de app op je gsm**. Android: knop *Installeer de app*. iPhone: in Safari **Deel → Zet op beginscherm**. De app opent dan schermvullend met het clublogo.
+
 ## Uitproberen met testspelers
 Voer [`supabase/testdata.sql`](supabase/testdata.sql) uit in de SQL Editor: 4 fictieve spelers (Test Kobe #90 doelman, Test Tom #91, Test Jonas #92, Test Mats #93) met rapporten, 3 testmatchen, trainingen en schiettraining. Alles weer weg met [`supabase/testdata-verwijderen.sql`](supabase/testdata-verwijderen.sql); echte gegevens blijven staan.
 

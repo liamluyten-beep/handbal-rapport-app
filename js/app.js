@@ -18,6 +18,7 @@ import { mijnMatchenView } from './views/matchen.js';
 import { trainingenView, trainingView } from './views/trainingen.js';
 import { schietenView } from './views/schieten.js';
 import { schietStatsView } from './views/schietstats.js';
+import { seizoenKeuzeHtml, kiesSeizoen } from './seizoen-keuze.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
 
@@ -33,7 +34,13 @@ function zetNavigatie() {
     : [['#/', 'Home'], ['#/mijn', 'Mijn rapport'], ['#/matchen', 'Mijn matchen'],
        ...(sessie.watcher ? [['#/watcher', 'Match volgen']] : [])];
   nav.innerHTML = links.map(([h, t]) => `<a href="${h}">${t}</a>`).join('') +
-    `<button class="knop-link" id="uitloggen">Uitloggen</button>`;
+    `<span id="seizoenPlek"></span><button class="knop-link" id="uitloggen">Uitloggen</button>`;
+  seizoenKeuzeHtml().then(html => {
+    const plek = document.getElementById('seizoenPlek');
+    if (!plek) return;
+    plek.innerHTML = html;
+    document.getElementById('seizoenKeuze').onchange = e => { kiesSeizoen(e.target.value); route(); };
+  });
   document.getElementById('uitloggen').onclick = async () => { await sb.auth.signOut(); location.hash = '#/'; };
   markeerActief();
 }
@@ -261,5 +268,9 @@ async function start() {
   });
   window.addEventListener('hashchange', route);
 }
+
+// Installeerbaar als app
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); window.__installeer = e; });
 
 start();

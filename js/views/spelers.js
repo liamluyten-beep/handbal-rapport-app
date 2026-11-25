@@ -3,6 +3,7 @@ import { toon, esc, laden, melding } from '../ui.js';
 import { parseSpelersTekst, normaliseer } from '../lib/importeer.js';
 import { leesPosities, positieVakjesHtml, koppelPositieVakjes } from '../lib/posities.js';
 import { fotoUrls, avatarHtml } from '../foto.js';
+import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
 
 export function spelerFormulier(s = {}) {
   return `<div class="velden">
@@ -61,7 +62,7 @@ Noah Janssens</code></pre>
       <a class="speler-kaart ${s.rugnummer == null ? 'zonder-nummer' : ''}" href="#/speler/${s.id}">
         ${avatarHtml(fotos[s.id], s.rugnummer)}
         <div><div class="naam">${esc(s.naam)}</div>
-          <div class="info">${s.rugnummer == null ? '<span class="rood">Nog geen rugnummer</span> · ' : ''}${esc(s.positie || 'Geen positie')} · ${s.reports.length} rapport${s.reports.length === 1 ? '' : 'en'}</div>
+          <div class="info">${s.rugnummer == null ? '<span class="rood">Nog geen rugnummer</span> · ' : ''}${esc(s.positie || 'Geen positie')} · ${opSeizoen(s.reports, r => r.datum).length} rapport${opSeizoen(s.reports, r => r.datum).length === 1 ? '' : 'en'}</div>
           <div class="info">${s.user_id ? '<span class="label ok">kan inloggen</span>' : s.email ? '<span class="label">nog niet geregistreerd</span>' : '<span class="label">geen e-mail</span>'}</div></div></a>`).join('')}</div>`
       : `<section class="kaart leeg"><span class="bal"></span><p>Nog geen spelers. Voeg je eerste speler toe of importeer een lijst.</p></section>`}
   `);

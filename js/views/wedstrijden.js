@@ -2,10 +2,11 @@ import { sb, q } from '../supabase.js';
 import { toon, esc, laden, melding, vandaag } from '../ui.js';
 import { formatDatum } from '../lib/voortgang.js';
 import { schotStats, scoreUitEvents, verschilMetClubee, formatKlok } from '../lib/live.js';
+import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
 
 export async function wedstrijdenView() {
   laden();
-  const matches = await q(sb.from('matches').select('*, goals(aantal)').order('datum', { ascending: false }));
+  const matches = opSeizoen(await q(sb.from('matches').select('*, goals(aantal)').order('datum', { ascending: false })), m => m.datum);
   toon(`
     <div class="paginakop"><div><h1>Wedstrijden</h1><p class="zacht">Vul per wedstrijd de goals van elke speler in.</p></div>
       <a class="knop tweede" href="#/import">Goals importeren</a></div>

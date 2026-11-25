@@ -4,6 +4,7 @@ import { toon, esc, laden } from '../ui.js';
 import { sessie } from '../app.js';
 import { formatDatum } from '../lib/voortgang.js';
 import { perMatchOverzicht } from '../lib/live.js';
+import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
 
 export async function mijnMatchenView() {
   laden();
@@ -15,7 +16,7 @@ export async function mijnMatchenView() {
   ]);
   const extraIds = [...new Set(events.map(e => e.match_id))].filter(id => !goals.some(g => g.matches?.id === id));
   const extra = extraIds.length ? await q(sb.from('matches').select('*').in('id', extraIds)) : [];
-  const rijen = perMatchOverzicht(goals, events, extra);
+  const rijen = opSeizoen(perMatchOverzicht(goals, events, extra), r => r.match.datum);
   const uitslagLabel = { W: '<span class="label ok">W</span>', V: '<span class="label">V</span>', G: '<span class="label">G</span>' };
 
   toon(`<a class="terug" href="#/">← Home</a>

@@ -4,6 +4,7 @@ import { toon, esc, laden, melding, vandaag } from '../ui.js';
 import { formatDatum } from '../lib/voortgang.js';
 import { STATUSSEN, volgendeStatus, aanwezigheidStats } from '../lib/aanwezig.js';
 import { doelmanStats } from '../lib/schiet.js';
+import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
 
 const NIET_KLAAR = /trainingen|aanwezigheden|schema cache/i;
 const nietKlaar = err => (NIET_KLAAR.test(err.message) ? new Error('Voer eerst supabase/update-9-balverlies-training.sql uit in Supabase.') : err);
@@ -17,11 +18,12 @@ export async function openTraining(datum = vandaag()) {
 
 export async function trainingenView() {
   laden();
-  const [trainingen, spelers, schoten] = await Promise.all([
+  let [trainingen, spelers, schoten] = await Promise.all([
     q(sb.from('trainingen').select('*, aanwezigheden(player_id, status)').order('datum', { ascending: false })).catch(e => { throw nietKlaar(e); }),
     q(sb.from('players').select('id, naam, rugnummer').order('naam')),
-    q(sb.from('training_schoten').select('player_id, doelman_id, resultaat')).catch(() => []),
+    q(sb.from('training_schoten').select('player_id, doelman_id, resultaat, datum')).then(r => opSeizoen(r, x => x.datum)).catch(() => []),
   ]);
+  trainingen = opSeizoen(trainingen, x => x.datum);
   const alle = trainingen.flatMap(t => t.aanwezigheden);
   const perSpeler = spelers.map(s => ({ s, st: aanwezigheidStats(alle.filter(a => a.player_id === s.id)) }))
     .sort((a, b) => (a.st.pct ?? 101) - (b.st.pct ?? 101));

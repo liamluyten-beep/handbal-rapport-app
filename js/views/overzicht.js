@@ -4,6 +4,7 @@ import { sb, q } from '../supabase.js';
 import { esc, tekstBlok, lijnGrafiek, staafGrafiek } from '../ui.js';
 import { scoreReeksen, goalsReeks, formatDatum } from '../lib/voortgang.js';
 import { fotoUrls, avatarHtml, fotoKnoppenHtml } from '../foto.js';
+import { opSeizoen } from '../seizoen-keuze.js';
 import { schotStats, telSoort } from '../lib/live.js';
 import { aanwezigheidStats } from '../lib/aanwezig.js';
 import { alsSchoten, doelmanStats, groepeerDoelmanRapport, keeperStats, perSchutterTotaal } from '../lib/schiet.js';
@@ -18,7 +19,7 @@ export async function laadSpelerData(playerId) {
     q(sb.from('self_reports').select('*, self_report_scores(skill_id, score)').eq('player_id', playerId)
       .order('datum', { ascending: false }).order('created_at', { ascending: false })).catch(() => []),
     fotoUrls([playerId]),
-    q(sb.from('match_events').select('*').eq('player_id', playerId).in('soort', ['schot', 'balverlies'])).catch(() => []),
+    q(sb.from('match_events').select('*, matches(datum)').eq('player_id', playerId).in('soort', ['schot', 'balverlies'])).catch(() => []),
     // Aanwezigheden (bestaat pas na update-9)
     q(sb.from('aanwezigheden').select('status, trainingen(datum)').eq('player_id', playerId)).catch(() => []),
     // Schiettraining (bestaat pas na update-10)
@@ -29,7 +30,19 @@ export async function laadSpelerData(playerId) {
     q(sb.from('schiet_sessies').select('*').eq('player_id', playerId).not('gestopt_op', 'is', null).order('gestart_op', { ascending: false })).catch(() => []),
     q(sb.rpc('doelman_rapport', { doelman: playerId })).catch(() => null),
   ]);
-  return { skills, rapporten, goals, zelf, fotoUrl: fotos[playerId] || null, events, aanwezig, schiet, alsDoelman, doelmannen, sessies, dmRapport };
+  // Alles beperken tot het gekozen seizoen
+  return {
+    skills, doelmannen, fotoUrl: fotos[playerId] || null,
+    rapporten: opSeizoen(rapporten, r => r.datum),
+    goals: opSeizoen(goals, g => g.matches?.datum),
+    zelf: opSeizoen(zelf, z => z.datum),
+    events: opSeizoen(events, e => e.matches?.datum ?? e.created_at),
+    aanwezig: opSeizoen(aanwezig, a => a.trainingen?.datum),
+    schiet: opSeizoen(schiet, r => r.datum),
+    alsDoelman: opSeizoen(alsDoelman, r => r.datum),
+    sessies: opSeizoen(sessies, s => s.datum),
+    dmRapport: dmRapport && opSeizoen(dmRapport, r => r.datum),
+  };
 }
 
 const som = (goals, k) => goals.reduce((t, g) => t + (g[k] || 0), 0);

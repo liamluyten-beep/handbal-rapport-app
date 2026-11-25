@@ -364,3 +364,9 @@ details.ouder summary { cursor: pointer; font-weight: 600; padding: .4rem 0; }
   .rang-rij .pos-balk { grid-column: 2 / -1; grid-row: 2; }
   .rang-rij small { grid-column: 2 / -1; }
 }
+
+/* ---------- Seizoenkeuze ---------- */
+.seizoen-keuze { width: auto; padding: .35rem 2rem .35rem .7rem; border-radius: 999px; font: 600 .9rem var(--body);
+  background-color: rgba(255,255,255,.08); color: var(--kop-tekst); border: 1px solid rgba(255,255,255,.15); }
+.seizoen-keuze option { color: #14213d; }
+.installeer { border: 2px dashed var(--lijn); box-shadow: none; }

@@ -3,11 +3,12 @@ import { sb, q } from '../supabase.js';
 import { toon, esc, laden } from '../ui.js';
 import { VELDPOSITIES } from '../lib/live.js';
 import { rangschikSchutters, rangschikDoelmannen } from '../lib/schiet.js';
+import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
 
 export async function schietStatsView() {
   laden();
   const [rijen, spelers] = await Promise.all([
-    q(sb.from('training_schoten').select('player_id, doelman_id, positie, resultaat')).catch(err => {
+    q(sb.from('training_schoten').select('player_id, doelman_id, positie, resultaat, datum')).then(r => opSeizoen(r, x => x.datum)).catch(err => {
       throw new Error(/training_schoten|schema cache/i.test(err.message) ? 'Voer eerst supabase/update-10-schiettraining.sql uit in Supabase.' : err.message);
     }),
     q(sb.from('players').select('id, naam, rugnummer')),
@@ -17,7 +18,7 @@ export async function schietStatsView() {
 
   toon(`<a class="terug" href="#/">← Home</a>
     <div class="paginakop"><div><h1>Schiettraining-stats</h1>
-      <p class="zacht">${rijen.length} schoten genoteerd door de spelers. Van beste naar slechtste.</p></div></div>
+      <p class="zacht">${rijen.length} schoten genoteerd (${gekozenSeizoen() === 'alle' ? 'alle seizoenen' : 'seizoen ' + gekozenSeizoen()}). Van beste naar slechtste.</p></div></div>
     <div class="tabs" id="tabs" style="margin-bottom:1rem">
       <button data-tab="spelers" class="actief">👟 Spelers</button><button data-tab="doelmannen">🧤 Doelmannen</button>
     </div>
