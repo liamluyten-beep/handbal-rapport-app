@@ -79,12 +79,42 @@ function loginView(modus = 'login') {
         }
       } else {
         const { error } = await sb.auth.signInWithPassword({ email, password });
-        if (error) throw new Error(error.message === 'Invalid login credentials'
-          ? 'E-mailadres of wachtwoord klopt niet.' : error.message);
+        if (error) {
+          if (/not confirmed/i.test(error.message)) return nietBevestigd(email);
+          throw new Error(vertaalFout(error.message));
+        }
       }
     } catch (err) {
-      melding(err.message, 'fout');
+      melding(vertaalFout(err.message), 'fout');
     } finally { knop.disabled = false; }
+  };
+}
+
+function vertaalFout(m) {
+  if (/invalid login credentials/i.test(m)) return 'E-mailadres of wachtwoord klopt niet.';
+  if (/already registered/i.test(m)) return 'Er bestaat al een account met dit e-mailadres. Log in.';
+  if (/password should be at least/i.test(m)) return 'Je wachtwoord moet minstens 6 tekens lang zijn.';
+  if (/rate limit|too many/i.test(m)) return 'Te veel pogingen. Wacht even en probeer opnieuw.';
+  if (/not confirmed/i.test(m)) return 'Je e-mailadres is nog niet bevestigd.';
+  return m;
+}
+
+function nietBevestigd(email) {
+  toon(`<section class="kaart smal">
+    <h2>Bevestig je e-mailadres</h2>
+    <p>Je e-mailadres <b>${esc(email)}</b> is nog niet bevestigd. Klik op de link in de mail die je kreeg
+      (kijk ook in je spam) en log daarna opnieuw in.</p>
+    <div class="rij"><button class="knop" id="opnieuw">Stuur de mail opnieuw</button>
+      <a href="#" id="terugLogin">Terug naar inloggen</a></div>
+  </section>`);
+  document.getElementById('terugLogin').onclick = e => { e.preventDefault(); loginView(); };
+  document.getElementById('opnieuw').onclick = async e => {
+    e.target.disabled = true;
+    const { error } = await sb.auth.resend({
+      type: 'signup', email, options: { emailRedirectTo: location.origin + location.pathname },
+    });
+    if (error) { melding(vertaalFout(error.message), 'fout'); e.target.disabled = false; }
+    else melding('Mail verstuurd. Kijk in je inbox (en spam).');
   };
 }
 
