@@ -2,7 +2,7 @@
 
 Een website waarop je als trainer per speler een rapport maakt (wat gaat al goed, wat kan beter, en een score per vaardigheid) en de goals per wedstrijd bijhoudt. Elke speler logt in en ziet **alleen zijn eigen** rapporten, grafieken en goals.
 
-Alles is gratis: de database draait op **Supabase** (gratis plan) en de website op **Netlify** of **GitHub Pages**.
+Alles is gratis: de database draait op **Supabase** (gratis plan) en de website op **GitHub Pages**.
 
 ---
 
@@ -21,18 +21,17 @@ Alles is gratis: de database draait op **Supabase** (gratis plan) en de website 
 
 **Laat "Confirm email" aan staan** (Authentication → Sign In / Providers → Email). Een speler wordt pas aan zijn rapport gekoppeld nadat hij op de link in de bevestigingsmail heeft geklikt. Zo kan niemand die toevallig het e-mailadres van een ploeggenoot kent, diens rapport bekijken.
 
-## Stap 2: Website online zetten
+## Stap 2: Website online zetten met GitHub Pages (gratis)
 
-**Makkelijkst: Netlify Drop**
-1. Ga naar [app.netlify.com/drop](https://app.netlify.com/drop) en maak een gratis account aan.
-2. Sleep deze **hele map** naar het vak op die pagina.
-3. Je krijgt een link zoals `https://iets-willekeurigs.netlify.app`. Die kun je onder **Site configuration → Change site name** aanpassen, bv. naar `mijnploeg-handbal`.
+1. Maak een gratis account op [github.com](https://github.com) als je er nog geen hebt.
+2. Klik rechtsboven op **+ → New repository**. Geef een naam (bv. `handbal`), kies **Public** en klik **Create repository**. Vink niets aan (geen README).
+3. Zet de bestanden erin. Dat kan Claude voor je doen met `git push`, of je doet het zelf via **uploading an existing file** en sleept de inhoud van deze map erin (niet de map zelf).
+4. Ga in de repository naar **Settings → Pages**. Kies bij **Source** de optie **Deploy from a branch**, kies de branch **main** en de map **/ (root)**, en klik **Save**.
+5. Na 1 à 2 minuten staat je site op `https://JOUWNAAM.github.io/handbal/`. Die link staat ook bovenaan de Pages-instellingen.
 
-Heb je later iets aangepast (bv. in `config.js`)? Ga in Netlify naar **Deploys** en sleep de map opnieuw.
+Heb je later iets aangepast? Push opnieuw (of upload het gewijzigde bestand). GitHub zet de site na een minuutje automatisch bij.
 
-**Alternatief: GitHub Pages.** Zet de map in een GitHub-repository en zet onder **Settings → Pages** de bron op de `main`-branch.
-
-Zet daarna in Supabase onder **Authentication → URL Configuration** de **Site URL** op het adres van je website.
+Zet daarna in Supabase onder **Authentication → URL Configuration** de **Site URL** op het adres van je website, bv. `https://JOUWNAAM.github.io/handbal/`. Dan wijst de link in de bevestigingsmail naar je site.
 
 ## Stap 3: Jezelf trainer maken
 

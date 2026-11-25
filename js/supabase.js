@@ -4,7 +4,10 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 export const isGeconfigureerd =
   !SUPABASE_URL.includes('JOUW-PROJECT') && !SUPABASE_ANON_KEY.includes('JOUW-ANON-KEY');
 
-export const sb = isGeconfigureerd ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+// Enkel het basisadres gebruiken, ook als er per ongeluk /rest/v1/ achter staat
+const basisUrl = SUPABASE_URL.trim().replace(/\/(rest|auth)\/v1\/?$/, '').replace(/\/+$/, '');
+
+export const sb = isGeconfigureerd ? createClient(basisUrl, SUPABASE_ANON_KEY.trim()) : null;
 
 // Gooit een leesbare fout als Supabase een fout teruggeeft
 export async function q(belofte) {
