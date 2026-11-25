@@ -1,6 +1,7 @@
 import { sb, q } from '../supabase.js';
 import { toon, esc, laden, melding, vandaag } from '../ui.js';
 import { formatDatum } from '../lib/voortgang.js';
+import { schotStats, scoreUitEvents, verschilMetClubee, formatKlok } from '../lib/live.js';
 
 export async function wedstrijdenView() {
   laden();
@@ -45,10 +46,11 @@ export async function wedstrijdenView() {
 
 export async function wedstrijdView(id) {
   laden();
-  const [m, spelers, goals] = await Promise.all([
+  const [m, spelers, goals, events] = await Promise.all([
     q(sb.from('matches').select('*').eq('id', id).maybeSingle()),
     q(sb.from('players').select('id, naam, rugnummer').order('rugnummer', { nullsFirst: false }).order('naam')),
     q(sb.from('goals').select('*').eq('match_id', id)),
+    q(sb.from('match_events').select('*').eq('match_id', id)).catch(() => []),
   ]);
   if (!m) throw new Error('Deze wedstrijd bestaat niet (meer).');
   const per = Object.fromEntries(goals.map(g => [g.player_id, g]));
@@ -56,7 +58,8 @@ export async function wedstrijdView(id) {
   toon(`<a class="terug" href="#/wedstrijden">← Alle wedstrijden</a>
     <section class="kaart">
       <div class="rapport-kop"><div><h1>${esc(m.tegenstander)}</h1>
-        <p class="zacht">${formatDatum(m.datum)} · ${m.thuis ? 'thuis' : 'uit'}</p></div></div>
+        <p class="zacht">${formatDatum(m.datum)} · ${m.thuis ? 'thuis' : 'uit'}${m.score_voor != null ? ` · <b>${m.score_voor} – ${m.score_tegen}</b> (Clubee)` : ''}</p></div>
+        <a class="knop" href="#/live/${m.id}">▶ Live volgen</a></div>
       <form id="goalsForm">
         <table class="tabel"><thead><tr><th>#</th><th>Speler</th><th>Goals</th><th>Pogingen (optioneel)</th></tr></thead>
         <tbody>${spelers.map(s => `<tr>
@@ -67,7 +70,8 @@ export async function wedstrijdView(id) {
         <div class="rij tussen"><button class="knop">Goals opslaan</button>
           <button type="button" class="knop gevaar" id="verwijder">Wedstrijd verwijderen</button></div>
       </form>
-    </section>`);
+    </section>
+    ${liveSamenvatting(events, spelers, goals)}`);
 
   document.getElementById('goalsForm').onsubmit = async e => {
     e.preventDefault();
@@ -96,4 +100,32 @@ export async function wedstrijdView(id) {
       location.hash = '#/wedstrijden';
     } catch (err) { melding(err.message, 'fout'); }
   };
+}
+
+// Overzicht van wat de matchwatcher live ingaf
+function liveSamenvatting(events, spelers, goals) {
+  if (!events.length) return '';
+  const naam = id => spelers.find(s => s.id === id)?.naam ?? 'Onbekend';
+  const score = scoreUitEvents(events);
+  const verschil = verschilMetClubee(events, goals.filter(g => g.aantal != null));
+  const rijen = spelers.map(s => {
+    const eigen = events.filter(e => e.player_id === s.id);
+    const st = schotStats(eigen);
+    const straf = eigen.filter(e => e.soort === 'twee_min').length;
+    if (!st.schoten && !straf) return '';
+    return `<tr><td>${esc(s.rugnummer ?? '')}</td><td>${esc(s.naam)}</td><td>${st.goals}/${st.schoten}</td>
+      <td>${st.pct ?? '–'}${st.pct != null ? '%' : ''}</td><td>${straf || ''}</td></tr>`;
+  }).join('');
+  return `<section class="kaart">
+    <h2>Live ingegeven: ${score.voor} – ${score.tegen}</h2>
+    ${goals.length && verschil.length ? `<p class="rood">Verschil met Clubee (officieel): ${verschil.map(v =>
+      `${esc(naam(v.player_id))} live ${v.live}, Clubee ${v.clubee}`).join(' · ')}</p>` : ''}
+    <table class="tabel"><thead><tr><th>#</th><th>Speler</th><th>Goals/schoten</th><th>%</th><th>2 min</th></tr></thead>
+      <tbody>${rijen}</tbody></table>
+    <details class="ouder"><summary>Volledig verloop (${events.length} acties)</summary>
+      ${[...events].sort((a, b) => (a.helft - b.helft) || (a.seconde - b.seconde)).map(e => `<div class="logrij">
+        <span class="zacht">${e.helft}e ${formatKlok(e.seconde)}</span>
+        <span>${e.soort === 'tegengoal' ? 'Tegengoal' : e.soort === 'twee_min_tegen' ? '2 min tegenstander' :
+          e.soort === 'twee_min' ? `2 min ${esc(naam(e.player_id))}` : `${esc(naam(e.player_id))}: ${esc(e.resultaat)} (${esc(e.positie)})`}</span><span></span></div>`).join('')}
+    </details></section>`;
 }

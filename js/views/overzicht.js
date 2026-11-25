@@ -4,9 +4,10 @@ import { sb, q } from '../supabase.js';
 import { esc, tekstBlok, lijnGrafiek, staafGrafiek } from '../ui.js';
 import { scoreReeksen, goalsReeks, formatDatum } from '../lib/voortgang.js';
 import { fotoUrls, avatarHtml, fotoKnoppenHtml } from '../foto.js';
+import { schotStats } from '../lib/live.js';
 
 export async function laadSpelerData(playerId) {
-  const [skills, rapporten, goals, zelf, fotos] = await Promise.all([
+  const [skills, rapporten, goals, zelf, fotos, events] = await Promise.all([
     q(sb.from('skills').select('*').order('volgorde')),
     q(sb.from('reports').select('*, report_scores(skill_id, score)').eq('player_id', playerId)
       .order('datum', { ascending: false }).order('created_at', { ascending: false })),
@@ -15,8 +16,9 @@ export async function laadSpelerData(playerId) {
     q(sb.from('self_reports').select('*, self_report_scores(skill_id, score)').eq('player_id', playerId)
       .order('datum', { ascending: false }).order('created_at', { ascending: false })).catch(() => []),
     fotoUrls([playerId]),
+    q(sb.from('match_events').select('*').eq('player_id', playerId).eq('soort', 'schot')).catch(() => []),
   ]);
-  return { skills, rapporten, goals, zelf, fotoUrl: fotos[playerId] || null };
+  return { skills, rapporten, goals, zelf, fotoUrl: fotos[playerId] || null, events };
 }
 
 const som = (goals, k) => goals.reduce((t, g) => t + (g[k] || 0), 0);
@@ -74,7 +76,26 @@ function zelfHtml(z, rapport, skills, eigen) {
       <tbody>${rijen}</tbody></table>` : ''}`;
 }
 
-export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], fotoUrl = null }, { trainer = false, eigen = false } = {}) {
+function schotenHtml(events) {
+  const s = schotStats(events);
+  if (!s.schoten) return '';
+  const max = Math.max(1, ...s.perZone.map(z => z.goals + z.gestopt));
+  return `<section class="kaart"><h3>Schoten <span class="zacht">(live genoteerd)</span></h3>
+    <p><b>${s.goals}</b> goals op <b>${s.schoten}</b> schoten · <b>${s.pct}%</b></p>
+    <div class="raster">
+      <div><table class="tabel"><thead><tr><th>Positie</th><th>Goals/schoten</th><th>%</th></tr></thead><tbody>
+        ${s.perPositie.map(p => `<tr><td>${esc(p.naam)}</td><td>${p.goals}/${p.schoten}</td><td>${p.pct}%</td></tr>`).join('')}
+      </tbody></table></div>
+      <div><p class="zacht" style="text-align:center;margin-top:0">Doelkaart (gezien vanuit de schutter)</p>
+        <div class="doel-raster doelkaart">${s.perZone.map(z => {
+          const sterkte = Math.round(((z.goals + z.gestopt) / max) * 60);
+          return `<div class="vak" style="background:color-mix(in srgb, var(--goed) ${z.goals + z.gestopt ? Math.max(12, Math.round(sterkte * (z.goals / Math.max(1, z.goals + z.gestopt)))) : 0}%, var(--kaart))">
+            ${z.goals + z.gestopt ? `<span><b>${z.goals}</b>${z.gestopt ? `${z.gestopt} gestopt` : 'goal' + (z.goals === 1 ? '' : 's')}</span>` : ''}</div>`;
+        }).join('')}</div></div>
+    </div></section>`;
+}
+
+export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], fotoUrl = null, events = [] }, { trainer = false, eigen = false } = {}) {
   const gr = goalsReeks(goals);
   const sr = scoreReeksen(rapporten, skills);
   const laatste = rapporten[0];
@@ -128,6 +149,8 @@ export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], f
         ${gr.data.length ? '<div class="grafiek"><canvas id="gGoals"></canvas></div>'
           : '<p class="leeg">Nog geen goals ingevoerd.</p>'}</section>
     </div>
+
+    ${schotenHtml(events)}
 
     ${rapporten.length > 1 ? `<section class="kaart"><h3>Eerdere rapporten</h3>
       ${rapporten.slice(1).map((r, i) => `<details class="ouder"><summary>${formatDatum(r.datum)}

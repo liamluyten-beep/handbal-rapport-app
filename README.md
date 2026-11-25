@@ -64,6 +64,15 @@ Zet daarna in Supabase onder **Authentication → URL Configuration** de **Site 
 - **Vaardigheden aanpassen:** via **Vaardigheden** kun je ze hernoemen, toevoegen of verwijderen.
 - **Afdrukken / PDF:** op een spelerspagina kies je in de browser **Afdrukken → Opslaan als PDF**. Knoppen en menu worden dan automatisch weggelaten.
 
+### Live matchwatcher
+Eenmalig: voer [`supabase/update-5-live.sql`](supabase/update-5-live.sql) uit in de SQL Editor.
+
+1. Maak de wedstrijd aan bij **Wedstrijden** (zelfde datum en tegenstandersnaam als in Clubee, bv. `Merksplas`, dan koppelt de Clubee-import ze later automatisch).
+2. Open de wedstrijd en klik **▶ Live volgen**. Start de klok bij het begin van de match.
+3. **Schot**: speler → positie → goal/redding/mis → plek in het doel (mag je overslaan). **Tegengoal**: één tik. **2 min**: speler of tegenstander; bovenaan loopt een aftelklok.
+4. Elke tik wordt eerst op je gsm bewaard en verstuurd zodra er verbinding is. Je scherm blijft aan zolang het livescherm open is.
+5. Achteraf zie je bij de wedstrijd een overzicht per speler, en bij elke speler zijn schoten per positie en een doelkaart. Spelers zien enkel hun eigen schoten. Goals en 2 minuten van Clubee blijven officieel; bij een verschil zie je een waarschuwing.
+
 ### Wedstrijden uit Clubee
 De gespeelde wedstrijden en line-up-statistieken (goals, 7 meters, kaarten, 2 minuten) van de ploeg in `clubee.config.json` worden opgehaald in `data/clubee.json`.
 

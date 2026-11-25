@@ -10,7 +10,13 @@ export function esc(v) {
 // Tekst met witregels behouden
 export const tekstBlok = v => esc(v).replace(/\n/g, '<br>');
 
+// Opruimen bij het verlaten van een scherm (timers, wake lock, …)
+let opruimers = [];
+export const bijVerlaten = fn => { opruimers.push(fn); };
+
 export function toon(html) {
+  opruimers.forEach(fn => { try { fn(); } catch { /* negeren */ } });
+  opruimers = [];
   vernietigGrafieken();
   app().innerHTML = html;
 }

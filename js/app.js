@@ -6,6 +6,7 @@ import { spelerView } from './views/speler.js';
 import { rapportView } from './views/rapport.js';
 import { wedstrijdenView, wedstrijdView } from './views/wedstrijden.js';
 import { importView } from './views/import.js';
+import { liveView } from './views/live.js';
 import { vaardighedenView } from './views/vaardigheden.js';
 import { mijnView } from './views/mijn.js';
 import { zelfevaluatieView } from './views/zelfevaluatie.js';
@@ -32,7 +33,7 @@ function markeerActief() {
   document.querySelectorAll('#nav a').forEach(a => {
     const doel = a.getAttribute('href').split('/')[1];
     const actief = doel === hoofd || (doel === 'spelers' && ['speler', 'rapport'].includes(hoofd)) ||
-      (doel === 'wedstrijden' && hoofd === 'wedstrijd') ||
+      (doel === 'wedstrijden' && ['wedstrijd', 'live'].includes(hoofd)) ||
       (doel === 'mijn' && hoofd === 'zelfevaluatie');
     a.classList.toggle('actief', actief);
   });
@@ -140,6 +141,7 @@ async function route() {
       case 'rapport': return a === 'nieuw' ? await rapportView(null, b) : await rapportView(a);
       case 'wedstrijden': return await wedstrijdenView();
       case 'wedstrijd': return await wedstrijdView(a);
+      case 'live': return await liveView(a);
       case 'import': return await importView();
       case 'vaardigheden': return await vaardighedenView();
       default: return await spelersView();
