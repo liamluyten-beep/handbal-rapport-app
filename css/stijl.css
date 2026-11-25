@@ -308,3 +308,16 @@ details.ouder summary { cursor: pointer; font-weight: 600; padding: .4rem 0; }
 .match-details b { color: var(--tekst); }
 .schakelaar { display: inline-flex; align-items: center; gap: .5rem; cursor: pointer; font-weight: 600; }
 .schakelaar input { width: 20px; height: 20px; accent-color: var(--accent); }
+
+/* ---------- Bevestigingsvenster ---------- */
+.venster { border: 0; border-radius: var(--radius); padding: 1.4rem; max-width: 480px; width: calc(100% - 2rem);
+  background: var(--kaart); color: var(--tekst); box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+.venster::backdrop { background: rgba(5,10,20,.7); }
+.venster h2 { color: var(--fout); }
+.keuze { border: 0; padding: 0; margin: 0; display: grid; gap: .6rem; }
+.keuze label { display: flex; gap: .7rem; align-items: flex-start; font-weight: 400; padding: .7rem; border-radius: 10px;
+  border: 2px solid var(--lijn); cursor: pointer; }
+.keuze label:has(input:checked) { border-color: var(--fout); }
+.keuze input { width: auto; margin-top: .25rem; accent-color: var(--fout); }
+.knop.gevaar-vol { background: var(--fout); }
+.knop.gevaar-vol:disabled { opacity: .4; cursor: not-allowed; }

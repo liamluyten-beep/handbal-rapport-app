@@ -4,6 +4,7 @@ import { laadSpelerData, renderOverzicht } from './overzicht.js';
 import { spelerFormulier, leesSpeler } from './spelers.js';
 import { koppelPositieVakjes } from '../lib/posities.js';
 import { koppelFotoKnoppen, verwijderFoto } from '../foto.js';
+import { verwijderAccountVenster } from '../verwijder.js';
 
 export async function spelerView(id) {
   laden();
@@ -50,6 +51,12 @@ export async function spelerView(id) {
     } catch (err) { melding(err.message, 'fout'); }
   };
   document.getElementById('verwijder').onclick = async () => {
+    // Gekoppeld account? Dan via het venster, zodat ook de login verdwijnt.
+    if (speler.user_id) {
+      const weg = await verwijderAccountVenster({ userId: speler.user_id, email: speler.email, spelerId: id, spelerNaam: speler.naam, standaard: 'alles' });
+      if (weg) location.hash = '#/spelers';
+      return;
+    }
     if (!confirm(`${speler.naam} en al zijn/haar rapporten en goals definitief verwijderen?`)) return;
     try {
       await verwijderFoto(id).catch(() => {});

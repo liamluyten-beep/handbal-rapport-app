@@ -53,6 +53,7 @@ Zet daarna in Supabase onder **Authentication → URL Configuration** de **Site 
 2. Stuur je spelers de link naar de website. Ze klikken **Account aanmaken**, en kiezen daarna bij **Wie ben jij?** zichzelf uit de lijst, of maken zichzelf aan als ze er nog niet tussen staan.
 3. In de lijst staan alleen spelers die nog niemand gekozen heeft. Vul je bij een speler zelf een e-mailadres in, dan kan alleen iemand met dat adres hem kiezen.
 4. Koos iemand de verkeerde speler? Open die speler, klik **Gegevens → Account ontkoppelen**.
+5. **Iemand verwijderen** (eenmalig eerst [`supabase/update-8-verwijderen.sql`](supabase/update-8-verwijderen.sql) uitvoeren): ga naar **Accounts → Verwijderen**. Kies *enkel het account* (login weg, speler en rapporten blijven) of *account én speler* (ook rapporten, zelfevaluaties, goals en foto weg). Typ VERWIJDER om te bevestigen. Live schoten in oude wedstrijden blijven bestaan zonder naam.
 
 ---
 
