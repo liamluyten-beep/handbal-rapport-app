@@ -19,7 +19,7 @@ Alles is gratis: de database draait op **Supabase** (gratis plan) en de website 
 
 > De anon key mag gewoon in de website staan. De database is beveiligd met regels (Row Level Security): wie geen trainer is, kan alleen zijn eigen gegevens lezen.
 
-**Laat "Confirm email" aan staan** (Authentication → Sign In / Providers → Email). Een speler wordt pas aan zijn rapport gekoppeld nadat hij op de link in de bevestigingsmail heeft geklikt. Zo kan niemand die toevallig het e-mailadres van een ploeggenoot kent, diens rapport bekijken.
+**Bevestigingsmail (Confirm email):** te vinden onder Authentication → Sign In / Providers → Email. Staat ze **uit**, dan kunnen spelers meteen inloggen na het aanmaken van een account. Het nadeel is dat iemand die het e-mailadres van een ploeggenoot kent, met dat adres een account kan aanmaken. Staat ze **aan**, dan wordt een speler pas gekoppeld nadat hij op de link in de mail klikte. Wie ingelogd is, blijft ingelogd op dat toestel tot hij uitlogt.
 
 ## Stap 2: Website online zetten met GitHub Pages (gratis)
 
