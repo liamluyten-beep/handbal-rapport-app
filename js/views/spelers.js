@@ -1,17 +1,15 @@
 import { sb, q } from '../supabase.js';
 import { toon, esc, laden, melding } from '../ui.js';
 import { parseSpelersTekst, normaliseer } from '../lib/importeer.js';
+import { leesPosities, positieVakjesHtml, koppelPositieVakjes } from '../lib/posities.js';
 
 export function spelerFormulier(s = {}) {
   return `<div class="velden">
       <label>Naam<input name="naam" required value="${esc(s.naam)}"></label>
       <label>Rugnummer<input name="rugnummer" type="number" min="0" max="99" value="${esc(s.rugnummer)}"></label>
-      <label>Positie<select name="positie">
-        ${['', 'Doelman', 'Linkerhoek', 'Linkeropbouw', 'Spelverdeler', 'Rechteropbouw', 'Rechterhoek', 'Cirkelloper']
-          .map(p => `<option ${p === (s.positie || '') ? 'selected' : ''}>${p}</option>`).join('')}
-      </select></label>
       <label>E-mail (om in te loggen)<input name="email" type="email" value="${esc(s.email)}"></label>
-    </div>`;
+    </div>
+    <div><b>Positie(s)</b> <span class="zacht">(maximum 2)</span>${positieVakjesHtml(leesPosities(s.positie))}</div>`;
 }
 
 export function leesSpeler(form) {
@@ -19,7 +17,7 @@ export function leesSpeler(form) {
   return {
     naam: f.get('naam').trim(),
     rugnummer: f.get('rugnummer') === '' ? null : Number(f.get('rugnummer')),
-    positie: f.get('positie') || null,
+    positie: f.getAll('posities').slice(0, 2).join(', ') || null,
     email: f.get('email').trim().toLowerCase() || null,
   };
 }
@@ -66,6 +64,7 @@ Noah Janssens</code></pre>
       : `<section class="kaart leeg"><span class="bal"></span><p>Nog geen spelers. Voeg je eerste speler toe of importeer een lijst.</p></section>`}
   `);
 
+  koppelPositieVakjes(document);
   const wissel = (id, ander) => () => {
     const k = document.getElementById(id); k.hidden = !k.hidden;
     document.getElementById(ander).hidden = true;

@@ -173,3 +173,12 @@ details.ouder summary { cursor: pointer; font-weight: 600; padding: .4rem 0; }
 .speler-kaart.zonder-nummer { border-color: var(--fout); background: color-mix(in srgb, var(--fout) 8%, var(--kaart)); }
 .speler-kaart.zonder-nummer .nummer { background: var(--fout) !important; }
 .speler-kaart.zonder-nummer:hover { border-color: var(--fout); }
+
+/* ---------- Posities (max 2) ---------- */
+.posities { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .5rem; }
+.positie { display: inline-flex; font-weight: 600; cursor: pointer; }
+.positie input { position: absolute; opacity: 0; width: 0; }
+.positie span { padding: .45rem .9rem; border-radius: 999px; border: 2px solid var(--lijn); background: var(--bg); }
+.positie input:checked + span { background: var(--accent); border-color: var(--accent); color: #fff; }
+.positie input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+.positie input:disabled + span { opacity: .4; cursor: not-allowed; }

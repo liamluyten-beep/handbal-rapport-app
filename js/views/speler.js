@@ -2,6 +2,7 @@ import { sb, q } from '../supabase.js';
 import { toon, laden, melding, esc } from '../ui.js';
 import { laadSpelerData, renderOverzicht } from './overzicht.js';
 import { spelerFormulier, leesSpeler } from './spelers.js';
+import { koppelPositieVakjes } from '../lib/posities.js';
 
 export async function spelerView(id) {
   laden();
@@ -20,6 +21,7 @@ export async function spelerView(id) {
     </section>
     ${html}`);
   tekenGrafieken();
+  koppelPositieVakjes(document);
 
   document.getElementById('bewerkSpeler').onclick = () => {
     const k = document.getElementById('gegevensKaart'); k.hidden = !k.hidden;

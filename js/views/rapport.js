@@ -1,7 +1,23 @@
 import { sb, q } from '../supabase.js';
 import { toon, esc, laden, melding, vandaag } from '../ui.js';
 
-const SCHAAL = ['', 'Moet nog veel groeien', 'Op weg', 'Goed', 'Sterk', 'Uitstekend'];
+export const SCHAAL = ['', 'Moet nog veel groeien', 'Op weg', 'Goed', 'Sterk', 'Uitstekend'];
+
+export function scoreKiezerHtml(skills, scoreVan) {
+  return `<div class="scores">${skills.map(sk => `<div class="kiezer"><span>${esc(sk.naam)}</span>
+    <div class="kiezer-knoppen" role="radiogroup" aria-label="${esc(sk.naam)}">
+      ${[1, 2, 3, 4, 5].map(n => `<input type="radio" id="s${sk.id}_${n}" name="skill_${sk.id}" value="${n}"
+        ${scoreVan(sk.id) === n ? 'checked' : ''}><label for="s${sk.id}_${n}" title="${SCHAAL[n]}">${n}</label>`).join('')}
+      <input type="radio" id="s${sk.id}_0" name="skill_${sk.id}" value="" ${scoreVan(sk.id) == null ? 'checked' : ''}>
+      <label for="s${sk.id}_0" title="Niet beoordeeld" class="zacht">–</label>
+    </div></div>`).join('')}</div>`;
+}
+
+export function leesScores(form, skills) {
+  const f = new FormData(form);
+  return skills.map(sk => ({ skill_id: sk.id, score: Number(f.get(`skill_${sk.id}`)) }))
+    .filter(s => s.score >= 1 && s.score <= 5);
+}
 
 // rapportId = bewerken, of playerId = nieuw rapport
 export async function rapportView(rapportId, playerId) {
@@ -42,15 +58,7 @@ export async function rapportView(rapportId, playerId) {
           <h3>Scores</h3>
           <p class="uitleg-schaal">1 = ${SCHAAL[1]} · 2 = ${SCHAAL[2]} · 3 = ${SCHAAL[3]} · 4 = ${SCHAAL[4]} · 5 = ${SCHAAL[5]}
             ${!rapportId && Object.keys(vorige).length ? '<br>De scores van het vorige rapport zijn al ingevuld. Pas aan wat veranderd is.' : ''}</p>
-          <div class="scores">
-          ${skills.map(sk => `<div class="kiezer"><span>${esc(sk.naam)}</span>
-            <div class="kiezer-knoppen" role="radiogroup" aria-label="${esc(sk.naam)}">
-              ${[1, 2, 3, 4, 5].map(n => `<input type="radio" id="s${sk.id}_${n}" name="skill_${sk.id}" value="${n}"
-                ${scoreVan(sk.id) === n ? 'checked' : ''}><label for="s${sk.id}_${n}" title="${SCHAAL[n]}">${n}</label>`).join('')}
-              <input type="radio" id="s${sk.id}_0" name="skill_${sk.id}" value="" ${scoreVan(sk.id) == null ? 'checked' : ''}>
-              <label for="s${sk.id}_0" title="Niet beoordeeld" class="zacht">–</label>
-            </div></div>`).join('')}
-          </div>
+          ${scoreKiezerHtml(skills, scoreVan)}
         </div>
         <div class="rij tussen">
           <button class="knop">Rapport opslaan</button>
@@ -65,8 +73,7 @@ export async function rapportView(rapportId, playerId) {
     const f = new FormData(form);
     const knop = form.querySelector('button'); knop.disabled = true;
     const velden = { datum: f.get('datum'), goed_tekst: f.get('goed_tekst').trim(), beter_tekst: f.get('beter_tekst').trim() };
-    const scores = skills.map(sk => ({ skill_id: sk.id, score: Number(f.get(`skill_${sk.id}`)) }))
-      .filter(s => s.score >= 1 && s.score <= 5);
+    const scores = leesScores(form, skills);
     try {
       let id = rapportId;
       if (id) await q(sb.from('reports').update(velden).eq('id', id));

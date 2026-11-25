@@ -8,6 +8,7 @@ import { wedstrijdenView, wedstrijdView } from './views/wedstrijden.js';
 import { importView } from './views/import.js';
 import { vaardighedenView } from './views/vaardigheden.js';
 import { mijnView } from './views/mijn.js';
+import { zelfevaluatieView } from './views/zelfevaluatie.js';
 
 export const sessie = { user: null, rol: null };
 
@@ -31,7 +32,8 @@ function markeerActief() {
   document.querySelectorAll('#nav a').forEach(a => {
     const doel = a.getAttribute('href').split('/')[1];
     const actief = doel === hoofd || (doel === 'spelers' && ['speler', 'rapport'].includes(hoofd)) ||
-      (doel === 'wedstrijden' && hoofd === 'wedstrijd');
+      (doel === 'wedstrijden' && hoofd === 'wedstrijd') ||
+      (doel === 'mijn' && hoofd === 'zelfevaluatie');
     a.classList.toggle('actief', actief);
   });
 }
@@ -129,7 +131,10 @@ async function route() {
   markeerActief();
   const [, pad, a, b] = location.hash.split('/');
   try {
-    if (sessie.rol !== 'trainer') return await mijnView();
+    if (sessie.rol !== 'trainer') {
+      if (pad === 'zelfevaluatie') return await zelfevaluatieView(a === 'nieuw' ? null : a);
+      return await mijnView();
+    }
     switch (pad) {
       case 'speler': return await spelerView(a);
       case 'rapport': return a === 'nieuw' ? await rapportView(null, b) : await rapportView(a);

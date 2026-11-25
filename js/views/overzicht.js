@@ -5,13 +5,16 @@ import { esc, tekstBlok, lijnGrafiek, staafGrafiek } from '../ui.js';
 import { scoreReeksen, goalsReeks, formatDatum } from '../lib/voortgang.js';
 
 export async function laadSpelerData(playerId) {
-  const [skills, rapporten, goals] = await Promise.all([
+  const [skills, rapporten, goals, zelf] = await Promise.all([
     q(sb.from('skills').select('*').order('volgorde')),
     q(sb.from('reports').select('*, report_scores(skill_id, score)').eq('player_id', playerId)
       .order('datum', { ascending: false }).order('created_at', { ascending: false })),
     q(sb.from('goals').select('*, matches(*)').eq('player_id', playerId)),
+    // Zelfevaluaties (bestaat pas na update-2-speler.sql; zonder die tabel gewoon leeg)
+    q(sb.from('self_reports').select('*, self_report_scores(skill_id, score)').eq('player_id', playerId)
+      .order('datum', { ascending: false }).order('created_at', { ascending: false })).catch(() => []),
   ]);
-  return { skills, rapporten, goals };
+  return { skills, rapporten, goals, zelf };
 }
 
 const som = (goals, k) => goals.reduce((t, g) => t + (g[k] || 0), 0);
@@ -50,7 +53,26 @@ function rapportHtml(r, vorig, skills, trainer) {
     ${scoresHtml(r, vorig, skills)}`;
 }
 
-export function renderOverzicht(speler, { skills, rapporten, goals }, { trainer = false } = {}) {
+function zelfHtml(z, rapport, skills, eigen) {
+  const t = Object.fromEntries((rapport?.report_scores || []).map(s => [s.skill_id, s.score]));
+  const rijen = skills.map(sk => {
+    const zs = z.self_report_scores.find(x => x.skill_id === sk.id)?.score;
+    if (zs == null && t[sk.id] == null) return '';
+    const verschil = zs != null && t[sk.id] != null ? zs - t[sk.id] : 0;
+    return `<tr><td>${esc(sk.naam)}</td><td>${t[sk.id] ?? '–'}</td><td><b>${zs ?? '–'}</b></td>
+      <td>${verschil >= 2 ? '<span class="label">schat zichzelf hoger in</span>' : verschil <= -2 ? '<span class="label">schat zichzelf lager in</span>' : ''}</td></tr>`;
+  }).join('');
+  return `<div class="rapport-kop"><h2>Zelfevaluatie van ${formatDatum(z.datum)}</h2>
+      ${eigen ? `<a class="knop tweede klein geen-print" href="#/zelfevaluatie/${z.id}">Bewerken</a>` : ''}</div>
+    <div class="blokken">
+      <div class="blok goed"><h3>Dit doe ik al goed</h3><p>${tekstBlok(z.goed_tekst) || '<span class="zacht">—</span>'}</p></div>
+      <div class="blok beter"><h3>Hier wil ik beter in worden</h3><p>${tekstBlok(z.beter_tekst) || '<span class="zacht">—</span>'}</p></div>
+    </div>
+    ${rijen ? `<table class="tabel" style="margin-top:1rem"><thead><tr><th>Vaardigheid</th><th>Trainer</th><th>Zelf</th><th></th></tr></thead>
+      <tbody>${rijen}</tbody></table>` : ''}`;
+}
+
+export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [] }, { trainer = false, eigen = false } = {}) {
   const gr = goalsReeks(goals);
   const sr = scoreReeksen(rapporten, skills);
   const laatste = rapporten[0];
@@ -68,6 +90,9 @@ export function renderOverzicht(speler, { skills, rapporten, goals }, { trainer 
       ${trainer ? `<div class="rij geen-print">
         <a class="knop" href="#/rapport/nieuw/${speler.id}">+ Nieuw rapport</a>
         <button class="knop tweede" id="bewerkSpeler">Gegevens</button></div>` : ''}
+      ${eigen ? `<div class="rij geen-print">
+        <a class="knop" href="#/zelfevaluatie/nieuw">+ Zelfevaluatie</a>
+        <button class="knop tweede" id="mijnPosities">Mijn posities</button></div>` : ''}
     </div>
 
     <div class="stats">
@@ -85,6 +110,12 @@ export function renderOverzicht(speler, { skills, rapporten, goals }, { trainer 
       : `<section class="kaart leeg"><span class="bal"></span><p>${trainer
         ? 'Nog geen rapport voor deze speler. Maak het eerste aan met “Nieuw rapport”.'
         : 'Je trainer heeft nog geen rapport voor je gemaakt.'}</p></section>`}
+
+    ${zelf.length ? `<section class="kaart">${zelfHtml(zelf[0], laatste, skills, eigen)}
+      ${zelf.length > 1 ? `<h3 style="margin-top:1.2rem">Eerdere zelfevaluaties</h3>${zelf.slice(1).map(z => `<details class="ouder">
+        <summary>${formatDatum(z.datum)}</summary>${zelfHtml(z, null, skills, eigen)}</details>`).join('')}` : ''}</section>`
+      : eigen ? `<section class="kaart leeg"><p>Je hebt nog geen zelfevaluatie ingevuld.
+          <a href="#/zelfevaluatie/nieuw">Vul er nu een in</a>: hoe vind jij zelf dat het gaat?</p></section>` : ''}
 
     <div class="raster">
       <section class="kaart"><h3>Vooruitgang per vaardigheid</h3>
