@@ -6,7 +6,7 @@ import { scoreReeksen, goalsReeks, formatDatum } from '../lib/voortgang.js';
 import { fotoUrls, avatarHtml, fotoKnoppenHtml } from '../foto.js';
 import { schotStats, telSoort } from '../lib/live.js';
 import { aanwezigheidStats } from '../lib/aanwezig.js';
-import { alsSchoten, doelmanStats, groepeerDoelmanRapport } from '../lib/schiet.js';
+import { alsSchoten, doelmanStats, groepeerDoelmanRapport, keeperStats, perSchutterTotaal } from '../lib/schiet.js';
 
 export async function laadSpelerData(playerId) {
   const [skills, rapporten, goals, zelf, fotos, events, aanwezig, schiet, alsDoelman, doelmannen, sessies, dmRapport] = await Promise.all([
@@ -106,23 +106,45 @@ function schotenHtml(events, titel = 'Schoten <span class="zacht">(live genoteer
     </div>${extra}</section>`;
 }
 
+// Doelman: van waar wordt er op hem geschoten, waar redt hij, per schutter en per training
+function keeperHtml(alsDoelman, dmRapport) {
+  const k = keeperStats(alsDoelman);
+  if (!k.opDoel && !k.mis) return '';
+  const dagen = dmRapport ? groepeerDoelmanRapport(dmRapport) : [];
+  const schutters = dmRapport ? perSchutterTotaal(dmRapport) : [];
+  const max = Math.max(1, ...k.perZone.map(z => z.goals + z.gestopt));
+  return `<section class="kaart"><h3>Als doelman <span class="zacht">(schiettraining)</span></h3>
+    <div class="schiet-teller"><b>${k.pct ?? '–'}${k.pct != null ? '%' : ''}</b><span>gestopt · ${k.gestopt} van ${k.opDoel} schoten op doel${k.mis ? ` · ${k.mis} naast` : ''}</span></div>
+    <div class="raster">
+      <div><table class="tabel"><thead><tr><th>Geschoten vanaf</th><th>Gestopt</th><th>%</th></tr></thead><tbody>
+        ${k.perPositie.map(p => `<tr><td>${esc(p.naam)}</td><td>${p.gestopt}/${p.opDoel}${p.mis ? ` <small class="zacht">+${p.mis} naast</small>` : ''}</td><td>${p.pct ?? '–'}${p.pct != null ? '%' : ''}</td></tr>`).join('')}
+      </tbody></table></div>
+      <div><p class="zacht" style="text-align:center;margin-top:0">Doelkaart (gezien vanuit de schutter)</p>
+        <div class="doel-raster doelkaart">${k.perZone.map(z => {
+          const t = z.goals + z.gestopt;
+          return `<div class="vak" style="background:color-mix(in srgb, var(--goed) ${t ? Math.max(12, Math.round((z.gestopt / t) * 60)) : 0}%, var(--kaart))">
+            ${t ? `<span><b>${z.gestopt}/${t}</b>gestopt</span>` : ''}</div>`;
+        }).join('')}</div>
+        <p class="zacht" style="text-align:center;font-size:.85rem">Groener = vaker gestopt in die hoek.</p></div>
+    </div>
+    ${schutters.length ? `<h3 style="margin-top:1rem">Per schutter</h3><table class="tabel"><thead><tr><th>Schutter</th><th>Goals / schoten</th><th>Gestopt</th><th>%</th></tr></thead><tbody>
+      ${schutters.map(s => `<tr><td>${esc(s.schutter)}</td><td>${s.goals}/${s.schoten}</td><td>${s.reddingen}</td><td>${s.pct ?? '–'}${s.pct != null ? '%' : ''}</td></tr>`).join('')}
+      </tbody></table><p class="zacht" style="font-size:.85rem">Wie het moeilijkst te stoppen is, staat bovenaan.</p>` : ''}
+    ${dagen.length ? `<h3 style="margin-top:1rem">Per training</h3>${dagen.map((d, i) => `<details class="ouder" ${i === 0 ? 'open' : ''}><summary>${formatDatum(d.datum)} ·
+        <b>${d.pct ?? '–'}${d.pct != null ? '%' : ''} gestopt</b> <span class="zacht">(${d.reddingen} van ${d.opDoel} op doel${d.mis ? `, ${d.mis} naast` : ''})</span></summary>
+        <table class="tabel"><thead><tr><th>Schutter</th><th>Goals / schoten</th><th>Gestopt</th><th>Naast</th></tr></thead><tbody>
+        ${d.schutters.map(s => `<tr><td>${esc(s.schutter)}</td><td>${s.goals}/${s.schoten}</td><td>${s.reddingen}</td><td>${s.mis || ''}</td></tr>`).join('')}
+        <tr><td><b>Samen</b></td><td><b>${d.goals}/${d.schoten}</b></td><td><b>${d.reddingen}</b></td><td>${d.mis || ''}</td></tr>
+        </tbody></table></details>`).join('')}` : ''}
+  </section>`;
+}
+
 function schietHtml(schiet, alsDoelman, doelmannen, sessies = [], dmRapport = null) {
   const naam = id => (id ? doelmannen.find(d => d.id === id)?.naam ?? 'doelman' : 'andere doelman');
   const perDoelman = doelmanStats(schiet).filter(d => d.opDoel);
   const tegen = perDoelman.length ? `<h3 style="margin-top:1rem">Tegen welke doelman?</h3><table class="tabel"><thead><tr><th>Doelman</th><th>Goals</th><th>Gestopt</th><th>Raak</th></tr></thead><tbody>
     ${perDoelman.map(d => `<tr><td>${esc(naam(d.doelman_id))}</td><td>${d.tegen}</td><td>${d.gestopt}</td><td>${100 - d.pct}%</td></tr>`).join('')}</tbody></table>` : '';
-  // Doelman: per training opgeteld over alle schutters (enkel afgesloten sessies)
-  const dagen = dmRapport ? groepeerDoelmanRapport(dmRapport) : [];
-  const keeper = doelmanStats(alsDoelman)[0];
-  const doelmanKaart = dagen.length ? `<section class="kaart"><h3>Doelmanrapport <span class="zacht">(schiettraining)</span></h3>
-      ${dagen.map((d, i) => `<details class="ouder" ${i === 0 ? 'open' : ''}><summary>${formatDatum(d.datum)} ·
-        <b>${d.pct ?? '–'}${d.pct != null ? '%' : ''} gestopt</b> <span class="zacht">(${d.reddingen} van ${d.opDoel} op doel${d.mis ? `, ${d.mis} naast` : ''})</span></summary>
-        <table class="tabel"><thead><tr><th>Schutter</th><th>Goals / schoten</th><th>Gestopt</th><th>Naast</th></tr></thead><tbody>
-        ${d.schutters.map(s => `<tr><td>${esc(s.schutter)}</td><td>${s.goals}/${s.schoten}</td><td>${s.reddingen}</td><td>${s.mis || ''}</td></tr>`).join('')}
-        <tr><td><b>Samen</b></td><td><b>${d.goals}/${d.schoten}</b></td><td><b>${d.reddingen}</b></td><td>${d.mis || ''}</td></tr>
-        </tbody></table></details>`).join('')}</section>`
-    : keeper && keeper.opDoel ? `<section class="kaart"><h3>Als doelman <span class="zacht">(schiettraining)</span></h3>
-      <div class="schiet-teller"><b>${keeper.pct}%</b><span>gestopt · ${keeper.gestopt} van ${keeper.opDoel} schoten op doel</span></div></section>` : '';
+  const doelmanKaart = keeperHtml(alsDoelman, dmRapport);
 
   // Trainingsrapporten: elke afgesloten sessie apart
   const sessieKaart = sessies.length ? `<section class="kaart"><h3>Trainingsrapporten <span class="zacht">(schiettraining)</span></h3>
