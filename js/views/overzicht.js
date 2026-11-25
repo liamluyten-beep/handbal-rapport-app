@@ -9,10 +9,14 @@ export async function laadSpelerData(playerId) {
     q(sb.from('skills').select('*').order('volgorde')),
     q(sb.from('reports').select('*, report_scores(skill_id, score)').eq('player_id', playerId)
       .order('datum', { ascending: false }).order('created_at', { ascending: false })),
-    q(sb.from('goals').select('aantal, pogingen, matches(id, datum, tegenstander, thuis)').eq('player_id', playerId)),
+    q(sb.from('goals').select('*, matches(*)').eq('player_id', playerId)),
   ]);
   return { skills, rapporten, goals };
 }
+
+const som = (goals, k) => goals.reduce((t, g) => t + (g[k] || 0), 0);
+const kaarten = goals => [['geel', '🟨'], ['rood', '🟥'], ['blauw', '🟦']]
+  .filter(([k]) => som(goals, k)).map(([k, i]) => `${som(goals, k)}<small>${i}</small>`).join(' ');
 
 function gemiddelde(rapport) {
   const s = rapport?.report_scores || [];
@@ -71,6 +75,9 @@ export function renderOverzicht(speler, { skills, rapporten, goals }, { trainer 
       <div class="stat"><div class="titel">Wedstrijden</div><div class="waarde">${gr.data.length}</div></div>
       <div class="stat"><div class="titel">Gem. per match</div><div class="waarde">${gr.data.length ? (gr.totaal / gr.data.length).toFixed(1) : '–'}</div></div>
       ${rendement ? `<div class="stat"><div class="titel">Rendement</div><div class="waarde">${rendement}</div></div>` : ''}
+      ${som(goals, 'zeven_m') || som(goals, 'zeven_m_mis') ? `<div class="stat"><div class="titel">7 meters</div><div class="waarde">${som(goals, 'zeven_m')}<small class="zacht"> / ${som(goals, 'zeven_m') + som(goals, 'zeven_m_mis')}</small></div></div>` : ''}
+      ${som(goals, 'twee_min') ? `<div class="stat"><div class="titel">2 minuten</div><div class="waarde">${som(goals, 'twee_min')}</div></div>` : ''}
+      ${som(goals, 'geel') + som(goals, 'rood') + som(goals, 'blauw') ? `<div class="stat"><div class="titel">Kaarten</div><div class="waarde">${kaarten(goals)}</div></div>` : ''}
       <div class="stat"><div class="titel">Laatste rapport</div><div class="waarde">${gemiddelde(laatste) ?? '–'}<small class="zacht"> / 5</small></div></div>
     </div>
 

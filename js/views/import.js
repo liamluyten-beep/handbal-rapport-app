@@ -2,14 +2,17 @@ import { sb, q } from '../supabase.js';
 import { toon, esc, laden, melding } from '../ui.js';
 import { parseGoalsTekst, koppelSpeler } from '../lib/importeer.js';
 import { formatDatum } from '../lib/voortgang.js';
+import { clubeeHtml, clubeeStart } from './clubee.js';
 
 export async function importView() {
   laden();
   const spelers = await q(sb.from('players').select('id, naam, rugnummer'));
   toon(`
     <div class="paginakop"><div><h1>Goals importeren</h1>
-      <p class="zacht">Plak een lijst uit Excel, Clubee of een ander programma, of kies een CSV-bestand.</p></div></div>
+      <p class="zacht">Haal de wedstrijden op uit Clubee, of plak een lijst uit Excel.</p></div></div>
+    ${clubeeHtml()}
     <section class="kaart">
+      <h2>Zelf een lijst plakken</h2>
       <p>Per regel: <code>datum ; tegenstander ; speler ; goals</code>. De speler mag een naam of rugnummer zijn.
         Kolommen mogen gescheiden zijn door puntkomma, komma of tab.</p>
       <pre class="zacht"><code>Datum;Tegenstander;Speler;Goals
@@ -22,6 +25,7 @@ export async function importView() {
       </div>
     </section>
     <section id="voorbeeld"></section>`);
+  clubeeStart(spelers);
 
   const tekstEl = document.getElementById('tekst');
   document.getElementById('bestand').onchange = async e => {

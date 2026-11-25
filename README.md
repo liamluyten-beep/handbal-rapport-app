@@ -63,8 +63,15 @@ Zet daarna in Supabase onder **Authentication → URL Configuration** de **Site 
 - **Vaardigheden aanpassen:** via **Vaardigheden** kun je ze hernoemen, toevoegen of verwijderen.
 - **Afdrukken / PDF:** op een spelerspagina kies je in de browser **Afdrukken → Opslaan als PDF**. Knoppen en menu worden dan automatisch weggelaten.
 
-### Over Clubee
-Er is geen publieke koppeling met Clubee gevonden. Kun je in Clubee de wedstrijdstatistieken exporteren of kopiëren? Zet ze dan in de vorm `datum;tegenstander;speler;goals` (in Excel: kolommen in die volgorde, **Opslaan als → CSV**) en gebruik **Importeren**.
+### Wedstrijden uit Clubee
+De gespeelde wedstrijden en line-up-statistieken (goals, 7 meters, kaarten, 2 minuten) van de ploeg in `clubee.config.json` worden opgehaald in `data/clubee.json`.
+
+1. **Eén keer:** voer [`supabase/update-1-clubee.sql`](supabase/update-1-clubee.sql) uit in de SQL Editor van Supabase.
+2. Ga naar **Importeren → Van Clubee**. Clubee toont alleen initialen (bv. `#11 N... L...`). De app koppelt die automatisch aan je spelers via initialen en rugnummer. Kies bij twijfel zelf de juiste speler. Je keuze wordt onthouden.
+3. Klik **Importeren**. Je kunt dit gerust opnieuw doen: wedstrijden worden bijgewerkt, niet verdubbeld.
+
+**Nieuwe wedstrijden ophalen:** voer `node tools/clubee-ophalen.mjs` uit in deze map en push `data/clubee.json` naar GitHub.
+Een andere competitie of ploeg? Pas `clubee.config.json` aan.
 
 ---
 

@@ -58,6 +58,17 @@ create table if not exists public.goals (
   primary key (match_id, player_id)
 );
 
+-- Clubee-import (zie ook update-1-clubee.sql)
+alter table public.matches add column if not exists clubee_id   bigint unique;
+alter table public.matches add column if not exists score_voor  int;
+alter table public.matches add column if not exists score_tegen int;
+alter table public.goals add column if not exists zeven_m     int;
+alter table public.goals add column if not exists zeven_m_mis int;
+alter table public.goals add column if not exists geel        int;
+alter table public.goals add column if not exists twee_min    int;
+alter table public.goals add column if not exists blauw       int;
+alter table public.goals add column if not exists rood        int;
+
 -- ---------- Hulpfuncties ----------
 create or replace function public.is_trainer()
 returns boolean language sql stable security definer set search_path = public as $$
