@@ -68,6 +68,7 @@ async function trainerHome() {
       ${tegel('#/wedstrijden', '🤾', 'Wedstrijden', 'uitslagen, live stats, verloop')}
       <a class="tegel" href="#" id="trainingVandaag"><span class="tegel-icoon">✅</span><b>Training vandaag</b><small class="zacht">aanwezigheden afvinken</small></a>
       ${tegel('#/trainingen', '📅', 'Trainingen', 'aanwezigheid per speler')}
+      ${tegel('#/schietstats', '🎯', 'Schiettraining-stats', 'ranglijst spelers en doelmannen')}
       ${tegel('#/import', '⬇️', 'Importeren', 'Clubee of een lijst plakken')}
       ${tegel('#/accounts', '🔑', 'Accounts', 'matchwatchers aanduiden')}
       ${tegel('#/vaardigheden', '🎯', 'Vaardigheden', 'scores in de rapporten')}

@@ -87,6 +87,7 @@ Geef je doelmannen de positie **Doelman** (bij Gegevens of door de speler zelf),
 - De **doelman** krijgt per training een doelmanrapport: alle schutters samen (bv. Alex 3/4 + Warre 5/6 = 8/10 → 20% gestopt), telkens zodra een schutter zijn sessie afsluit. Schoten naast tellen niet mee in het percentage.
 - Op de spelerspagina: trefzekerheid per positie, per doelman en een doelkaart. Een doelman ziet ook zijn reddingspercentage.
 - Bij **Trainingen** ziet de trainer de trefzekerheid per speler en het reddingspercentage per doelman.
+- **Home → Schiettraining-stats** (trainer): ranglijst van beste naar slechtste, tabblad **Spelers** (met filter op positie) en tabblad **Doelmannen**.
 
 ### Live matchwatcher en live statistieken
 Eenmalig: voer [`supabase/update-5-live.sql`](supabase/update-5-live.sql), [`supabase/update-6-watcher.sql`](supabase/update-6-watcher.sql) en [`supabase/update-7-home.sql`](supabase/update-7-home.sql) uit in de SQL Editor.

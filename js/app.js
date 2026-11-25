@@ -17,6 +17,7 @@ import { homeView } from './views/home.js';
 import { mijnMatchenView } from './views/matchen.js';
 import { trainingenView, trainingView } from './views/trainingen.js';
 import { schietenView } from './views/schieten.js';
+import { schietStatsView } from './views/schietstats.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
 
@@ -225,6 +226,7 @@ async function route() {
       case 'accounts': return await accountsView();
       case 'trainingen': return await trainingenView();
       case 'training': return await trainingView(a);
+      case 'schietstats': return await schietStatsView();
       case 'import': return await importView();
       case 'vaardigheden': return await vaardighedenView();
       case 'spelers': return await spelersView();

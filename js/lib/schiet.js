@@ -70,3 +70,23 @@ export function perSchutterTotaal(rijen) {
     .map(s => ({ ...s, pct: pctVan(s.reddingen, s.goals + s.reddingen) }))
     .sort((a, b) => (a.pct ?? 101) - (b.pct ?? 101));
 }
+
+// Ranglijst schutters (beste trefzekerheid eerst; bij gelijk: wie meer schoot). Optioneel enkel schoten vanaf één positie.
+export function rangschikSchutters(rijen, spelers, positie = null) {
+  const gefilterd = positie ? rijen.filter(r => r.positie === positie) : rijen;
+  return spelers.map(s => {
+    const eigen = gefilterd.filter(r => r.player_id === s.id);
+    const goals = eigen.filter(r => r.resultaat === 'goal').length;
+    return { player_id: s.id, naam: s.naam, schoten: eigen.length, goals, pct: pctVan(goals, eigen.length) };
+  }).filter(r => r.schoten)
+    .sort((a, b) => b.pct - a.pct || b.schoten - a.schoten);
+}
+
+// Ranglijst doelmannen (hoogste reddingspercentage eerst). Schoten op "andere doelman" tellen niet mee.
+export function rangschikDoelmannen(rijen, spelers) {
+  const naam = id => spelers.find(s => s.id === id)?.naam ?? 'Onbekend';
+  return doelmanStats(rijen).filter(d => d.doelman_id)
+    .map(d => ({ ...d, naam: naam(d.doelman_id), mis: rijen.filter(r => r.doelman_id === d.doelman_id && r.resultaat === 'mis').length }))
+    .filter(d => d.opDoel + d.mis)
+    .sort((a, b) => (b.pct ?? -1) - (a.pct ?? -1) || b.opDoel - a.opDoel);
+}
