@@ -1,7 +1,7 @@
 // Profielfoto's: verkleinen in de browser, uploaden naar Supabase Storage, tijdelijke links ophalen.
 import { sb } from './supabase.js';
 import { esc, melding } from './ui.js';
-import { FOTO_ZIJDE, fotoPad, uitsnede } from './lib/foto.js';
+import { FOTO_ZIJDE, fotoPad, uitsnede, effenRand } from './lib/foto.js';
 
 const BUCKET = 'profielfotos';
 
@@ -18,10 +18,28 @@ export async function fotoUrls(ids) {
 }
 
 // Foto bijsnijden in een verhouding en verkleinen tot doelbreedte (jpg)
-async function naarJpg(file, verhouding, doelBreedte) {
+// Witte kader rond een foto opsporen op een verkleinde kopie, en terugrekenen naar de echte foto
+function regioZonderRand(bron) {
+  const kb = 300, kh = Math.max(1, Math.round((300 * bron.height) / bron.width));
+  const klein = document.createElement('canvas');
+  klein.width = kb; klein.height = kh;
+  const ctx = klein.getContext('2d', { willReadFrequently: true });
+  ctx.drawImage(bron, 0, 0, kb, kh);
+  const data = ctx.getImageData(0, 0, kb, kh).data;
+  const px = new Uint8Array(kb * kh);
+  for (let i = 0; i < px.length; i++) px[i] = (data[i * 4] * 299 + data[i * 4 + 1] * 587 + data[i * 4 + 2] * 114) / 1000;
+  const r = effenRand(px, kb, kh);
+  const s = bron.width / kb, marge = r.x || r.y ? 2 : 0;   // net iets ruimer wegknippen tegen een lichte zoom
+  const x = Math.min(bron.width - 1, Math.ceil(r.x * s) + marge), y = Math.min(bron.height - 1, Math.ceil(r.y * s) + marge);
+  return { x, y, b: Math.max(1, Math.floor(r.b * s) - 2 * marge), h: Math.max(1, Math.floor(r.h * s) - 2 * marge) };
+}
+
+async function naarJpg(file, verhouding, doelBreedte, { randWeg = false } = {}) {
   const bron = await createImageBitmap(file).catch(() => null);
   if (!bron) throw new Error('Deze foto kan niet gelezen worden. Probeer een JPG of PNG.');
-  const { sx, sy, b, h } = uitsnede(bron.width, bron.height, verhouding);
+  const regio = randWeg ? regioZonderRand(bron) : { x: 0, y: 0, b: bron.width, h: bron.height };
+  const u = uitsnede(regio.b, regio.h, verhouding);
+  const sx = regio.x + u.sx, sy = regio.y + u.sy, b = u.b, h = u.h;
   const doek = document.createElement('canvas');
   doek.width = Math.min(doelBreedte, b);
   doek.height = Math.round(doek.width / verhouding);
@@ -86,8 +104,11 @@ export async function ploegFotoUrl() {
 }
 
 export async function uploadPloegFoto(file) {
-  const blob = await naarJpg(file, 16 / 9, 1600);
+  const blob = await verwerkPloegFoto(file);
   const { error } = await sb.storage.from(BUCKET).upload(PLOEG, blob, { upsert: true, contentType: 'image/jpeg' });
   if (error) throw new Error(/bucket not found/i.test(error.message)
     ? 'De fotomap bestaat nog niet. Voer eerst update-4-fotos.sql uit in Supabase.' : error.message);
 }
+
+// Ploegfoto: witte kader weg, breedbeeld 16:9, max 1600 px breed
+export const verwerkPloegFoto = file => naarJpg(file, 16 / 9, 1600, { randWeg: true });
