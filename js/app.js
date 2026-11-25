@@ -69,7 +69,9 @@ function loginView(modus = 'login') {
     const knop = e.target.querySelector('button'); knop.disabled = true;
     try {
       if (reg) {
-        const { data, error } = await sb.auth.signUp({ email, password });
+        const { data, error } = await sb.auth.signUp({
+          email, password, options: { emailRedirectTo: location.origin + location.pathname },
+        });
         if (error) throw error;
         if (!data.session) {
           melding('Account aangemaakt. Bevestig je e-mailadres via de mail die je kreeg, en log daarna in.');
