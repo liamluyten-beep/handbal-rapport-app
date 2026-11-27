@@ -45,7 +45,7 @@ function wisselLink() {
 }
 
 // Versie van de site (zichtbaar onderaan in "Meer"), handig om te zien of een gsm de nieuwste versie heeft
-export const VERSIE = '2026-11-28.7';
+export const VERSIE = '2026-11-28.8';
 
 document.title = (IS_TEST ? 'TEST · ' : '') + PLOEGNAAM;
 if (IS_TEST) document.body.classList.add('testversie');

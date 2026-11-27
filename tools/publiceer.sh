@@ -9,6 +9,10 @@ git checkout -q main
 git pull -q --rebase origin main
 # Bij een conflict wint main (dat zijn de Clubee-gegevens die de dagelijkse taak bijwerkt)
 git merge -q --no-edit -X ours dev -m "publiceer: dev naar de echte app"
+# Heren 1 (/heren1/): kopie van de app die net op main staat
+bash tools/bouw-ploeg.sh "$PWD" heren1 heren1
+git add -A heren1
+git commit -q -m "publiceer: Heren 1 bijgewerkt" || true
 git push -q origin main
 git checkout -q dev
 git merge -q --no-edit main      # Clubee-gegevens van main ook op dev

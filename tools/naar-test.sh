@@ -17,7 +17,9 @@ cp "$BRON/index.html" "$BRON/manifest.webmanifest" "$BRON/sw.js" test/
 cp -r "$BRON/css" "$BRON/js" "$BRON/img" test/
 # Eigen naam voor de geïnstalleerde test-app, zodat hij niet verward wordt met de echte
 sed -i 's/"name": "\([^"]*\)"/"name": "TEST \1"/; s/"short_name": "\([^"]*\)"/"short_name": "TEST Uilenspiegel"/' test/manifest.webmanifest
+# Heren 1-testversie: /test/heren1/
+bash "$BRON/tools/bouw-ploeg.sh" "$BRON" test/heren1 heren1 test
 git add -A test
 git commit -q -m "test: ${1:-nieuwe testversie} ($(git -C "$BRON" rev-parse --short HEAD))" || { echo "Testversie was al up-to-date."; exit 0; }
 git push -q origin main
-echo "Testversie bijgewerkt: https://uilenspiegelu16handbal.github.io/test/"
+echo "Testversie bijgewerkt: https://uilenspiegelu16handbal.github.io/test/ (Heren 1: /test/heren1/)"
