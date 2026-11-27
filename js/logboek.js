@@ -16,5 +16,8 @@ export function logFout(bericht) {
   log('fout', tekst);
 }
 
-window.addEventListener('error', e => logFout(e.message || 'Onbekende fout'));
+// "Script error." = de browser verbergt de details (fout in een script van een andere site); bestand en regel helpen dan toch
+window.addEventListener('error', e => logFout(/^script error.?$/i.test(e.message || '')
+  ? `Onbekende fout in een extern script (de browser gaf geen details)${e.filename ? ` in ${e.filename.split('/').pop()}` : ''}`
+  : `${e.message || 'Onbekende fout'}${e.filename ? ` (${e.filename.split('/').pop()}:${e.lineno})` : ''}`));
 window.addEventListener('unhandledrejection', e => logFout(e.reason?.message || String(e.reason)));

@@ -28,7 +28,7 @@ import { installeerView, alsApp, meldAppGebruik } from './installeer.js';
 export const sessie = { user: null, rol: null, watcher: false };
 
 // Versie van de site (zichtbaar onderaan in "Meer"), handig om te zien of een gsm de nieuwste versie heeft
-export const VERSIE = '2026-11-27.3';
+export const VERSIE = '2026-11-27.4';
 
 document.title = PLOEGNAAM;
 document.getElementById('ploegnaam').textContent = PLOEGNAAM;
@@ -294,6 +294,17 @@ async function start() {
   laden();
   const { data } = await sb.auth.getSession();
   sessie.user = data.session?.user || null;
+  // Bestaat het account nog? (bv. verwijderd terwijl de gsm nog ingelogd was) Zo niet: netjes uitloggen.
+  // Enkel bij een duidelijk "bestaat niet", niet bij geen verbinding.
+  if (sessie.user) {
+    const { error } = await sb.auth.getUser();
+    if (error && /does not exist|user_not_found|not found|session_not_found/i.test(`${error.code} ${error.message}`)) {
+      await sb.auth.signOut().catch(() => {});
+      localStorage.removeItem('appInstallatieGelogd');
+      sessie.user = null;
+      setTimeout(() => melding('Je account bestaat niet meer. Maak een nieuw account aan.', 'fout'), 300);
+    }
+  }
   if (sessie.user) { await laadRol().catch(fout); meldAppGebruik(); }
   zetNavigatie();
   if (sessie.user && window.__herstel) nieuwWachtwoordView(); else await route();
