@@ -7,10 +7,11 @@ import { maakOpslag } from '../opslag.js';
 import { VELDPOSITIES, positieNaam, schotStats } from '../lib/live.js';
 import { alsSchoten, doelmanStats } from '../lib/schiet.js';
 import { log } from '../logboek.js';
+import { kiesUitdaging, xpVoorSchot, ZONE_NAMEN } from '../lib/xp.js';
 
 const ZONE_PIJL = ['↖', '↑', '↗', '←', '•', '→', '↙', '↓', '↘'];
 const perDag = (query, scope) => { const [pid, datum] = scope.split('|'); return query.eq('player_id', pid).eq('datum', datum); };
-const schotOpslag = maakOpslag({ tabel: 'training_schoten', voorvoegsel: 'schiet', filter: perDag });
+const schotOpslag = maakOpslag({ tabel: 'training_schoten', voorvoegsel: 'schiet', filter: perDag, optioneel: ['uitdaging_zone'] });
 const sessieOpslag = maakOpslag({ tabel: 'schiet_sessies', voorvoegsel: 'sessie', filter: perDag });
 const keuzeSleutel = 'schietKeuze';
 
@@ -85,6 +86,7 @@ export async function schietenView() {
     let keuze = { doelman: null, positie: 'LO', ...JSON.parse(localStorage.getItem(keuzeSleutel) || '{}') };
     if (keuze.doelman && keuze.doelman !== 'andere' && !doelmannen.some(d => d.id === keuze.doelman)) keuze.doelman = null;
     let gekozenZone = null;
+    let uitdaging = kiesUitdaging();   // plek in het doel die de app vraagt
 
     toon(`<div class="live">
       <div class="rij tussen"><h1 style="margin:0">Schiettraining</h1>
@@ -114,8 +116,10 @@ export async function schietenView() {
       const el = document.getElementById('invoer');
       if (!keuze.doelman) { el.innerHTML = '<p class="leeg">Kies eerst de doelman hierboven.</p>'; return; }
       if (gekozenZone == null) {
-        el.innerHTML = `<p class="zacht" style="margin-top:0">Tik waar je schot ging (gezien vanuit jou):</p>
-          <div class="doel-raster">${ZONE_PIJL.map((p, i) => `<button data-zone="${i + 1}">${p}</button>`).join('')}</div>
+        el.innerHTML = `<div class="uitdaging">🎯 Uitdaging: scoor <b>${ZONE_PIJL[uitdaging - 1]} ${ZONE_NAMEN[uitdaging - 1]}</b>
+            <small>goal +5 XP · op die plek +10 XP</small></div>
+          <p class="zacht" style="margin-top:.6rem">Tik waar je schot ging (gezien vanuit jou):</p>
+          <div class="doel-raster">${ZONE_PIJL.map((p, i) => `<button data-zone="${i + 1}" class="${i + 1 === uitdaging ? 'doelwit' : ''}">${p}</button>`).join('')}</div>
           <button class="live-knop mis breed" id="naast" style="margin-top:.7rem;width:100%">Naast / over / paal</button>`;
         el.querySelectorAll('[data-zone]').forEach(b => b.onclick = () => { gekozenZone = Number(b.dataset.zone); tekenInvoer(); });
         document.getElementById('naast').onclick = () => bewaar('mis', null);
@@ -136,7 +140,7 @@ export async function schietenView() {
       const rijen = schotenVan(sessie.id).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
       const st = schotStats(alsSchoten(rijen));
       document.getElementById('samenvatting').innerHTML = st.schoten
-        ? `<div class="schiet-teller"><b>${st.goals}/${st.schoten}</b><span>${st.pct}% raak</span></div>
+        ? `<div class="schiet-teller"><b>${st.goals}/${st.schoten}</b><span>${st.pct}% raak · <b class="xp-klein">+${rijen.reduce((t, r) => t + xpVoorSchot(r), 0)} XP</b></span></div>
            ${st.perPositie.map(p => `<span class="label">${esc(p.naam)} ${p.goals}/${p.schoten}</span>`).join(' ')}`
         : '<p class="zacht" style="margin:0">Nog geen schoten. Kies doelman en positie, en tik na elk schot.</p>';
       document.getElementById('lijst').innerHTML = rijen.length ? rijen.map(r => `<div class="logrij">
@@ -149,10 +153,14 @@ export async function schietenView() {
     }
 
     function bewaar(resultaat, zone) {
-      schotOpslag.voegToe(scope, {
+      const rij = {
         player_id: speler.id, sessie_id: sessie.id, doelman_id: keuze.doelman === 'andere' ? null : keuze.doelman,
-        positie: keuze.positie, resultaat, doelzone: zone, datum,
-      });
+        positie: keuze.positie, resultaat, doelzone: zone, datum, uitdaging_zone: uitdaging,
+      };
+      schotOpslag.voegToe(scope, rij);
+      const xp = xpVoorSchot(rij);
+      if (xp) melding(xp > 5 ? `+${xp} XP · op de plek! 🔥` : `+${xp} XP`);
+      uitdaging = kiesUitdaging();
       gekozenZone = null;
       if (navigator.vibrate) navigator.vibrate(30);
       tekenInvoer(); tekenLijst(); stuur();
@@ -184,7 +192,7 @@ export async function schietenView() {
       <p class="zacht">${new Date(s.gestart_op).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })} –
         ${new Date(s.gestopt_op).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })} · staat nu bij je trainingsrapporten</p>
       <section class="kaart">
-        <div class="schiet-teller"><b>${st.goals}/${st.schoten}</b><span>${st.pct ?? 0}% raak</span></div>
+        <div class="schiet-teller"><b>${st.goals}/${st.schoten}</b><span>${st.pct ?? 0}% raak · <b class="xp-klein">+${rijen.reduce((t, r) => t + xpVoorSchot(r), 0)} XP</b></span></div>
         ${st.schoten ? `<table class="tabel"><thead><tr><th>Positie</th><th>Raak</th><th>%</th></tr></thead><tbody>
           ${st.perPositie.map(p => `<tr><td>${esc(p.naam)}</td><td>${p.goals}/${p.schoten}</td><td>${p.pct}%</td></tr>`).join('')}</tbody></table>` : ''}
       </section>

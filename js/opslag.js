@@ -8,7 +8,8 @@ const schrijf = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 const actieId = a => a.op + ':' + (a.rij?.id ?? a.id);
 
 // tabel: Supabase-tabel; voorvoegsel: sleutel in localStorage; filter: (query, scope) => query
-export function maakOpslag({ tabel, voorvoegsel, filter }) {
+// optioneel: kolommen die nog niet in de database kunnen bestaan (update nog niet uitgevoerd) -> dan zonder bewaren
+export function maakOpslag({ tabel, voorvoegsel, filter, optioneel = [] }) {
   const sleutel = (scope, wat) => `${voorvoegsel}:${scope}:${wat}`;
   let bezig = false;
 
@@ -47,9 +48,15 @@ export function maakOpslag({ tabel, voorvoegsel, filter }) {
         const rij = lees(sleutel(scope, 'wachtrij'), []);
         if (!rij.length) break;
         const actie = rij[0];
-        const { error } = actie.op === 'insert'
+        let { error } = actie.op === 'insert'
           ? await sb.from(tabel).upsert(actie.rij, { onConflict: 'id' })
           : await sb.from(tabel).delete().eq('id', actie.id);
+        const ontbreekt = error && actie.op === 'insert' && optioneel.filter(k => error.message.includes(k));
+        if (ontbreekt?.length) {
+          const zonder = { ...actie.rij };
+          ontbreekt.forEach(k => delete zonder[k]);
+          ({ error } = await sb.from(tabel).upsert(zonder, { onConflict: 'id' }));
+        }
         if (error) throw new Error(error.message);
         let server = lees(sleutel(scope, 'server'), []);
         server = actie.op === 'insert' ? [...server.filter(r => r.id !== actie.rij.id), actie.rij] : server.filter(r => r.id !== actie.id);

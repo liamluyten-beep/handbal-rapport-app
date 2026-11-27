@@ -805,6 +805,9 @@ create policy systemen_lezen on public.systemen for select using (auth.uid() is 
 
 
 
+-- ---------- XP: gevraagde plek bij elk schot (zie ook update-19-xp.sql) ----------
+alter table public.training_schoten add column if not exists uitdaging_zone int check (uitdaging_zone between 1 and 9);
+
 -- =========================================================
 -- NA JE EIGEN REGISTRATIE in de app: maak jezelf trainer.
 -- Vervang het e-mailadres en voer enkel deze regel uit:

@@ -5,14 +5,15 @@ import { laadSpelerData, renderOverzicht } from './overzicht.js';
 import { leesPosities, controleerPosities, positieVakjesHtml, koppelPositieVakjes } from '../lib/posities.js';
 import { zoekSpelers } from '../lib/importeer.js';
 import { koppelFotoKnoppen } from '../foto.js';
+import { xpVanSpeler, xpKaartHtml } from './xp.js';
 import { log } from '../logboek.js';
 
 export async function mijnView() {
   laden();
   const speler = await q(sb.from('players').select('*').eq('user_id', sessie.user.id).maybeSingle());
   if (!speler) return wieBenJij();
-  const data = await laadSpelerData(speler.id);
-  const { html, tekenGrafieken } = renderOverzicht(speler, data, { eigen: true });
+  const [data, xp] = await Promise.all([laadSpelerData(speler.id), xpVanSpeler(speler.id)]);
+  const { html, tekenGrafieken } = renderOverzicht(speler, data, { eigen: true, extra: xpKaartHtml(xp) });
   const gekozen = leesPosities(speler.positie);
 
   toon(`<section class="kaart" id="positieKaart" ${gekozen.length ? 'hidden' : ''}>

@@ -121,6 +121,9 @@ Een andere competitie of ploeg? Voeg ze toe in `clubee.config.json` (per competi
 ### Seizoenen
 Bovenaan staat de keuze **Seizoen 2026-27** (een seizoen loopt van 1 augustus tot 31 juli). Rapporten, matchen, trainingen, schiettraining en ranglijsten tonen enkel dat seizoen. Kies **Alle seizoenen** om over de jaren heen te kijken. De keuze wordt per toestel onthouden.
 
+### XP en uitdagingen
+Eenmalig: voer [`supabase/update-19-xp.sql`](supabase/update-19-xp.sql) uit. In de schiettraining vraagt de app bij elk schot een plek in het doel. XP: goal +5, op de gevraagde plek +5 extra (max 100 XP schieten per dag), aanwezig op training +5, zelfevaluatie +10 (1 keer per maand). Spelers zien hun eigen level op hun startpagina; de trainer ziet de **XP-ranglijst** (Home). XP telt per seizoen.
+
 ### Playbook (aanvalssystemen)
 Eenmalig: voer [`supabase/update-18-playbook.sql`](supabase/update-18-playbook.sql) uit. Via **Playbook** maakt de trainer aanvalssystemen: per stap sleep je de 6 aanvallers op hun plaats en geef je de bal aan een speler. Looplijnen en passen naar de volgende stap tekent de app zelf, en met **▶ Afspelen** bewegen de spelers vloeiend. Alle ingelogde spelers kunnen het playbook bekijken en afspelen.
 

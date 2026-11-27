@@ -170,7 +170,7 @@ function schietHtml(schiet, alsDoelman, doelmannen, sessies = [], dmRapport = nu
   return schotenHtml(alsSchoten(schiet), 'Schiettraining <span class="zacht">(alle sessies)</span>', tegen) + sessieKaart + doelmanKaart;
 }
 
-export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], fotoUrl = null, events = [], aanwezig = [], schiet = [], alsDoelman = [], doelmannen = [], sessies = [], dmRapport = null }, { trainer = false, eigen = false } = {}) {
+export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], fotoUrl = null, events = [], aanwezig = [], schiet = [], alsDoelman = [], doelmannen = [], sessies = [], dmRapport = null }, { trainer = false, eigen = false, extra = '' } = {}) {
   const aw = aanwezigheidStats(aanwezig);
   const verlies = telSoort(events, 'balverlies');
   const gr = goalsReeks(goals);
@@ -209,6 +209,7 @@ export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], f
       ${aw.totaal ? `<div class="stat"><div class="titel">Op training</div><div class="waarde">${aw.pct}%</div><small class="zacht">${aw.aanwezig}/${aw.totaal} aanwezig${aw.verwittigd ? ` · ${aw.verwittigd} verwittigd` : ''}</small></div>` : ''}
       <div class="stat"><div class="titel">Laatste rapport</div><div class="waarde">${gemiddelde(laatste) ?? '–'}<small class="zacht"> / 5</small></div></div>
     </div>
+    ${extra}
 
     ${laatste ? `<section class="kaart">${rapportHtml(laatste, rapporten[1], skills, trainer)}</section>`
       : `<section class="kaart leeg"><span class="bal"></span><p>${trainer

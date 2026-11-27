@@ -12,6 +12,7 @@ import { laadKalender } from '../kalender-data.js';
 import { volgendeMatch } from '../lib/kalender.js';
 import { compTag } from '../comp-tag.js';
 import { VELD7 } from '../lib/opstelling.js';
+import { xpVanSpeler, xpKaartHtml } from './xp.js';
 import { vandaag } from '../ui.js';
 import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
 
@@ -63,6 +64,7 @@ export async function homeView() {
     delen.push(matchStartHtml(matchen));
   }
   if (speler) {
+    delen.push(xpKaartHtml(await xpVanSpeler(speler.id), { link: '#/mijn' }));
     const [rapport, goals] = await Promise.all([
       q(sb.from('reports').select('datum').eq('player_id', speler.id).order('datum', { ascending: false }).limit(1)),
       q(sb.from('goals').select('aantal, matches(datum)').eq('player_id', speler.id)).then(g => opSeizoen(g, x => x.matches?.datum)),
@@ -112,6 +114,7 @@ async function trainerHome() {
       ${tegel('#/spelers', '👥', 'Spelers', `${spelers.length} spelers${zonderRapport ? ` · ${zonderRapport} zonder rapport dit seizoen` : ''}${zonderNummer ? ` · ${zonderNummer} zonder nummer` : ''}`)}
       ${tegel('#/voorbereiding', '📋', 'Matchvoorbereiding', 'opstelling op het veld')}
       ${tegel('#/playbook', '📖', 'Playbook', 'aanvalssystemen tekenen')}
+      ${tegel('#/xp', '🏆', 'XP-ranglijst', 'wie verzamelt het meest')}
       ${tegel('#/wedstrijden', '🤾', 'Wedstrijden', 'uitslagen, live stats, verloop')}
       <a class="tegel" href="#" id="trainingVandaag"><span class="tegel-icoon">✅</span><b>Training vandaag</b><small class="zacht">aanwezigheden afvinken</small></a>
       ${tegel('#/trainingen', '📅', 'Trainingen', 'aanwezigheid per speler')}

@@ -603,3 +603,25 @@ a.kal-lijn:hover b { color: var(--accent); }
 .lg-loop, .lg-pas { display: inline-block; width: 22px; border-top: 2px solid #fff; vertical-align: middle; }
 .lg-pas { border-top: 2px dashed #e8b04a; }
 .lg-bal { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e8b04a; vertical-align: middle; }
+
+/* ---------- XP en uitdagingen ---------- */
+.uitdaging { display: grid; gap: .15rem; padding: .7rem .9rem; border-radius: 12px; font-size: 1.05rem;
+  background: color-mix(in srgb, var(--parket) 18%, var(--kaart)); border: 2px solid var(--parket); }
+.uitdaging small { color: var(--tekst-zacht); font-size: .8rem; }
+.doel-raster button.doelwit { background: var(--parket); color: #191b21; box-shadow: 0 0 0 3px color-mix(in srgb, var(--parket) 45%, transparent); }
+.xp-klein { color: var(--parket); }
+.xp-kaart { display: grid; gap: .45rem; padding: 1rem 1.2rem; margin-bottom: 1.2rem; border-radius: var(--radius); background: var(--kaart);
+  border: 1px solid var(--lijn); color: var(--tekst); text-decoration: none; }
+.xp-kop { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.xp-level { font: 800 1.6rem var(--display); }
+.xp-level span { display: inline-grid; place-items: center; min-width: 2.2rem; height: 2.2rem; margin-left: .3rem; border-radius: 10px;
+  background: var(--parket); color: #191b21; }
+.xp-balk { height: 14px; border-radius: 999px; background: var(--lijn); overflow: hidden; }
+.xp-balk span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--parket), #ffd37a); }
+.xp-bronnen { display: flex; flex-wrap: wrap; gap: .4rem .9rem; font-size: .85rem; color: var(--tekst-zacht); }
+.xp-bronnen b { color: var(--tekst); }
+@media (min-width: 721px) and (max-width: 1180px) {
+  #nav { gap: .1rem; }
+  #nav a, #nav .knop-link { padding: .35rem .55rem; font-size: .92rem; }
+  .logo { font-size: 1.25rem; }
+}

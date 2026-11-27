@@ -5,13 +5,14 @@ import { spelerFormulier, leesSpeler } from './spelers.js';
 import { koppelPositieVakjes } from '../lib/posities.js';
 import { koppelFotoKnoppen, verwijderFoto } from '../foto.js';
 import { verwijderAccountVenster } from '../verwijder.js';
+import { xpVanSpeler, xpKaartHtml } from './xp.js';
 
 export async function spelerView(id) {
   laden();
   const speler = await q(sb.from('players').select('*').eq('id', id).maybeSingle());
   if (!speler) throw new Error('Deze speler bestaat niet (meer).');
-  const data = await laadSpelerData(id);
-  const { html, tekenGrafieken } = renderOverzicht(speler, data, { trainer: true });
+  const [data, xp] = await Promise.all([laadSpelerData(id), xpVanSpeler(id)]);
+  const { html, tekenGrafieken } = renderOverzicht(speler, data, { trainer: true, extra: xpKaartHtml(xp) });
 
   toon(`<a class="terug" href="#/spelers">← Alle spelers</a>
     <section class="kaart" id="gegevensKaart" hidden>

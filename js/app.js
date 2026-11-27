@@ -25,11 +25,12 @@ import { kalenderView } from './views/kalender.js';
 import { opstellingView, voorbereidingView } from './views/opstelling.js';
 import { installeerView, alsApp, meldAppGebruik } from './installeer.js';
 import { playbookView, systeemView } from './views/playbook.js';
+import { xpRanglijstView } from './views/xp.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
 
 // Versie van de site (zichtbaar onderaan in "Meer"), handig om te zien of een gsm de nieuwste versie heeft
-export const VERSIE = '2026-11-27.6';
+export const VERSIE = '2026-11-27.7';
 
 document.title = PLOEGNAAM;
 document.getElementById('ploegnaam').textContent = PLOEGNAAM;
@@ -286,6 +287,7 @@ async function route() {
       case 'voorbereiding': return await voorbereidingView();
       case 'opstelling': return await opstellingView(a);
       case 'playbook': return await playbookView();
+      case 'xp': return await xpRanglijstView();
       case 'systeem': return await systeemView(a);
       case 'import': return await importView();
       case 'vaardigheden': return await vaardighedenView();
