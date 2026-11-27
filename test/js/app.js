@@ -298,6 +298,7 @@ async function route() {
       case 'opstelling': return await opstellingView(a);
       case 'playbook': return await playbookView();
       case 'xp': return await xpRanglijstView();
+      case 'avatar': return await avatarView();
       case 'systeem': return await systeemView(a);
       case 'import': return await importView();
       case 'vaardigheden': return await vaardighedenView();

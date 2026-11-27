@@ -11,9 +11,12 @@ const BADGE_NAMEN = Object.fromEntries(BADGES.map(b => [b.id, b.naam]));
 
 export async function avatarView() {
   laden();
-  const speler = await q(sb.from('players').select('*').eq('user_id', sessie.user.id).maybeSingle());
+  // Trainer heeft geen eigen speler: voorbeeld om te proberen (level 1, niet opslaan)
+  const voorbeeld = sessie.rol === 'trainer';
+  const speler = voorbeeld ? { rugnummer: 7, avatar: null, toon_avatar: false }
+    : await q(sb.from('players').select('*').eq('user_id', sessie.user.id).maybeSingle());
   if (!speler) { location.hash = '#/mijn'; return; }
-  const xp = await xpVanSpeler(speler.id);
+  const xp = voorbeeld ? { totaal: 0, badges: [] } : await xpVanSpeler(speler.id);
   const level = levelVan(xp.totaal).level;
   const badges = xp.badges.filter(b => b.behaald).map(b => b.id);
   const bewaard = speler.avatar ? normaliseerAvatar(speler.avatar) : null;
@@ -21,7 +24,8 @@ export async function avatarView() {
   // Wat al bewaard is, blijft bruikbaar (ook als je XP in een nieuw seizoen weer laag staat)
   const vrij = (deel, optie) => isVrij(optie, { level, badges }) || bewaard?.[deel] === optie.id;
 
-  toon(`<a class="terug" href="#/mijn">← Mijn rapport</a>
+  toon(`<a class="terug" href="${voorbeeld ? '#/' : '#/mijn'}">← ${voorbeeld ? 'Home' : 'Mijn rapport'}</a>
+    ${voorbeeld ? '<section class="kaart compact"><p class="zacht" style="margin:0">Voorbeeld voor de trainer: zo ziet een speler op level 1 het. Opslaan kan enkel een speler.</p></section>' : ''}
     <div class="paginakop"><div><h1>Mijn avatar</h1>
       <p class="zacht">Je bent level <b>${level}</b>. Met meer XP en badges speel je extra spullen vrij, zoals een petje of een kroon.</p></div></div>
     <div class="av-maker">
@@ -62,6 +66,7 @@ export async function avatarView() {
   };
 
   document.getElementById('avBewaar').onclick = async e => {
+    if (voorbeeld) return melding('Voorbeeld: enkel spelers kunnen hun avatar opslaan.');
     e.target.disabled = true;
     try {
       await q(sb.rpc('zet_mijn_avatar', { instelling: cfg, tonen: document.getElementById('avToon').checked }));
