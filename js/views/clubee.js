@@ -30,7 +30,8 @@ export async function clubeeStart(spelers) {
   const bestaand = await q(sb.from('matches').select('*')).catch(() => []);
   const metClubee = new Set(bestaand.map(m => m.clubee_id).filter(Boolean).map(Number));
   const nieuw = data.wedstrijden.filter(w => !metClubee.has(w.clubee_id)).length;
-  status.innerHTML = `${esc(data.ploeg)} · ${data.wedstrijden.length} gespeelde wedstrijden
+  const comps = [...new Set(data.wedstrijden.map(w => w.competitie).filter(Boolean))];
+  status.innerHTML = `${comps.length ? esc(comps.join(" + ")) : esc(data.ploeg)} · ${data.wedstrijden.length} gespeelde wedstrijden
     ${nieuw ? `· <b>${nieuw} nog niet geïmporteerd</b>` : '· alles is al geïmporteerd'}
     ${data.bijgewerkt ? `· opgehaald op ${formatDatum(data.bijgewerkt)}` : ''}`;
 
@@ -86,7 +87,9 @@ export async function clubeeStart(spelers) {
       melding(`${matches.length} wedstrijden en ${rijen.length} spelersstatistieken geïmporteerd.`);
       location.hash = '#/wedstrijden';
     } catch (err) {
-      melding(/clubee_id|score_voor|zeven_m|schema cache/i.test(err.message)
+      melding(/competitie/i.test(err.message)
+        ? 'De database mist nog de kolom competitie. Voer eerst supabase/update-14-competitie.sql uit in Supabase.'
+        : /clubee_id|score_voor|zeven_m|schema cache/i.test(err.message)
         ? 'De database mist nog de Clubee-kolommen. Voer eerst supabase/update-1-clubee.sql uit in Supabase.'
         : err.message, 'fout');
       knop.disabled = false;

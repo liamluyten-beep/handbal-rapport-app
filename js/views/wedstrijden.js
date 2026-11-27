@@ -2,6 +2,7 @@ import { sb, q } from '../supabase.js';
 import { toon, esc, laden, melding, vandaag } from '../ui.js';
 import { formatDatum } from '../lib/voortgang.js';
 import { schotStats, scoreUitEvents, verschilMetClubee, formatKlok } from '../lib/live.js';
+import { compTag } from '../comp-tag.js';
 import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
 
 export async function wedstrijdenView() {
@@ -25,7 +26,7 @@ export async function wedstrijdenView() {
       ${matches.length ? `<table class="tabel"><thead><tr><th>Datum</th><th>Tegenstander</th><th></th><th>Uitslag</th></tr></thead>
         <tbody>${matches.map(m => `<tr>
           <td>${formatDatum(m.datum)}</td>
-          <td><a href="#/wedstrijd/${m.id}">${esc(m.tegenstander)}</a></td>
+          <td><a href="#/wedstrijd/${m.id}">${esc(m.tegenstander)}</a> ${compTag(m.competitie)}</td>
           <td><span class="label">${m.thuis ? 'thuis' : 'uit'}</span></td>
           <td>${m.score_voor != null ? `<b>${m.score_voor} – ${m.score_tegen}</b> ${m.score_voor > m.score_tegen ? '<span class="label ok">W</span>' : m.score_voor < m.score_tegen ? '<span class="label">V</span>' : '<span class="label">G</span>'}` : `${m.goals.reduce((t, g) => t + g.aantal, 0)} goals`}</td></tr>`).join('')}</tbody></table>`
       : '<p class="leeg">Nog geen wedstrijden.</p>'}

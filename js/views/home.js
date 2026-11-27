@@ -10,6 +10,7 @@ import { installeerHtml, koppelInstalleer } from '../installeer.js';
 import { heroHtml, koppelHero } from './hero.js';
 import { laadKalender } from '../kalender-data.js';
 import { volgendeMatch } from '../lib/kalender.js';
+import { compTag } from '../comp-tag.js';
 import { vandaag } from '../ui.js';
 import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
 
@@ -30,7 +31,7 @@ async function volgendeMatchHtml(naVandaag = false) {
   return `<a class="volgende-match" href="#/kalender">
     <span class="vm-label">Volgende match</span>
     <span class="vm-wanneer"><b>${wanneer}</b>${v.uur ? ` · ${esc(v.uur)}` : ''}</span>
-    <span class="vm-wie">${v.thuis ? 'Thuis tegen' : 'Uit bij'} <b>${esc(v.tegenstander)}</b></span>
+    <span class="vm-wie">${v.thuis ? 'Thuis tegen' : 'Uit bij'} <b>${esc(v.tegenstander)}</b> ${compTag(v.competitie)}</span>
     <span class="vm-pijl" aria-hidden="true">📆</span></a>`;
 }
 function vandaagPlusEen() { const d = new Date(vandaag() + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + 1); return d.toISOString().slice(0, 10); }

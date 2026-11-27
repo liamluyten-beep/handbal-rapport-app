@@ -44,3 +44,11 @@ test('volgendeMatch: eerstvolgende geplande, afgelaste niet', () => {
   assert.equal(volgendeMatch(k, '2026-11-28').datum, '2026-11-28');   // vandaag telt mee
   assert.equal(volgendeMatch(k, '2027-01-01'), null);
 });
+
+test('kalenderItems: competitie en eigen ploeg per Clubee-match', () => {
+  const k = kalenderItems([{ clubee_id: 9, datum: '2027-01-16', uur: '16:30', status: 'gepland', thuis: 'Uilenspiegel U16 VHV Q (U16 M)',
+    uit: 'Hubo U16 VHV Q 2 (U16 M)', score_thuis: null, score_uit: null, ploeg: 'Uilenspiegel U16 VHV Q', competitie: 'VHV' }], [], 'Uilenspiegel U16 VHV R');
+  assert.equal(k[0].thuis, true);
+  assert.equal(k[0].tegenstander, 'Hubo 2');
+  assert.equal(k[0].competitie, 'VHV');
+});

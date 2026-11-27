@@ -14,13 +14,16 @@ async function haal(url) {
   return res.text();
 }
 
-const basis = new URL(config.competities[0]).origin + '/' + new URL(config.competities[0]).pathname.split('/')[1];
+// Elke competitie: { url, ploeg, label }. (Een gewone url-tekst kan ook: dan geldt de algemene ploeg.)
+const competities = config.competities.map(c => (typeof c === 'string' ? { url: c, ploeg: config.ploeg, label: null } : c));
+const basis = new URL(competities[0].url).origin + '/' + new URL(competities[0].url).pathname.split('/')[1];
 const wedstrijden = new Map();
 const kalender = new Map();
-for (const url of config.competities) {
-  const html = await haal(url);
-  for (const w of parseCompetitie(html, config.ploeg)) wedstrijden.set(w.clubee_id, w);
-  for (const k of parseKalender(html, config.ploeg)) kalender.set(k.clubee_id, k);
+for (const c of competities) {
+  const html = await haal(c.url);
+  const extra = { ploeg: c.ploeg, ...(c.label ? { competitie: c.label } : {}) };
+  for (const w of parseCompetitie(html, c.ploeg)) wedstrijden.set(w.clubee_id, { ...w, ...extra });
+  for (const k of parseKalender(html, c.ploeg)) kalender.set(k.clubee_id, { ...k, ...extra });
   await pauze(1000);
 }
 
@@ -33,9 +36,9 @@ const bekend = new Map(vorige.wedstrijden.filter(w => w.spelers?.length).map(w =
 const resultaat = [];
 for (const w of [...wedstrijden.values()].sort((a, b) => a.datum.localeCompare(b.datum))) {
   const oud = bekend.get(w.clubee_id);
-  if (oud && oud.score_thuis === w.score_thuis && oud.score_uit === w.score_uit) { resultaat.push(oud); continue; }
+  if (oud && oud.score_thuis === w.score_thuis && oud.score_uit === w.score_uit) { resultaat.push({ ...oud, ploeg: w.ploeg, ...(w.competitie ? { competitie: w.competitie } : {}) }); continue; }
   const html = await haal(`${basis}/games/${w.clubee_id}/lineup`);
-  const spelers = parseLineup(html, config.ploeg);
+  const spelers = parseLineup(html, w.ploeg);
   console.log(`${w.datum} ${w.thuis} ${w.score_thuis}-${w.score_uit} ${w.uit}: ${spelers.length} spelers`);
   resultaat.push({ ...w, spelers });
   await pauze(1000);

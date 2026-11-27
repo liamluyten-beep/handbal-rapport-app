@@ -739,6 +739,9 @@ grant execute on function public.log_actie(text, text) to authenticated;
 
 
 
+-- ---------- Competitie bij elke wedstrijd (zie ook update-14-competitie.sql) ----------
+alter table public.matches add column if not exists competitie text;
+
 -- =========================================================
 -- NA JE EIGEN REGISTRATIE in de app: maak jezelf trainer.
 -- Vervang het e-mailadres en voer enkel deze regel uit:

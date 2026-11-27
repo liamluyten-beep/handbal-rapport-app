@@ -113,7 +113,7 @@ De gespeelde wedstrijden en line-up-statistieken (goals, 7 meters, kaarten, 2 mi
 3. Klik **Importeren**. Je kunt dit gerust opnieuw doen: wedstrijden worden bijgewerkt, niet verdubbeld.
 
 **Nieuwe wedstrijden ophalen:** dat gebeurt elke ochtend automatisch via GitHub Actions (`.github/workflows/clubee.yml`). Meteen ophalen? Ga op GitHub naar **Actions → Clubee-wedstrijden ophalen → Run workflow**. Lokaal kan ook: `node tools/clubee-ophalen.mjs`.
-Een andere competitie of ploeg? Pas `clubee.config.json` aan.
+Een andere competitie of ploeg? Voeg ze toe in `clubee.config.json` (per competitie: `url`, `ploeg` zoals op Clubee, en een `label` zoals "VHV"). Eenmalig: voer [`supabase/update-14-competitie.sql`](supabase/update-14-competitie.sql) uit, zodat elke wedstrijd zijn competitie onthoudt.
 
 ---
 

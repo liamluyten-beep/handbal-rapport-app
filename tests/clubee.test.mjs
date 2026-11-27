@@ -147,3 +147,25 @@ test('parseKalender: alle matchen van de ploeg, ook komende en afgelaste', () =>
   // gesorteerd op datum
   assert.deepEqual(k.map(x => x.datum), [...k.map(x => x.datum)].sort());
 });
+
+test('korteNaam houdt het ploegnummer (Hubo 1 / Hubo 2)', () => {
+  assert.equal(korteNaam('Hubo U16 VHV Q 1 (U16 M)'), 'Hubo 1');
+  assert.equal(korteNaam('Besox Izegem U16 VHV Q 2 (U16 M)'), 'Besox Izegem 2');
+  assert.equal(korteNaam('HBC Apolloon Spurs U16 VHV Q (U16 M)'), 'HBC Apolloon Spurs');
+});
+
+test('bouwClubeeImport: elke wedstrijd met zijn eigen ploeg en competitie', () => {
+  const d = {
+    ploeg: 'Uilenspiegel U16 VHV R',
+    wedstrijden: [
+      { clubee_id: 7, datum: '2027-01-16', thuis: 'Uilenspiegel U16 VHV Q (U16 M)', uit: 'Hubo U16 VHV Q 2 (U16 M)', score_thuis: 20, score_uit: 18,
+        ploeg: 'Uilenspiegel U16 VHV Q', competitie: 'VHV', spelers: [] },
+      { clubee_id: 8, datum: '2027-01-16', thuis: 'Welta U16 VHV-B R (U16 M)', uit: 'Uilenspiegel U16 VHV R (U16 M)', score_thuis: 10, score_uit: 30,
+        competitie: 'Regionaal', spelers: [] },
+    ],
+  };
+  assert.deepEqual(bouwClubeeImport(d, [], {}).wedstrijden, [
+    { clubee_id: 7, datum: '2027-01-16', tegenstander: 'Hubo 2', thuis: true, score_voor: 20, score_tegen: 18, competitie: 'VHV' },
+    { clubee_id: 8, datum: '2027-01-16', tegenstander: 'Welta', thuis: false, score_voor: 30, score_tegen: 10, competitie: 'Regionaal' },
+  ]);
+});

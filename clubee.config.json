@@ -1,6 +1,15 @@
 {
+  "ploeg": "Uilenspiegel U16 VHV R",
   "competities": [
-    "https://www.clubee.com/handballbelgium/u16-j--982071v4"
-  ],
-  "ploeg": "Uilenspiegel U16 VHV R"
+    {
+      "label": "Regionaal",
+      "ploeg": "Uilenspiegel U16 VHV R",
+      "url": "https://www.clubee.com/handballbelgium/u16-j--982071v4"
+    },
+    {
+      "label": "VHV",
+      "ploeg": "Uilenspiegel U16 VHV Q",
+      "url": "https://www.clubee.com/handballbelgium/vhv-q-tornooien-jm16-26-27-982087v4/leagues/18719/seasons/220"
+    }
+  ]
 }

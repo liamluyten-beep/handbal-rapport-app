@@ -74,9 +74,14 @@ export function initialenVan(naam) {
   return w.length === 1 ? w[0][0].toUpperCase() : `${w[0][0]} ${w[1][0]}`.toUpperCase();
 }
 
-// "Biobest Sasja U16 VHV R (U16 M/F)" -> "Biobest Sasja"
+// "Biobest Sasja U16 VHV R (U16 M/F)" -> "Biobest Sasja"; "Hubo U16 VHV Q 1 (U16 M)" -> "Hubo 1"
+// (het ploegnummer blijft, anders zijn Hubo 1 en Hubo 2 niet te onderscheiden)
 export function korteNaam(ploeg) {
-  return ploeg.replace(/\s*\([^)]*\)\s*$/, '').replace(/\s+U\d+\b.*$/, '').trim();
+  const zonder = ploeg.replace(/\s*\([^)]*\)\s*$/, '').trim();
+  const m = zonder.match(/^(.*?)\s+U\d+\b(.*)$/);
+  if (!m) return zonder;
+  const laatste = m[2].trim().split(/\s+/).pop();
+  return /^\d+$/.test(laatste) ? `${m[1].trim()} ${laatste}` : m[1].trim();
 }
 
 // Zoek de speler bij een Clubee-regel. Enkel bij zekerheid, anders null.
@@ -93,13 +98,15 @@ const STATS = ['zeven_m', 'zeven_m_mis', 'geel', 'twee_min', 'blauw', 'rood'];
 // Zet data/clubee.json om naar rijen voor de database.
 // keuzes: { "nr|initialen": player_id of "" (= overslaan) } — overschrijft de automatische koppeling.
 export function bouwClubeeImport(data, spelers, keuzes = {}) {
-  const ploeg = data.ploeg.toLowerCase();
   const wedstrijden = data.wedstrijden.map(w => {
+    const ploeg = (w.ploeg ?? data.ploeg).toLowerCase();       // elke competitie heeft zijn eigen ploegnaam
     const thuis = w.thuis.toLowerCase().includes(ploeg);
-    return {
+    const rij = {
       clubee_id: w.clubee_id, datum: w.datum, tegenstander: korteNaam(thuis ? w.uit : w.thuis), thuis,
       score_voor: thuis ? w.score_thuis : w.score_uit, score_tegen: thuis ? w.score_uit : w.score_thuis,
     };
+    if (w.competitie) rij.competitie = w.competitie;
+    return rij;
   });
 
   const lijst = new Map();

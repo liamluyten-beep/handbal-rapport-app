@@ -3,6 +3,7 @@ import { sb, q } from '../supabase.js';
 import { esc, melding, vandaag } from '../ui.js';
 import { formatDatum } from '../lib/voortgang.js';
 import { laadKalender, maakMatchVoor } from '../kalender-data.js';
+import { compTag } from '../comp-tag.js';
 
 let vanVandaag = [];
 
@@ -16,7 +17,7 @@ export function matchStartHtml(matchen, { trainer = false } = {}) {
   return `<section class="kaart match-start">
     <h2>🤾 Match van vandaag <span class="zacht" style="font-size:1rem">${formatDatum(vandaag())}</span></h2>
     ${matchen.length ? matchen.map((m, i) => `<div class="match-vandaag">
-        <div><b>${m.thuis ? 'Thuis' : 'Uit'} tegen ${esc(m.tegenstander)}</b>${m.uur ? ` <span class="zacht">om ${esc(m.uur)}</span>` : ''}</div>
+        <div><b>${m.thuis ? 'Thuis' : 'Uit'} tegen ${esc(m.tegenstander)}</b> ${compTag(m.competitie)}${m.uur ? ` <span class="zacht">om ${esc(m.uur)}</span>` : ''}</div>
         <div class="rij">
           ${trainer ? `<button class="knop" data-i="${i}" data-naar="stats">📊 Live statistieken</button>` : ''}
           <button class="knop ${trainer ? 'tweede' : ''}" data-i="${i}" data-naar="live">▶ Match volgen${trainer ? ' (zelf ingeven)' : ''}</button>

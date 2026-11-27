@@ -3,6 +3,7 @@ import { toon, esc, laden, vandaag } from '../ui.js';
 import { sessie } from '../app.js';
 import { laadKalender } from '../kalender-data.js';
 import { maandRaster, MAANDEN, DAGEN } from '../lib/kalender.js';
+import { compTag } from '../comp-tag.js';
 
 const LANGE_DAG = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag', 'zaterdag'];
 const maandIndex = (j, m) => j * 12 + m;
@@ -51,7 +52,7 @@ export async function kalenderView() {
           <span class="kal-nr">${c.dag}</span>
           ${dag.map(k => `<span class="kal-match ${k.status} ${k.thuis ? 'thuis' : 'uit'}" title="${esc(label(k))}">
             <span class="km-uur">${k.status === 'gespeeld' && k.score_voor != null ? `${k.score_voor}–${k.score_tegen}` : esc(k.uur ?? '')}</span>
-            <span class="km-naam">${esc(k.tegenstander)}</span></span>`).join('')}
+            <span class="km-naam">${k.competitie === 'VHV' ? '<b class="km-vhv">VHV</b> ' : ''}${esc(k.tegenstander)}</span></span>`).join('')}
         </div>`;
       }).join('');
 
@@ -60,7 +61,7 @@ export async function kalenderView() {
     document.getElementById('lijst').innerHTML = vanMaand.map(k => {
       const d = new Date(k.datum + 'T12:00:00Z');
       const inhoud = `<span class="kl-datum"><b>${d.getUTCDate()}</b><small>${LANGE_DAG[d.getUTCDay()].slice(0, 2)}</small></span>
-        <span class="kl-tekst"><b>${esc(label(k))}</b>
+        <span class="kl-tekst"><b>${esc(label(k))} ${compTag(k.competitie)}</b>
           <small class="zacht">${k.status === 'afgelast' ? 'Afgelast' : k.uur ? `om ${esc(k.uur)}` : ''}${k.status === 'gepland' && k.datum === vandaagIso ? ' · vandaag' : ''}</small></span>
         ${uitslag(k)}`;
       return link(k) ? `<a class="kal-lijn ${k.status}" href="${link(k)}">${inhoud}</a>` : `<div class="kal-lijn ${k.status}">${inhoud}</div>`;

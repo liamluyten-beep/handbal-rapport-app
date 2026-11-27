@@ -9,10 +9,9 @@ const gelijk = (a, b) => String(a).trim().toLowerCase() === String(b).trim().toL
 
 // clubee: rijen uit data/clubee.json (kalender), db: rijen uit de tabel matches
 export function kalenderItems(clubee, db, ploeg) {
-  const p = ploeg.toLowerCase();
   const gebruikt = new Set();
   const items = clubee.map(k => {
-    const thuis = k.thuis.toLowerCase().includes(p);
+    const thuis = k.thuis.toLowerCase().includes((k.ploeg ?? ploeg).toLowerCase());   // elke competitie zijn eigen ploeg
     const tegenstander = korteNaam(thuis ? k.uit : k.thuis);
     const eigen = db.find(m => m.clubee_id === k.clubee_id) ||
       db.find(m => !m.clubee_id && m.datum === k.datum && gelijk(m.tegenstander, tegenstander));
@@ -22,13 +21,14 @@ export function kalenderItems(clubee, db, ploeg) {
       score_voor: k.score_thuis == null ? null : thuis ? k.score_thuis : k.score_uit,
       score_tegen: k.score_thuis == null ? null : thuis ? k.score_uit : k.score_thuis,
       clubee_id: k.clubee_id, match_id: eigen?.id ?? null,
+      ...(k.competitie ? { competitie: k.competitie } : {}),
     };
   });
   for (const m of db) {
     if (gebruikt.has(m.id)) continue;
     items.push({ datum: m.datum, uur: null, tegenstander: m.tegenstander, thuis: !!m.thuis,
       status: m.score_voor != null ? 'gespeeld' : 'gepland', score_voor: m.score_voor ?? null, score_tegen: m.score_tegen ?? null,
-      clubee_id: m.clubee_id ?? null, match_id: m.id });
+      clubee_id: m.clubee_id ?? null, match_id: m.id, ...(m.competitie ? { competitie: m.competitie } : {}) });
   }
   return items.sort((a, b) => a.datum.localeCompare(b.datum) || String(a.uur ?? '').localeCompare(String(b.uur ?? '')));
 }
