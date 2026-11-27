@@ -206,6 +206,9 @@ function vertaalFout(m) {
   if (/invalid login credentials/i.test(m)) return 'E-mailadres of wachtwoord klopt niet.';
   if (/already registered/i.test(m)) return 'Er bestaat al een account met dit e-mailadres. Log in.';
   if (/password should be at least/i.test(m)) return 'Je wachtwoord moet minstens 6 tekens lang zijn.';
+  // Mailgrens van Supabase (bevestigingsmail): geen schuld van de speler, de trainer moet "Confirm email" uitzetten
+  if (/email rate limit|sending.*email|error sending/i.test(m))
+    return 'Er kan nu geen bevestigingsmail verstuurd worden. Vraag je trainer om in Supabase "Confirm email" uit te zetten, en probeer het daarna opnieuw.';
   if (/rate limit|too many/i.test(m)) return 'Te veel pogingen. Wacht even en probeer opnieuw.';
   if (/not confirmed/i.test(m)) return 'Je e-mailadres is nog niet bevestigd.';
   if (/different from the old/i.test(m)) return 'Kies een ander wachtwoord dan je vorige.';
