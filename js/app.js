@@ -9,6 +9,7 @@ import { importView } from './views/import.js';
 import { liveView } from './views/live.js';
 import { vaardighedenView } from './views/vaardigheden.js';
 import { mijnView } from './views/mijn.js';
+import { avatarView } from './views/avatar.js';
 import { zelfevaluatieView } from './views/zelfevaluatie.js';
 import { watcherView } from './views/watcher.js';
 import { statsView } from './views/stats.js';
@@ -31,7 +32,7 @@ import { IS_TEST } from './omgeving.js';
 export const sessie = { user: null, rol: null, watcher: false };
 
 // Versie van de site (zichtbaar onderaan in "Meer"), handig om te zien of een gsm de nieuwste versie heeft
-export const VERSIE = '2026-11-28.4';
+export const VERSIE = '2026-11-28.5';
 
 document.title = (IS_TEST ? 'TEST · ' : '') + PLOEGNAAM;
 if (IS_TEST) document.body.classList.add('testversie');
@@ -271,6 +272,7 @@ async function route() {
       if (sessie.watcher && pad === 'watcher') return await watcherView();
       if (pad === 'zelfevaluatie') return await zelfevaluatieView(a === 'nieuw' ? null : a);
       if (pad === 'mijn' || pad === 'kies') return await mijnView();
+      if (pad === 'avatar') return await avatarView();
       if (pad === 'matchen') return await mijnMatchenView();
       if (pad === 'kalender') return await kalenderView();
       if (pad === 'opstelling') return await opstellingView(a);
@@ -296,6 +298,7 @@ async function route() {
       case 'opstelling': return await opstellingView(a);
       case 'playbook': return await playbookView();
       case 'xp': return await xpRanglijstView();
+      case 'avatar': return await avatarView();
       case 'systeem': return await systeemView(a);
       case 'import': return await importView();
       case 'vaardigheden': return await vaardighedenView();

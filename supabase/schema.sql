@@ -808,6 +808,27 @@ create policy systemen_lezen on public.systemen for select using (auth.uid() is 
 -- ---------- XP: gevraagde plek bij elk schot (zie ook update-19-xp.sql) ----------
 alter table public.training_schoten add column if not exists uitdaging_zone int check (uitdaging_zone between 1 and 9);
 
+-- ---------- Avatar per speler (zie ook update-20-avatar.sql) ----------
+alter table public.players add column if not exists avatar jsonb;
+alter table public.players add column if not exists toon_avatar boolean not null default false;
+
+-- Speler bewaart enkel zijn eigen avatar (en of hij die toont in plaats van zijn foto)
+create or replace function public.zet_mijn_avatar(instelling jsonb, tonen boolean)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if public.my_player_id() is null then
+    raise exception 'Je account is nog niet gekoppeld aan een speler.';
+  end if;
+  if instelling is not null and (jsonb_typeof(instelling) <> 'object' or pg_column_size(instelling) > 1000) then
+    raise exception 'Ongeldige avatar.';
+  end if;
+  update public.players set avatar = instelling, toon_avatar = coalesce(tonen, false)
+   where id = public.my_player_id();
+end $$;
+
+revoke all on function public.zet_mijn_avatar(jsonb, boolean) from public, anon;
+grant execute on function public.zet_mijn_avatar(jsonb, boolean) to authenticated;
+
 -- =========================================================
 -- NA JE EIGEN REGISTRATIE in de app: maak jezelf trainer.
 -- Vervang het e-mailadres en voer enkel deze regel uit:
