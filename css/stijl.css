@@ -567,7 +567,8 @@ a.kal-lijn:hover b { color: var(--accent); }
 /* ---------- Spelers die nu een schiettraining bezig zijn ---------- */
 .speler-kaart.bezig { border-color: #2f7fe0; background: color-mix(in srgb, #2f7fe0 16%, var(--kaart)); }
 .speler-kaart.bezig .nummer { background: #2f7fe0 !important; color: #fff; }
-.bezig-label { font-size: .8rem; font-weight: 700; color: #5aa2ff; }
+.bezig-label { font-size: .8rem; font-weight: 700; color: #5aa2ff; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.stop-schiet { font: inherit; font-size: .75rem; font-weight: 700; padding: .15rem .55rem; border-radius: 999px; border: 0; background: var(--fout); color: #fff; cursor: pointer; }
 @media (prefers-color-scheme: light) { .bezig-label { color: #1f5fb0; } }
 
 /* ---------- Playbook ---------- */

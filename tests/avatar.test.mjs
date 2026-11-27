@@ -10,7 +10,7 @@ test('normaliseerAvatar: onbekende of kwaadaardige waarden worden de standaard',
   assert.equal(a.huid, 'h5');
   assert.equal(a.haar, STANDAARD.haar);
   assert.equal(a.hoofd, 'petje');
-  assert.equal(a.extra, undefined);
+  assert.equal(a.extra, 'geen');           // onbekende waarde -> standaard
 });
 
 test('isVrij: petje vanaf level 2, kroon vanaf level 6, oogstrepen met badge Scherpschutter', () => {
@@ -41,4 +41,23 @@ test('avatarSvg: geldige svg met rugnummer, en laat nooit ingevoerde tekst door'
 
 test('elk onderdeel heeft een standaard die vrij is op level 1', () => {
   for (const o of ONDERDELEN) assert.equal(isVrij(optie(o.id, STANDAARD[o.id]), { level: 1 }), true, o.id);
+});
+
+import { volgendeOpLevel } from '../js/lib/avatar.js';
+
+test('hoge levels: keizerskroon pas op 30, vuurhaar op 20, oude avatars krijgen extra = geen', () => {
+  assert.equal(isVrij(optie('hoofd', 'keizerskroon'), { level: 29 }), false);
+  assert.equal(isVrij(optie('hoofd', 'keizerskroon'), { level: 30 }), true);
+  assert.equal(isVrij(optie('haar', 'vuurhaar'), { level: 19 }), false);
+  assert.equal(normaliseerAvatar({ huid: 'h1' }).extra, 'geen');
+  // Elk onderdeel tekent zonder fout
+  for (const d of ONDERDELEN) for (const o of d.opties) assert.match(avatarSvg({ [d.id]: o.id }, 9), /<\/svg>$/, `${d.id}:${o.id}`);
+});
+
+test('volgendeOpLevel: de eerstvolgende spullen boven je level, laagste eerst', () => {
+  const v = volgendeOpLevel(19, 3);
+  assert.equal(v.length, 3);
+  assert.ok(v.every(o => o.level > 19));
+  assert.equal(v[0].level, 20);
+  assert.deepEqual(volgendeOpLevel(30), []);
 });

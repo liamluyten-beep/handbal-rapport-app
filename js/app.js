@@ -32,7 +32,7 @@ import { IS_TEST } from './omgeving.js';
 export const sessie = { user: null, rol: null, watcher: false };
 
 // Versie van de site (zichtbaar onderaan in "Meer"), handig om te zien of een gsm de nieuwste versie heeft
-export const VERSIE = '2026-11-28.5';
+export const VERSIE = '2026-11-28.6';
 
 document.title = (IS_TEST ? 'TEST · ' : '') + PLOEGNAAM;
 if (IS_TEST) document.body.classList.add('testversie');

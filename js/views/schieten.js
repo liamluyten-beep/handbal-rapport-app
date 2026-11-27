@@ -41,6 +41,16 @@ export async function schietenView() {
     const w = sessieOpslag.wachtend(scope) + schotOpslag.wachtend(scope);
     const el = document.getElementById('sync');
     if (el) el.textContent = w ? `⏳ ${w} actie(s) wachten op verbinding…` : '✓ Alles opgeslagen';
+    // Heeft de trainer deze sessie gestopt? Dan hier ook afsluiten (enkel als alles verstuurd is).
+    const open = openSessie();
+    if (open && !w && document.getElementById('stop')) {
+      const { data } = await sb.from('schiet_sessies').select('gestopt_op').eq('id', open.id).maybeSingle();
+      if (data?.gestopt_op && document.getElementById('stop')) {
+        await sessieOpslag.haalVanServer(scope).catch(() => {});
+        melding('Je trainer heeft je schiettraining gestopt. Je schoten zijn bewaard.');
+        resultaatScherm({ ...open, gestopt_op: data.gestopt_op });
+      }
+    }
   }
   const herhaal = setInterval(stuur, 15000);
   window.addEventListener('online', stuur);

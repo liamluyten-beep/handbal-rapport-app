@@ -35,3 +35,10 @@ test('logTekst: schiettraining gestart', () => {
   assert.equal(logTekst(r('schiettraining_gestart')), 'Nyo Luyten is een schiettraining gestart');
   assert.equal(SOORTEN.activiteit.includes('schiettraining_gestart'), true);
 });
+
+test('logTekst: trainer stopt een schiettraining', async () => {
+  const { logTekst, SOORTEN } = await import('../js/lib/logboek.js');
+  assert.equal(logTekst({ actie: 'schiettraining_gestopt', email: 'trainer@x.be', details: 'Lars Peeters' }),
+    'trainer@x.be heeft de schiettraining van Lars Peeters gestopt');
+  assert.ok(SOORTEN.activiteit.includes('schiettraining_gestopt'));
+});
