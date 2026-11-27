@@ -43,3 +43,37 @@ test('uitdaging: zones 1-9 met een naam, hoeken vaker', () => {
   assert.equal(telling[0], 0);
   assert.equal(XP.goal, 5);
 });
+
+import { berekenKeeperXP } from '../js/lib/xp.js';
+
+test('berekenKeeperXP: 5 per redding, midden dicht +15, 30% gestopt +20, max 100 per dag', () => {
+  const r = (datum, resultaat, doelzone) => ({ datum, resultaat, doelzone });
+  // Dag 1: 3 reddingen in het midden (2,5,8), 7 goals in de hoeken -> 3/10 = 30%
+  const dag1 = [r('d1', 'redding', 2), r('d1', 'redding', 5), r('d1', 'redding', 8),
+    ...Array.from({ length: 7 }, () => r('d1', 'goal', 1)), r('d1', 'mis', null)];
+  const a = berekenKeeperXP(dag1);
+  assert.equal(a.reddingen, 3);
+  assert.equal(a.middenDicht, 1);
+  assert.equal(a.dertigProcent, 1);
+  assert.equal(a.keepen, 3 * 5 + 15 + 20);
+
+  // Goal in het midden -> geen "midden dicht"; minder dan 10 op doel -> geen 30%-bonus
+  const b = berekenKeeperXP([r('d2', 'redding', 2), r('d2', 'redding', 5), r('d2', 'goal', 8)]);
+  assert.equal(b.middenDicht, 0);
+  assert.equal(b.dertigProcent, 0);
+  assert.equal(b.keepen, 10);
+
+  // Minder dan 3 schoten in het midden -> geen bonus
+  assert.equal(berekenKeeperXP([r('d3', 'redding', 5), r('d3', 'redding', 2)]).middenDicht, 0);
+
+  // Max 100 per dag
+  const veel = Array.from({ length: 30 }, () => r('d4', 'redding', 5));
+  assert.equal(berekenKeeperXP(veel).keepen, XP.maxKeepenPerDag);
+});
+
+test('berekenXP telt keeper-XP mee als bron "keepen"', () => {
+  const tegen = [{ datum: 'd1', resultaat: 'redding', doelzone: 1 }];
+  const x = berekenXP({ tegen });
+  assert.equal(x.bronnen.keepen, 5);
+  assert.equal(x.totaal, 5);
+});
