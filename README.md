@@ -27,11 +27,11 @@ Alles is gratis: de database draait op **Supabase** (gratis plan) en de website 
 2. Klik rechtsboven op **+ → New repository**. Geef een naam (bv. `handbal`), kies **Public** en klik **Create repository**. Vink niets aan (geen README).
 3. Zet de bestanden erin. Dat kan Claude voor je doen met `git push`, of je doet het zelf via **uploading an existing file** en sleept de inhoud van deze map erin (niet de map zelf).
 4. Ga in de repository naar **Settings → Pages**. Kies bij **Source** de optie **Deploy from a branch**, kies de branch **main** en de map **/ (root)**, en klik **Save**.
-5. Na 1 à 2 minuten staat je site op `https://JOUWNAAM.github.io/handbal/`. Die link staat ook bovenaan de Pages-instellingen.
+5. Na 1 à 2 minuten staat je site op `https://uilenspiegelu16handbal.github.io/`. Die link staat ook bovenaan de Pages-instellingen.
 
 Heb je later iets aangepast? Push opnieuw (of upload het gewijzigde bestand). GitHub zet de site na een minuutje automatisch bij.
 
-Zet daarna in Supabase onder **Authentication → URL Configuration** de **Site URL** op het adres van je website, bv. `https://JOUWNAAM.github.io/handbal/`. Dan wijst de link in de bevestigingsmail naar je site.
+Zet daarna in Supabase onder **Authentication → URL Configuration** de **Site URL** op het adres van je website, bv. `https://uilenspiegelu16handbal.github.io/`. Dan wijst de link in de bevestigingsmail naar je site.
 
 ## Stap 3: Jezelf trainer maken
 
@@ -68,7 +68,7 @@ Zet daarna in Supabase onder **Authentication → URL Configuration** de **Site 
 ### Wachtwoord vergeten, balverlies en trainingen
 Eenmalig: voer [`supabase/update-9-balverlies-training.sql`](supabase/update-9-balverlies-training.sql) uit in de SQL Editor.
 Zet in Supabase onder **Authentication → URL Configuration → Redirect URLs** het adres van je site erbij
-(bv. `https://liamluyten-beep.github.io/handbal-rapport-app/`), anders werkt de link in de wachtwoord-mail niet.
+(bv. `https://uilenspiegelu16handbal.github.io/`), anders werkt de link in de wachtwoord-mail niet.
 
 - **Wachtwoord vergeten**: link op het inlogscherm; de speler krijgt een mail en kiest een nieuw wachtwoord.
   De gratis mailservice van Supabase verstuurt maar enkele mails per uur. Lukt het niet, dan stelt de trainer via
