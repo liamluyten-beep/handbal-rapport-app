@@ -23,6 +23,7 @@ import { log } from './logboek.js';
 import { logboekView } from './views/logboek.js';
 import { kalenderView } from './views/kalender.js';
 import { opstellingView, voorbereidingView } from './views/opstelling.js';
+import { installeerView, alsApp } from './installeer.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
 
@@ -30,7 +31,7 @@ document.title = PLOEGNAAM;
 document.getElementById('ploegnaam').textContent = PLOEGNAAM;
 
 const ICOON = { '#/': '🏠', '#/spelers': '👥', '#/wedstrijden': '🤾', '#/trainingen': '📅', '#/import': '⬇️',
-  '#/accounts': '🔑', '#/kalender': '📆', '#/mijn': '📋', '#/matchen': '🤾', '#/watcher': '📝' };
+  '#/accounts': '🔑', '#/kalender': '📆', '#/app': '📲', '#/mijn': '📋', '#/matchen': '🤾', '#/watcher': '📝' };
 
 // Menubalk onderaan op de gsm: de eerste 4 links + "Meer" (de rest en uitloggen)
 function zetOnderbalk(links) {
@@ -39,7 +40,7 @@ function zetOnderbalk(links) {
   if (!sessie.user) { balk.innerHTML = ''; document.body.classList.remove('met-onderbalk'); return; }
   document.body.classList.add('met-onderbalk');
   const kort = t => { const k = t.replace('Mijn ', '').replace('Wedstrijden', 'Matchen'); return k[0].toUpperCase() + k.slice(1); };
-  const hoofd = links.slice(0, 4), rest = links.slice(4);
+  const hoofd = links.slice(0, 4), rest = [...links.slice(4), ...(alsApp() ? [] : [['#/app', 'App installeren']])];
   balk.innerHTML = hoofd.map(([h, t]) => `<a href="${h}"><span class="ob-icoon">${ICOON[h] || '•'}</span>${kort(t)}</a>`).join('') +
     `<button id="obMeer" aria-expanded="false"><span class="ob-icoon">☰</span>Meer</button>
      <div class="ob-meer" id="obMenu" hidden>
@@ -249,6 +250,7 @@ async function route() {
   markeerActief();
   const [, pad, a, b] = location.hash.split('/');
   try {
+    if (pad === 'app') return installeerView();
     if (sessie.rol !== 'trainer') {
       if (sessie.watcher && pad === 'live') return await liveView(a);
       if (sessie.watcher && pad === 'watcher') return await watcherView();
