@@ -8,18 +8,20 @@ import { melding } from '../ui.js';
 
 // Schoten met de gevraagde plek (kolom bestaat pas na update-19; anders zonder)
 async function schotenQuery(filter) {
-  const met = await q(filter(sb.from('training_schoten').select('player_id, datum, resultaat, doelzone, positie, sessie_id, uitdaging_zone'))).catch(() => null);
-  return met ?? q(filter(sb.from('training_schoten').select('player_id, datum, resultaat, doelzone, positie, sessie_id'))).catch(() => []);
+  const met = await q(filter(sb.from('training_schoten').select('player_id, doelman_id, datum, resultaat, doelzone, positie, sessie_id, uitdaging_zone'))).catch(() => null);
+  return met ?? q(filter(sb.from('training_schoten').select('player_id, doelman_id, datum, resultaat, doelzone, positie, sessie_id'))).catch(() => []);
 }
 
-async function gegevens(filterSpeler) {
-  const [schoten, aanwezig, zelf, sessies, goals, rapporten] = await Promise.all([
+// filterKeeper: schoten op deze speler als doelman (null = al in de schoten zitten, zoals bij de trainer)
+async function gegevens(filterSpeler, filterKeeper = null) {
+  const [schoten, aanwezig, zelf, sessies, goals, rapporten, tegenApart] = await Promise.all([
     schotenQuery(filterSpeler),
     q(filterSpeler(sb.from('aanwezigheden').select('player_id, status, trainingen(datum)'))).catch(() => []),
     q(filterSpeler(sb.from('self_reports').select('player_id, datum'))).catch(() => []),
     q(filterSpeler(sb.from('schiet_sessies').select('id, player_id, datum, gestopt_op'))).catch(() => []),
     q(filterSpeler(sb.from('goals').select('player_id, aantal, zeven_m, matches(datum)'))).catch(() => []),
     q(filterSpeler(sb.from('reports').select('player_id, datum, report_scores(skill_id, score)'))).catch(() => []),
+    filterKeeper ? schotenQuery(filterKeeper) : null,
   ]);
   return {
     schoten: opSeizoen(schoten, s => s.datum),
@@ -28,11 +30,12 @@ async function gegevens(filterSpeler) {
     sessies: opSeizoen(sessies, s => s.datum),
     goals: opSeizoen(goals, g => g.matches?.datum),
     rapporten: opSeizoen(rapporten, r => r.datum),
+    tegen: opSeizoen(tegenApart ?? schoten, s => s.datum),
   };
 }
 
 export async function xpVanSpeler(playerId) {
-  const d = await gegevens(qb => qb.eq('player_id', playerId));
+  const d = await gegevens(qb => qb.eq('player_id', playerId), qb => qb.eq('doelman_id', playerId));
   return { ...berekenXP(d), badges: berekenBadges(d) };
 }
 
@@ -61,8 +64,12 @@ export function xpKaartHtml(r, { link = null } = {}) {
       <span class="zacht"><b style="color:var(--tekst)">${l.inLevel}</b> / ${l.nodig} XP tot level ${l.level + 1}</span></div>
     <div class="xp-balk"><span style="width:${l.pct}%"></span></div>
     <div class="xp-bronnen"><span>🎯 schieten <b>${r.bronnen.schieten}</b></span><span>✅ training <b>${r.bronnen.training}</b></span>
-      <span>🪞 zelfevaluatie <b>${r.bronnen.zelfevaluatie}</b></span><span>totaal <b>${r.totaal} XP</b></span></div>`;
-  return link ? `<a class="xp-kaart" href="${link}">${binnen}</a>` : `<div class="xp-kaart">${binnen}</div>`;
+      <span>🪞 zelfevaluatie <b>${r.bronnen.zelfevaluatie}</b></span>${r.bronnen.keepen ? `<span>🧤 keepen <b>${r.bronnen.keepen}</b></span>` : ''}<span>totaal <b>${r.totaal} XP</b></span></div>`;
+  // Doelmannen zien (niet op home) hoe hun keeper-XP is opgebouwd
+  const k = r.keeper;
+  const keeper = !link && k?.reddingen ? `<p class="zacht" style="font-size:.85rem;margin:.6rem 0 0">🧤 ${k.reddingen} reddingen (+${XP.redding} XP)
+    · midden dicht ${k.middenDicht}× (+${XP.middenDicht}) · 30% gestopt ${k.dertigProcent}× (+${XP.dertigProcent})</p>` : '';
+  return link ? `<a class="xp-kaart" href="${link}">${binnen}</a>` : `<div class="xp-kaart">${binnen}${keeper}</div>`;
 }
 
 // ---------- Ranglijst (enkel trainer) ----------
@@ -73,7 +80,7 @@ export async function xpRanglijstView() {
     gegevens(qb => qb),
   ]);
   const lijst = spelers.map(s => {
-    const eigen = Object.fromEntries(Object.entries(d).map(([k, lijst]) => [k, lijst.filter(x => x.player_id === s.id)]));
+    const eigen = Object.fromEntries(Object.entries(d).map(([k, lijst]) => [k, lijst.filter(x => (k === 'tegen' ? x.doelman_id : x.player_id) === s.id)]));
     const r = berekenXP(eigen);
     const badges = berekenBadges(eigen).filter(b => b.behaald);
     return { s, r, l: levelVan(r.totaal), badges };
@@ -91,6 +98,8 @@ export async function xpRanglijstView() {
         <div class="xp-balk"><span style="width:${l.pct}%"></span></div>
         <b>Lv ${l.level}</b><small class="zacht">${r.totaal} XP · ${badges.length} ${badges.length === 1 ? 'badge' : 'badges'} ${badges.map(b => b.icoon).join('')}</small></div>`).join('')}
       <p class="zacht" style="font-size:.85rem;margin-top:1rem">XP: goal in de schiettraining +${XP.goal}, op de gevraagde plek +${XP.opPlek} extra
-        (max ${XP.maxSchietenPerDag} XP schieten per dag) · aanwezig op training +${XP.training} · zelfevaluatie +${XP.zelfevaluatie} (1 keer per maand).</p>
+        (max ${XP.maxSchietenPerDag} XP schieten per dag) · aanwezig op training +${XP.training} · zelfevaluatie +${XP.zelfevaluatie} (1 keer per maand).
+        Doelmannen: redding +${XP.redding}, alles in het midden gestopt +${XP.middenDicht} (min. 3 schoten),
+        30% gestopt op een dag +${XP.dertigProcent} (min. 10 schoten op doel), max ${XP.maxKeepenPerDag} XP keepen per dag.</p>
     </section>`);
 }
