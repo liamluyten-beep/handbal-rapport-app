@@ -5,6 +5,7 @@ import { laadSpelerData, renderOverzicht } from './overzicht.js';
 import { leesPosities, controleerPosities, positieVakjesHtml, koppelPositieVakjes } from '../lib/posities.js';
 import { zoekSpelers } from '../lib/importeer.js';
 import { koppelFotoKnoppen } from '../foto.js';
+import { log } from '../logboek.js';
 
 export async function mijnView() {
   laden();
@@ -94,6 +95,7 @@ async function wieBenJij() {
       b.disabled = true;
       try {
         await q(sb.rpc('kies_mijn_speler', { speler: b.dataset.id }));
+        log('speler_gekozen', b.dataset.naam);
         melding(`Welkom, ${b.dataset.naam}!`);
         mijnView();
       } catch (err) { melding(err.message, 'fout'); b.disabled = false; }
@@ -113,6 +115,7 @@ async function wieBenJij() {
     const knop = e.target.querySelector('button'); knop.disabled = true;
     try {
       await q(sb.rpc('maak_mijn_speler', { naam, rugnummer }));
+      log('speler_aangemaakt', naam);
       melding(`Welkom, ${naam}!`);
       mijnView();
     } catch (err) { melding(err.message, 'fout'); knop.disabled = false; }

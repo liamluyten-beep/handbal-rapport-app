@@ -19,6 +19,8 @@ import { trainingenView, trainingView } from './views/trainingen.js';
 import { schietenView } from './views/schieten.js';
 import { schietStatsView } from './views/schietstats.js';
 import { seizoenKeuzeHtml, kiesSeizoen } from './seizoen-keuze.js';
+import { log } from './logboek.js';
+import { logboekView } from './views/logboek.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
 
@@ -45,7 +47,7 @@ function zetOnderbalk(links) {
   const menu = document.getElementById('obMenu'), meer = document.getElementById('obMeer');
   meer.onclick = () => { menu.hidden = !menu.hidden; meer.setAttribute('aria-expanded', String(!menu.hidden)); };
   menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { menu.hidden = true; }));
-  document.getElementById('obUit').onclick = async () => { await sb.auth.signOut(); location.hash = '#/'; };
+  document.getElementById('obUit').onclick = async () => { log('uitgelogd'); await sb.auth.signOut(); location.hash = '#/'; };
 }
 
 function zetNavigatie() {
@@ -64,7 +66,7 @@ function zetNavigatie() {
     plek.innerHTML = html;
     document.getElementById('seizoenKeuze').onchange = e => { kiesSeizoen(e.target.value); route(); };
   });
-  document.getElementById('uitloggen').onclick = async () => { await sb.auth.signOut(); location.hash = '#/'; };
+  document.getElementById('uitloggen').onclick = async () => { log('uitgelogd'); await sb.auth.signOut(); location.hash = '#/'; };
   zetOnderbalk(links);
   markeerActief();
 }
@@ -78,6 +80,7 @@ function markeerActief() {
       (doel === 'watcher' && hoofd === 'live') ||
       (doel === 'spelers' && hoofd === 'vaardigheden') ||
       (doel === 'trainingen' && hoofd === 'training') ||
+      (doel === 'accounts' && hoofd === 'logboek') ||
       (doel === 'mijn' && hoofd === 'zelfevaluatie');
     a.classList.toggle('actief', actief);
   });
@@ -123,6 +126,7 @@ function loginView(modus = 'login') {
           email, password, options: { emailRedirectTo: location.origin + location.pathname },
         });
         if (error) throw error;
+        if (data.session) log('account_aangemaakt');
         if (!data.session) {
           melding('Account aangemaakt. Bevestig je e-mailadres via de mail die je kreeg, en log daarna in.');
           loginView('login');
@@ -133,6 +137,7 @@ function loginView(modus = 'login') {
           if (/not confirmed/i.test(error.message)) return nietBevestigd(email);
           throw new Error(vertaalFout(error.message));
         }
+        log('ingelogd');
       }
     } catch (err) {
       melding(vertaalFout(err.message), 'fout');
@@ -258,6 +263,7 @@ async function route() {
       case 'trainingen': return await trainingenView();
       case 'training': return await trainingView(a);
       case 'schietstats': return await schietStatsView();
+      case 'logboek': return await logboekView();
       case 'import': return await importView();
       case 'vaardigheden': return await vaardighedenView();
       case 'spelers': return await spelersView();

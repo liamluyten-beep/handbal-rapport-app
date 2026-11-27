@@ -3,6 +3,7 @@ import { sb, q } from '../supabase.js';
 import { toon, esc, laden, melding, vandaag } from '../ui.js';
 import { sessie } from '../app.js';
 import { SCHAAL, scoreKiezerHtml, leesScores } from './rapport.js';
+import { log } from '../logboek.js';
 
 export async function zelfevaluatieView(id) {
   laden();
@@ -54,6 +55,7 @@ export async function zelfevaluatieView(id) {
       else rid = (await q(sb.from('self_reports').insert({ ...velden, player_id: speler.id }).select('id').single())).id;
       await q(sb.from('self_report_scores').delete().eq('self_report_id', rid));
       if (scores.length) await q(sb.from('self_report_scores').insert(scores.map(s => ({ ...s, self_report_id: rid }))));
+      if (!id) log('zelfevaluatie');
       melding('Zelfevaluatie opgeslagen');
       location.hash = '#/mijn';
     } catch (err) { melding(err.message, 'fout'); knop.disabled = false; }

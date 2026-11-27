@@ -120,6 +120,9 @@ Een andere competitie of ploeg? Pas `clubee.config.json` aan.
 ### Seizoenen
 Bovenaan staat de keuze **Seizoen 2026-27** (een seizoen loopt van 1 augustus tot 31 juli). Rapporten, matchen, trainingen, schiettraining en ranglijsten tonen enkel dat seizoen. Kies **Alle seizoenen** om over de jaren heen te kijken. De keuze wordt per toestel onthouden.
 
+### Logboek
+Eenmalig: voer [`supabase/update-13-logboek.sql`](supabase/update-13-logboek.sql) uit. Daarna zie je via **Home → Logboek** (of **Accounts → Logboek**) wie inlogde op welke speler, wie een account aanmaakte of een speler koos, afgesloten schiettrainingen en zelfevaluaties, en welke foutmeldingen spelers kregen. Enkel de trainer kan het lezen.
+
 ### Ploegfoto
 Eenmalig: voer [`supabase/update-12-ploegfoto.sql`](supabase/update-12-ploegfoto.sql) uit. Daarna klik je als trainer op de startpagina rechtsboven in de banner op **Ploegfoto toevoegen**. De foto wordt in breedbeeld bijgesneden; enkel wie ingelogd is kan ze zien.
 

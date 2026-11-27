@@ -78,6 +78,7 @@ async function trainerHome() {
       ${tegel('#/schietstats', '🎯', 'Schiettraining-stats', 'ranglijst spelers en doelmannen')}
       ${tegel('#/import', '⬇️', 'Importeren', 'Clubee of een lijst plakken')}
       ${tegel('#/accounts', '🔑', 'Accounts', 'matchwatchers aanduiden')}
+      ${tegel('#/logboek', '📜', 'Logboek', 'wie logde in, welke fouten')}
       ${tegel('#/vaardigheden', '🎯', 'Vaardigheden', 'scores in de rapporten')}
     </div>
     ${installeerHtml()}

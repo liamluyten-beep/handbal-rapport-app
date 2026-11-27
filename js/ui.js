@@ -1,4 +1,5 @@
 // Kleine hulpfuncties voor de weergave
+import { logFout } from './logboek.js';
 
 export const app = () => document.getElementById('app');
 
@@ -22,6 +23,7 @@ export function toon(html) {
 }
 
 export function melding(tekst, soort = 'ok') {
+  if (soort === 'fout') logFout(tekst);
   const el = document.createElement('div');
   el.className = `toast toast-${soort}`;
   el.textContent = tekst;
@@ -35,6 +37,7 @@ export function laden() {
 
 export function fout(e) {
   console.error(e);
+  logFout(e.message || e);
   toon(`<section class="kaart fout"><h2>Er ging iets mis</h2><p>${esc(e.message || e)}</p>
     <a class="knop" href="#/">Terug</a></section>`);
 }

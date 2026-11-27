@@ -462,3 +462,10 @@ a { color: var(--accent); }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 .held-credit { position: absolute; right: .9rem; bottom: .6rem; margin: 0; font-size: .75rem; opacity: .7; }
+
+/* ---------- Logboek ---------- */
+.log-dag { font-size: 1rem; color: var(--tekst-zacht); margin: 1rem 0 .3rem; }
+.log-dag:first-child { margin-top: 0; }
+.log-rij { display: grid; grid-template-columns: 3.2rem 1.6rem 1fr; gap: .5rem; align-items: baseline; padding: .45rem 0;
+  border-bottom: 1px solid var(--lijn); }
+.log-rij.log-fout span:last-child { color: var(--fout); }

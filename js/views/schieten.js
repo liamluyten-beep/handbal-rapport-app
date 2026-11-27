@@ -6,6 +6,7 @@ import { sessie as login } from '../app.js';
 import { maakOpslag } from '../opslag.js';
 import { VELDPOSITIES, positieNaam, schotStats } from '../lib/live.js';
 import { alsSchoten, doelmanStats } from '../lib/schiet.js';
+import { log } from '../logboek.js';
 
 const ZONE_PIJL = ['↖', '↑', '↗', '←', '•', '→', '↙', '↓', '↘'];
 const perDag = (query, scope) => { const [pid, datum] = scope.split('|'); return query.eq('player_id', pid).eq('datum', datum); };
@@ -163,6 +164,7 @@ export async function schietenView() {
       if (!confirm(aantal ? `Training stoppen? Je ${aantal} schoten worden je trainingsrapport.` : 'Nog geen schoten genoteerd. Sessie toch afsluiten?')) return;
       const klaar = { ...sessie, gestopt_op: new Date().toISOString() };
       sessieOpslag.voegToe(scope, klaar);     // zelfde id = bijwerken
+      { const st = schotStats(alsSchoten(schotenVan(sessie.id))); log('schiettraining', `${st.goals}/${st.schoten}`); }
       stuur();
       resultaatScherm(klaar);
     };

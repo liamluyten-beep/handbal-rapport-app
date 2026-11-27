@@ -17,7 +17,8 @@ export async function accountsView() {
 
   toon(`<div class="paginakop"><div><h1>Accounts</h1>
       <p class="zacht">Iedereen die een account aanmaakte. Zet het vinkje <b>Matchwatcher</b> aan voor wie live matchen mag ingeven.
-      Een speler kan ook matchwatcher zijn; een watcher zonder speler ziet geen rapporten.</p></div></div>
+      Een speler kan ook matchwatcher zijn; een watcher zonder speler ziet geen rapporten.</p></div>
+      <a class="knop tweede" href="#/logboek">📜 Logboek</a></div>
     <section class="kaart">
       <table class="tabel"><thead><tr><th>E-mail</th><th>Speler</th><th>Rol</th><th>Matchwatcher</th><th></th></tr></thead><tbody>
       ${profielen.map(p => `<tr>
