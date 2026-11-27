@@ -1,4 +1,6 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+// Supabase wordt met de site zelf meegeleverd (js/vendor/supabase.min.js, geladen in index.html),
+// zodat de app niet afhangt van een externe server die kan haperen.
+const { createClient } = window.supabase;
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
 export const isGeconfigureerd =
