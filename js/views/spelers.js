@@ -1,5 +1,5 @@
 import { sb, q } from '../supabase.js';
-import { toon, esc, laden, melding } from '../ui.js';
+import { toon, esc, laden, melding, vandaag, bijVerlaten } from '../ui.js';
 import { parseSpelersTekst, normaliseer } from '../lib/importeer.js';
 import { leesPosities, positieVakjesHtml, koppelPositieVakjes } from '../lib/posities.js';
 import { fotoUrls, avatarHtml } from '../foto.js';
@@ -67,6 +67,7 @@ Noah Janssens</code></pre>
       : `<section class="kaart leeg"><span class="bal"></span><p>Nog geen spelers. Voeg je eerste speler toe of importeer een lijst.</p></section>`}
   `);
 
+  toonWieSchiet();
   koppelPositieVakjes(document);
   const wissel = (id, ander) => () => {
     const k = document.getElementById(id); k.hidden = !k.hidden;
@@ -133,4 +134,37 @@ Noah Janssens</code></pre>
       } catch (err) { melding(err.message, 'fout'); knop.disabled = false; }
     };
   }
+}
+
+// ---------- Wie is nu een schiettraining bezig? Blauwe kaart met de tussenstand, ververst live ----------
+function toonWieSchiet() {
+  async function teken() {
+    let sessies = [];
+    try {
+      sessies = await q(sb.from('schiet_sessies').select('id, player_id').eq('datum', vandaag()).is('gestopt_op', null));
+    } catch { return; }   // tabel bestaat nog niet (update-11): niets tonen
+    const schoten = sessies.length
+      ? await q(sb.from('training_schoten').select('sessie_id, resultaat').in('sessie_id', sessies.map(x => x.id))).catch(() => [])
+      : [];
+    document.querySelectorAll('.speler-kaart').forEach(k => {
+      const id = k.getAttribute('href').split('/').pop();
+      const sessie = sessies.find(x => x.player_id === id);
+      k.classList.toggle('bezig', !!sessie);
+      k.querySelector('.bezig-label')?.remove();
+      if (sessie) {
+        const eigen = schoten.filter(x => x.sessie_id === sessie.id);
+        const goals = eigen.filter(x => x.resultaat === 'goal').length;
+        k.querySelector('.info')?.insertAdjacentHTML('beforebegin', `<div class="bezig-label">🎯 schiettraining bezig · ${goals}/${eigen.length}</div>`);
+      }
+    });
+  }
+  let wacht = null;
+  const binnenkort = () => { clearTimeout(wacht); wacht = setTimeout(teken, 400); };
+  const kanaal = sb.channel('spelers-schieten')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'schiet_sessies' }, binnenkort)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'training_schoten' }, binnenkort)
+    .subscribe();
+  const vangnet = setInterval(teken, 30000);   // als live updates niet werken: elke 30 s
+  bijVerlaten(() => { clearInterval(vangnet); clearTimeout(wacht); sb.removeChannel(kanaal); });
+  teken();
 }

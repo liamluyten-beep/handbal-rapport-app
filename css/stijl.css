@@ -563,3 +563,9 @@ a.kal-lijn:hover b { color: var(--accent); }
 .veld-kaart { width: 100%; max-width: min(520px, calc((100vh - 230px) * 200 / 220 + 1.6rem)); justify-self: center; }
 .slot-leeg { white-space: nowrap; }
 .ob-versie { padding: .4rem .9rem; font-size: .75rem; }
+
+/* ---------- Spelers die nu een schiettraining bezig zijn ---------- */
+.speler-kaart.bezig { border-color: #2f7fe0; background: color-mix(in srgb, #2f7fe0 16%, var(--kaart)); }
+.speler-kaart.bezig .nummer { background: #2f7fe0 !important; color: #fff; }
+.bezig-label { font-size: .8rem; font-weight: 700; color: #5aa2ff; }
+@media (prefers-color-scheme: light) { .bezig-label { color: #1f5fb0; } }

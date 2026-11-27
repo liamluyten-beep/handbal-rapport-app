@@ -3,7 +3,7 @@
 export const SOORTEN = {
   alles: null,
   inloggen: ['ingelogd', 'uitgelogd', 'account_aangemaakt', 'speler_gekozen', 'speler_aangemaakt'],
-  activiteit: ['schiettraining', 'zelfevaluatie'],
+  activiteit: ['schiettraining_gestart', 'schiettraining', 'zelfevaluatie'],
   app: ['app_geinstalleerd'],
   fouten: ['fout'],
 };
@@ -16,6 +16,7 @@ export function logTekst({ actie, email, speler_naam, details }) {
     case 'account_aangemaakt': return `${email} heeft een account aangemaakt`;
     case 'speler_gekozen': return `${email} heeft gekozen: ik ben ${details}`;
     case 'speler_aangemaakt': return `${email} heeft zichzelf aangemaakt als speler ${details}`;
+    case 'schiettraining_gestart': return `${wie} is een schiettraining gestart`;
     case 'schiettraining': return `${wie} heeft een schiettraining afgesloten (${details} raak)`;
     case 'zelfevaluatie': return `${wie} heeft een zelfevaluatie ingevuld`;
     case 'app_geinstalleerd': return `${wie} heeft de app geïnstalleerd${details ? ` (${details})` : ''}`;

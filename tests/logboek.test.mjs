@@ -30,3 +30,8 @@ test('logTekst: app geïnstalleerd', () => {
   assert.equal(logTekst(r('app_geinstalleerd', { speler_naam: null })), 'nyo.luyten@gmail.com heeft de app geïnstalleerd');
   assert.equal(SOORTEN.app.includes('app_geinstalleerd'), true);
 });
+
+test('logTekst: schiettraining gestart', () => {
+  assert.equal(logTekst(r('schiettraining_gestart')), 'Nyo Luyten is een schiettraining gestart');
+  assert.equal(SOORTEN.activiteit.includes('schiettraining_gestart'), true);
+});

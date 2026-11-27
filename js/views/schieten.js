@@ -71,6 +71,7 @@ export async function schietenView() {
     </div>`);
     document.getElementById('start').onclick = () => {
       const nieuw = sessieOpslag.voegToe(scope, { player_id: speler.id, datum, gestart_op: new Date().toISOString(), gestopt_op: null });
+      log('schiettraining_gestart');
       stuur();
       sessieScherm(nieuw);
     };
@@ -200,6 +201,7 @@ export async function schietenView() {
     </div>`);
     document.getElementById('opnieuw').onclick = () => {
       const nieuw = sessieOpslag.voegToe(scope, { player_id: speler.id, datum, gestart_op: new Date().toISOString(), gestopt_op: null });
+      log('schiettraining_gestart');
       stuur(); sessieScherm(nieuw);
     };
     stuur();

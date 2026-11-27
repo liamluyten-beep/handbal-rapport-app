@@ -28,7 +28,7 @@ import { installeerView, alsApp, meldAppGebruik } from './installeer.js';
 export const sessie = { user: null, rol: null, watcher: false };
 
 // Versie van de site (zichtbaar onderaan in "Meer"), handig om te zien of een gsm de nieuwste versie heeft
-export const VERSIE = '2026-11-27.4';
+export const VERSIE = '2026-11-27.5';
 
 document.title = PLOEGNAAM;
 document.getElementById('ploegnaam').textContent = PLOEGNAAM;
