@@ -645,3 +645,26 @@ body.testversie #onderbalk { border-top-color: #ff8a00; }
 .badge-stand { font-weight: 700; }
 .badges-rij { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: -.6rem 0 1.2rem; padding: .6rem 1.2rem;
   border-radius: var(--radius); background: var(--kaart); border: 1px solid var(--lijn); color: var(--tekst); text-decoration: none; font-size: 1.4rem; }
+
+/* ---------- Avatar ---------- */
+.nummer.avatar.getekend { overflow: hidden; background: var(--lijn) !important; }
+.nummer.avatar svg, .av-groot svg, .av-mini svg { display: block; width: 100%; height: 100%; }
+.av-maker { display: grid; gap: 1rem; grid-template-columns: minmax(220px, 300px) 1fr; align-items: start; }
+.av-voorbeeld { position: sticky; top: 1rem; display: grid; gap: .8rem; justify-items: start; }
+.av-groot { width: 100%; max-width: 260px; aspect-ratio: 1; border-radius: 24px; overflow: hidden; border: 1px solid var(--lijn); }
+label.vinkje { display: flex; flex-direction: row; gap: .5rem; align-items: center; font-size: .95rem; margin: 0; }
+label.vinkje input { width: auto; margin: 0; flex: none; }
+.av-opties { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: .5rem; }
+.av-optie { display: grid; gap: .25rem; justify-items: center; padding: .35rem; border: 2px solid var(--lijn); border-radius: 12px;
+  background: var(--kaart); color: var(--tekst); cursor: pointer; font: inherit; }
+.av-optie small { font-size: .75rem; line-height: 1.15; text-align: center; }
+.av-mini { width: 60px; height: 60px; border-radius: 10px; overflow: hidden; }
+.av-optie.gekozen { border-color: var(--accent); }
+.av-optie.op-slot .av-mini { opacity: .35; filter: grayscale(1); }
+.av-optie.op-slot small { color: var(--tekst-zacht); }
+.av-optie:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 700px) {
+  .av-maker { grid-template-columns: 1fr; }
+  .av-voorbeeld { position: static; justify-items: center; }
+  .av-groot { max-width: 200px; }
+}

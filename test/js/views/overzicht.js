@@ -185,9 +185,10 @@ export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], f
     <div class="paginakop speler-kop">
       ${speler.rugnummer != null ? `<span class="rug-groot" aria-hidden="true">${esc(speler.rugnummer)}</span>` : ''}
       <div class="rij">
-        ${avatarHtml(fotoUrl, speler.rugnummer, 'groot')}
+        ${avatarHtml(fotoUrl, speler.rugnummer, 'groot', speler)}
         <div><h1>${esc(speler.naam)}</h1><p class="zacht">${esc(speler.positie || '')}</p>
-          ${trainer || eigen ? `<div class="rij geen-print" style="gap:.4rem;margin-top:.4rem">${fotoKnoppenHtml(!!fotoUrl)}</div>` : ''}</div>
+          ${trainer || eigen ? `<div class="rij geen-print" style="gap:.4rem;margin-top:.4rem">${fotoKnoppenHtml(!!fotoUrl)}
+            ${eigen ? `<a class="knop tweede" href="#/avatar">${speler.avatar ? 'Avatar wijzigen' : 'Avatar maken'}</a>` : ''}</div>` : ''}</div>
       </div>
       ${trainer ? `<div class="rij geen-print">
         <a class="knop" href="#/rapport/nieuw/${speler.id}">+ Nieuw rapport</a>
