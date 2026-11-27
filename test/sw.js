@@ -1,7 +1,7 @@
 // Service worker: maakt de site installeerbaar als app en laat ze openen bij een slechte verbinding.
 // Altijd eerst het netwerk (zodat updates meteen zichtbaar zijn); enkel zonder verbinding de bewaarde kopie.
 // Gegevens van Supabase gaan hier niet door (ander domein).
-const CACHE = 'handbal-v3';
+const CACHE = 'handbal-v4';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil((async () => {
@@ -20,7 +20,9 @@ self.addEventListener('fetch', e => {
       if (antwoord.ok) (await caches.open(CACHE)).put(url.origin + url.pathname, antwoord.clone());
       return antwoord;
     } catch {
-      return (await caches.match(url.origin + url.pathname)) || (await caches.match(new URL('./', self.registration.scope).href)) || Response.error();
+      // Enkel bij het openen van een pagina terugvallen op de startpagina, nooit voor een codebestand
+      return (await caches.match(url.origin + url.pathname)) ||
+        (e.request.mode === 'navigate' ? await caches.match(new URL('./', self.registration.scope).href) : null) || Response.error();
     }
   })());
 });
