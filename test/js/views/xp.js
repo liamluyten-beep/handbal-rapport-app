@@ -3,28 +3,56 @@ import { sb, q } from '../supabase.js';
 import { toon, esc, laden } from '../ui.js';
 import { berekenXP, levelVan, XP } from '../lib/xp.js';
 import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
+import { berekenBadges, BADGES } from '../lib/badges.js';
+import { melding } from '../ui.js';
 
 // Schoten met de gevraagde plek (kolom bestaat pas na update-19; anders zonder)
 async function schotenQuery(filter) {
-  const met = await q(filter(sb.from('training_schoten').select('player_id, datum, resultaat, doelzone, uitdaging_zone'))).catch(() => null);
-  return met ?? q(filter(sb.from('training_schoten').select('player_id, datum, resultaat, doelzone'))).catch(() => []);
+  const met = await q(filter(sb.from('training_schoten').select('player_id, datum, resultaat, doelzone, positie, sessie_id, uitdaging_zone'))).catch(() => null);
+  return met ?? q(filter(sb.from('training_schoten').select('player_id, datum, resultaat, doelzone, positie, sessie_id'))).catch(() => []);
 }
 
 async function gegevens(filterSpeler) {
-  const [schoten, aanwezig, zelf] = await Promise.all([
+  const [schoten, aanwezig, zelf, sessies, goals, rapporten] = await Promise.all([
     schotenQuery(filterSpeler),
     q(filterSpeler(sb.from('aanwezigheden').select('player_id, status, trainingen(datum)'))).catch(() => []),
     q(filterSpeler(sb.from('self_reports').select('player_id, datum'))).catch(() => []),
+    q(filterSpeler(sb.from('schiet_sessies').select('id, player_id, datum, gestopt_op'))).catch(() => []),
+    q(filterSpeler(sb.from('goals').select('player_id, aantal, zeven_m, matches(datum)'))).catch(() => []),
+    q(filterSpeler(sb.from('reports').select('player_id, datum, report_scores(skill_id, score)'))).catch(() => []),
   ]);
   return {
     schoten: opSeizoen(schoten, s => s.datum),
     aanwezig: opSeizoen(aanwezig, a => a.trainingen?.datum),
     zelf: opSeizoen(zelf, z => z.datum),
+    sessies: opSeizoen(sessies, s => s.datum),
+    goals: opSeizoen(goals, g => g.matches?.datum),
+    rapporten: opSeizoen(rapporten, r => r.datum),
   };
 }
 
 export async function xpVanSpeler(playerId) {
-  return berekenXP(await gegevens(qb => qb.eq('player_id', playerId)));
+  const d = await gegevens(qb => qb.eq('player_id', playerId));
+  return { ...berekenXP(d), badges: berekenBadges(d) };
+}
+
+// Rij met badges: behaalde in kleur, de rest grijs met hoe ver je staat
+export function badgesHtml(badges) {
+  const behaald = badges.filter(b => b.behaald).length;
+  return `<section class="kaart compact badges-kaart"><h3>Badges <span class="zacht">${behaald}/${badges.length}</span></h3>
+    <div class="badges">${badges.map(b => `<div class="badge ${b.behaald ? 'behaald' : ''}" title="${esc(b.uitleg)}">
+      <span class="badge-icoon">${b.icoon}</span><b>${esc(b.naam)}</b><small>${esc(b.uitleg)}</small>
+      ${b.behaald ? '' : `<span class="badge-balk"><span style="width:${Math.round(100 * b.voortgang.huidig / b.voortgang.doel)}%"></span></span>
+        <small class="badge-stand">${b.voortgang.huidig}/${b.voortgang.doel}</small>`}</div>`).join('')}</div></section>`;
+}
+
+// Eén keer een melding bij een nieuwe badge (per toestel, per seizoen)
+export function meldNieuweBadges(playerId, badges) {
+  const sleutel = `badges:${playerId}:${gekozenSeizoen()}`;
+  const gezien = new Set(JSON.parse(localStorage.getItem(sleutel) || 'null') ?? badges.filter(b => b.behaald).map(b => b.id));
+  const nieuw = badges.filter(b => b.behaald && !gezien.has(b.id));
+  nieuw.forEach((b, i) => setTimeout(() => melding(`Nieuwe badge: ${b.icoon} ${b.naam}!`), 600 + i * 3800));
+  localStorage.setItem(sleutel, JSON.stringify(badges.filter(b => b.behaald).map(b => b.id)));
 }
 
 export function xpKaartHtml(r, { link = null } = {}) {
@@ -45,12 +73,10 @@ export async function xpRanglijstView() {
     gegevens(qb => qb),
   ]);
   const lijst = spelers.map(s => {
-    const r = berekenXP({
-      schoten: d.schoten.filter(x => x.player_id === s.id),
-      aanwezig: d.aanwezig.filter(x => x.player_id === s.id),
-      zelf: d.zelf.filter(x => x.player_id === s.id),
-    });
-    return { s, r, l: levelVan(r.totaal) };
+    const eigen = Object.fromEntries(Object.entries(d).map(([k, lijst]) => [k, lijst.filter(x => x.player_id === s.id)]));
+    const r = berekenXP(eigen);
+    const badges = berekenBadges(eigen).filter(b => b.behaald);
+    return { s, r, l: levelVan(r.totaal), badges };
   }).sort((a, b) => b.r.totaal - a.r.totaal);
   const medaille = i => ['🥇', '🥈', '🥉'][i] || `${i + 1}.`;
 
@@ -59,11 +85,11 @@ export async function xpRanglijstView() {
       <p class="zacht">Enkel jij ziet deze ranglijst. Spelers zien enkel hun eigen level.
         ${gekozenSeizoen() === 'alle' ? 'Alle seizoenen.' : `Seizoen ${gekozenSeizoen()}.`}</p></div></div>
     <section class="kaart">
-      ${lijst.map(({ s, r, l }, i) => `<div class="rang-rij xp-rij">
+      ${lijst.map(({ s, r, l, badges }, i) => `<div class="rang-rij xp-rij">
         <span class="rang-nr">${medaille(i)}</span>
         <span class="rang-naam"><a href="#/speler/${s.id}">${s.rugnummer != null ? `#${esc(s.rugnummer)} ` : ''}${esc(s.naam)}</a></span>
         <div class="xp-balk"><span style="width:${l.pct}%"></span></div>
-        <b>Lv ${l.level}</b><small class="zacht">${r.totaal} XP</small></div>`).join('')}
+        <b>Lv ${l.level}</b><small class="zacht">${r.totaal} XP · ${badges.length} ${badges.length === 1 ? 'badge' : 'badges'} ${badges.map(b => b.icoon).join('')}</small></div>`).join('')}
       <p class="zacht" style="font-size:.85rem;margin-top:1rem">XP: goal in de schiettraining +${XP.goal}, op de gevraagde plek +${XP.opPlek} extra
         (max ${XP.maxSchietenPerDag} XP schieten per dag) · aanwezig op training +${XP.training} · zelfevaluatie +${XP.zelfevaluatie} (1 keer per maand).</p>
     </section>`);
