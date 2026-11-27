@@ -14,9 +14,8 @@ export const PLOEGEN = {
   },
   heren1: {
     id: 'heren1', naam: 'Heren 1 Uilenspiegel', kort: 'Heren 1',
-    // Nog in te vullen zodra het tweede Supabase-project bestaat
-    supabaseUrl: 'https://JOUW-PROJECT.supabase.co',
-    anonKey: 'JOUW-ANON-KEY',
+    supabaseUrl: 'https://zraaxfpqjnugfvvrtsuu.supabase.co',
+    anonKey: 'sb_publishable_BiEfnFRE20TYUxUf3FB6Ww_Ana8NT1P',
     opslagSleutel: 'sb-heren1',       // eigen inlogsessie, los van U16
     dataBestand: 'clubee-heren1.json',
     functies: { rapporten: false, xp: false, trainingen: false, schieten: false, playbook: false, opstelling: false, ploegstats: true },
