@@ -59,5 +59,16 @@ test('volgendeOpLevel: de eerstvolgende spullen boven je level, laagste eerst', 
   assert.equal(v.length, 3);
   assert.ok(v.every(o => o.level > 19));
   assert.equal(v[0].level, 20);
-  assert.deepEqual(volgendeOpLevel(30), []);
+  assert.deepEqual(volgendeOpLevel(40), []);
+});
+
+test('regenbooghaar: pas vanaf level 40, getekend met een kleurverloop', () => {
+  const o = optie('haarkleur', 'regenboog');
+  assert.equal(isVrij(o, { level: 39 }), false);
+  assert.equal(isVrij(o, { level: 40 }), true);
+  const svg = avatarSvg({ haar: 'lang', haarkleur: 'regenboog' });
+  assert.match(svg, /<linearGradient id="av-regenboog"/);
+  assert.match(svg, /fill="url\(#av-regenboog\)"/);
+  assert.doesNotMatch(avatarSvg({ haarkleur: 'bruin' }), /linearGradient/);
+  assert.equal(volgendeOpLevel(30)[0].id, 'regenboog');
 });

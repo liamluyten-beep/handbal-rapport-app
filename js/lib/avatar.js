@@ -15,7 +15,8 @@ export const ONDERDELEN = [
     kleur('zwart', 'Zwart', '#1f1a17'), kleur('bruin', 'Bruin', '#5a3a22'), kleur('blond', 'Blond', '#d9b25c'),
     kleur('rood', 'Rood', '#b3502a'), kleur('blauw', 'Geverfd blauw', '#2f6fd6', { level: 4 }),
     kleur('roze', 'Roze', '#e0457b', { level: 7 }), kleur('groen', 'Groen', '#2fbf86', { level: 11 }),
-    kleur('zilver', 'Zilver', '#c9ced6', { level: 14 }), kleur('goud', 'Goud', '#e8b04a', { level: 24 })] },
+    kleur('zilver', 'Zilver', '#c9ced6', { level: 14 }), kleur('goud', 'Goud', '#e8b04a', { level: 24 }),
+    kleur('regenboog', 'Regenboog', 'url(#av-regenboog)', { level: 40 })] },
   { id: 'ogen', naam: 'Ogen', opties: [
     { id: 'normaal', naam: 'Normaal' }, { id: 'groot', naam: 'Groot' }, { id: 'blij', naam: 'Blij' }, { id: 'knipoog', naam: 'Knipoog' }] },
   { id: 'mond', naam: 'Mond', opties: [
@@ -178,8 +179,12 @@ export function avatarSvg(cfg, rugnummer = null) {
   const bg = ACHTERGROND[a.achtergrond] || `<rect width="100" height="100" fill="${zoek('achtergrond', a.achtergrond).hex}"/>`;
   const nr = String(rugnummer ?? '').replace(/\D/g, '').slice(0, 2);
   const glans = a.shirt === 'diamant' ? '<path d="M30 86 L33 83 L36 86 L33 89 Z M64 82 L66 80 L68 82 L66 84 Z M70 92 L72 90 L74 92 L72 94 Z" fill="#fff"/>' : '';
+  // Regenbooghaar: kleurverloop (zelfde id in elke avatar op de pagina, de inhoud is ook altijd dezelfde)
+  const verloop = a.haarkleur === 'regenboog' ? `<defs><linearGradient id="av-regenboog" x1="0" y1="0" x2="1" y2="0">${
+    ['#d2142c', '#ff6a1a', '#e8b04a', '#13865b', '#2f6fd6', '#8a5cd6'].map((k, i) => `<stop offset="${i * 20}%" stop-color="${k}"/>`).join('')
+  }</linearGradient></defs>` : '';
   return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Avatar">
-${bg}${extra.achter || ''}
+${verloop}${bg}${extra.achter || ''}
 <path d="M16 100 Q18 76 50 73 Q82 76 84 100 Z" fill="${shirt.hex}"${shirt.rand ? ` stroke="${shirt.rand}" stroke-width="2"` : ''}/>${glans}
 <rect x="43" y="62" width="14" height="13" fill="${huid}"/>
 <path d="M43 73 Q50 80 57 73" fill="none" stroke="${shirt.nr || '#fff'}" stroke-width="1.6" opacity=".7"/>
