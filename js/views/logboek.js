@@ -3,6 +3,7 @@ import { sb, q } from '../supabase.js';
 import { toon, esc, laden, melding } from '../ui.js';
 import { formatDatum } from '../lib/voortgang.js';
 import { logTekst, SOORTEN } from '../lib/logboek.js';
+import { lokaleDatum } from '../lib/datum.js';
 
 const ICOON = { ingelogd: '🔓', uitgelogd: '🔒', account_aangemaakt: '🆕', speler_gekozen: '🙋', speler_aangemaakt: '🙋',
   schiettraining: '🎯', zelfevaluatie: '🪞', fout: '⚠️', app_geinstalleerd: '📲' };
@@ -30,7 +31,7 @@ export async function logboekView() {
     if (!lijst.length) { el.innerHTML = '<p class="leeg">Nog niets in het logboek.</p>'; return; }
     let dag = '';
     el.innerHTML = lijst.map(r => {
-      const d = r.created_at.slice(0, 10);
+      const d = lokaleDatum(new Date(r.created_at));
       const kop = d !== dag ? `<h3 class="log-dag">${formatDatum(d)}</h3>` : '';
       dag = d;
       const uur = new Date(r.created_at).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' });

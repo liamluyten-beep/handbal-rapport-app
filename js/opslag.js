@@ -1,7 +1,8 @@
 // Algemene "eerst lokaal, dan naar Supabase"-opslag met wachtrij (voor slechte wifi in de sporthal).
 // Gebruikt door de live matchwatcher (match_events) en de schiettraining (training_schoten).
 import { sb } from './supabase.js';
-import { zetInWachtrij, pasToeOpLijst } from './lib/wachtrij.js';
+import { zetInWachtrij, pasToeOpLijst, isBlijvendeFout } from './lib/wachtrij.js';
+import { logFout } from './logboek.js';
 
 const lees = (k, standaard) => { try { return JSON.parse(localStorage.getItem(k)) ?? standaard; } catch { return standaard; } };
 const schrijf = (k, v) => localStorage.setItem(k, JSON.stringify(v));
@@ -56,6 +57,15 @@ export function maakOpslag({ tabel, voorvoegsel, filter, optioneel = [] }) {
           const zonder = { ...actie.rij };
           ontbreekt.forEach(k => delete zonder[k]);
           ({ error } = await sb.from(tabel).upsert(zonder, { onConflict: 'id' }));
+        }
+        if (error && isBlijvendeFout(error)) {
+          // De database weigert dit definitief (bv. account ontkoppeld): weggooien zodat de rest niet vast blijft zitten
+          logFout(`Niet bewaard in ${tabel}: ${error.message}`);
+          const nu = lees(sleutel(scope, 'wachtrij'), []);
+          const j = nu.findIndex(o => actieId(o) === actieId(actie));
+          if (j >= 0) nu.splice(j, 1);
+          schrijf(sleutel(scope, 'wachtrij'), nu);
+          continue;
         }
         if (error) throw new Error(error.message);
         let server = lees(sleutel(scope, 'server'), []);

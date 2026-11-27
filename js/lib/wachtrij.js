@@ -16,3 +16,11 @@ export function pasToeOpLijst(server, wachtrij) {
   }
   return lijst;
 }
+
+// Weigert de database een actie definitief (bv. rechten, ontbrekende speler, ongeldige waarde)?
+// Dan heeft opnieuw proberen geen zin. Verbindingsfouten (geen wifi) zijn wel tijdelijk.
+export function isBlijvendeFout(error) {
+  if (!error) return false;
+  if (/fetch|network|load failed|timeout|offline/i.test(error.message || '')) return false;
+  return /^(23|42|22|P0)/.test(String(error.code || ''));
+}

@@ -2,10 +2,11 @@
 import { sb, q } from '../supabase.js';
 import { toon, esc, laden, melding, vandaag } from '../ui.js';
 import { formatDatum } from '../lib/voortgang.js';
+import { lokaleDatum } from '../lib/datum.js';
 
 export async function watcherView() {
   laden();
-  const van = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
+  const van = lokaleDatum(new Date(Date.now() - 7 * 864e5));
   const matches = await q(sb.from('matches').select('id, datum, tegenstander, thuis').gte('datum', van).order('datum'));
   const vandaagStr = vandaag();
 

@@ -24,3 +24,9 @@ export function logTekst({ actie, email, speler_naam, details }) {
     default: return `${wie}: ${actie}${details ? ` (${details})` : ''}`;
   }
 }
+
+// Is een melding een echte (technische) fout die in het logboek hoort, of een gewone tip voor de gebruiker?
+export function isTechnischeFout(tekst) {
+  return /error|failed|fetch|violat|denied|permission|exception|duplicate key|invalid|not found|jwt|null value|syntax|schema|column|relation|te veel pogingen|bestaat niet meer|mislukt/i
+    .test(String(tekst));
+}
