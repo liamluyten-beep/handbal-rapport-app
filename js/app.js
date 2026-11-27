@@ -27,6 +27,9 @@ import { installeerView, alsApp } from './installeer.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
 
+// Versie van de site (zichtbaar onderaan in "Meer"), handig om te zien of een gsm de nieuwste versie heeft
+export const VERSIE = '2026-11-27.2';
+
 document.title = PLOEGNAAM;
 document.getElementById('ploegnaam').textContent = PLOEGNAAM;
 
@@ -46,6 +49,7 @@ function zetOnderbalk(links) {
      <div class="ob-meer" id="obMenu" hidden>
        ${rest.map(([h, t]) => `<a href="${h}">${ICOON[h] || ''} ${t}</a>`).join('')}
        <button class="knop-link" id="obUit">Uitloggen</button>
+       <small class="zacht ob-versie">Versie ${VERSIE}</small>
      </div>`;
   const menu = document.getElementById('obMenu'), meer = document.getElementById('obMeer');
   meer.onclick = () => { menu.hidden = !menu.hidden; meer.setAttribute('aria-expanded', String(!menu.hidden)); };

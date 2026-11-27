@@ -562,3 +562,4 @@ a.kal-lijn:hover b { color: var(--accent); }
 .volgende-match:has(+ .vm-opstelling) { border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 1rem; }
 .veld-kaart { width: 100%; max-width: min(520px, calc((100vh - 230px) * 200 / 220 + 1.6rem)); justify-self: center; }
 .slot-leeg { white-space: nowrap; }
+.ob-versie { padding: .4rem .9rem; font-size: .75rem; }
