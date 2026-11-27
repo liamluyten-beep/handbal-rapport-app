@@ -1,5 +1,7 @@
 // Kleine hulpfuncties voor de weergave
 import { logFout } from './logboek.js';
+import { lokaleDatum } from './lib/datum.js';
+import { isTechnischeFout } from './lib/logboek.js';
 
 export const app = () => document.getElementById('app');
 
@@ -23,7 +25,7 @@ export function toon(html) {
 }
 
 export function melding(tekst, soort = 'ok') {
-  if (soort === 'fout') logFout(tekst);
+  if (soort === 'fout' && isTechnischeFout(tekst)) logFout(tekst);
   const el = document.createElement('div');
   el.className = `toast toast-${soort}`;
   el.textContent = tekst;
@@ -42,7 +44,8 @@ export function fout(e) {
     <a class="knop" href="#/">Terug</a></section>`);
 }
 
-export const vandaag = () => new Date().toISOString().slice(0, 10);
+// Datum volgens de klok van het toestel (België), niet in wereldtijd
+export const vandaag = () => lokaleDatum();
 
 // ---------- Grafieken (Chart.js wordt via index.html geladen) ----------
 let grafieken = [];
