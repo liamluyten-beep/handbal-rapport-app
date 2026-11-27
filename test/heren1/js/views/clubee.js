@@ -1,7 +1,7 @@
 // Blok op de importpagina: wedstrijden + statistieken uit Clubee (data/clubee.json) inladen.
 import { sb, q } from '../supabase.js';
 import { esc, melding } from '../ui.js';
-import { bouwClubeeImport } from '../lib/clubee.js';
+import { bouwClubeeImport, ontbrekendeSpelers } from '../lib/clubee.js';
 import { formatDatum } from '../lib/voortgang.js';
 import { DATA_MAP, DATA_BESTAND } from '../omgeving.js';
 
@@ -36,15 +36,19 @@ export async function clubeeStart(spelers) {
     ${nieuw ? `· <b>${nieuw} nog niet geïmporteerd</b>` : '· alles is al geïmporteerd'}
     ${data.bijgewerkt ? `· opgehaald op ${formatDatum(data.bijgewerkt)}` : ''}`;
 
-  const opties = [...spelers].sort((a, b) => a.naam.localeCompare(b.naam));
+  let opties = [...spelers].sort((a, b) => a.naam.localeCompare(b.naam));
   let keuzes = leesKeuzes();
 
   function teken() {
     const r = bouwClubeeImport(data, spelers, keuzes);
     const open = r.spelers.filter(s => !s.gekozen).length;
+    const aanTeMaken = ontbrekendeSpelers(r.spelers, keuzes);
     inhoud.innerHTML = `
       <p>Clubee toont alleen initialen. Controleer of elke regel bij de juiste speler hoort.
         Regels zonder speler worden overgeslagen.</p>
+      ${aanTeMaken.length ? `<div class="kaart compact" style="margin:.6rem 0"><p style="margin:0 0 .5rem"><b>${aanTeMaken.length} speler(s) staan nog niet in de app.</b>
+        Maak ze aan met hun rugnummer en initialen als naam; de volledige naam pas je daarna aan bij Spelers.</p>
+        <button class="knop tweede" id="clubeeAanmaken">➕ ${aanTeMaken.length} ontbrekende speler(s) aanmaken</button></div>` : ''}
       <table class="tabel"><thead><tr><th>#</th><th>Clubee</th><th>Wedstr.</th><th>Goals</th><th>Speler in de app</th></tr></thead>
       <tbody>${r.spelers.map(s => `<tr class="${s.gekozen ? '' : 'fout'}">
         <td>${s.nr}</td><td>${esc(s.initialen.split(' ').map(x => x + '…').join(' '))}</td>
@@ -64,6 +68,17 @@ export async function clubeeStart(spelers) {
       teken();
     });
     document.getElementById('clubeeImport').onclick = e => importeer(r, e.target);
+    const maak = document.getElementById('clubeeAanmaken');
+    if (maak) maak.onclick = async () => {
+      maak.disabled = true;
+      try {
+        await q(sb.from('players').insert(aanTeMaken));
+        spelers = await q(sb.from('players').select('*'));
+        opties = [...spelers].sort((a, b) => a.naam.localeCompare(b.naam));
+        melding(`${aanTeMaken.length} speler(s) aangemaakt. Klik nu op importeren.`);
+        teken();
+      } catch (err) { melding(err.message, 'fout'); maak.disabled = false; }
+    };
   }
 
   async function importeer(r, knop) {

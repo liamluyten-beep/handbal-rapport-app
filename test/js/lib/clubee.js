@@ -180,3 +180,10 @@ export function parseKalender(html, ploegFilter) {
   }
   return [...res.values()].sort((a, b) => a.datum.localeCompare(b.datum) || String(a.uur).localeCompare(String(b.uur)));
 }
+
+// Clubee-regels zonder speler in de app -> nieuwe spelers (naam = initialen, later aan te passen).
+// Regels die de trainer bewust op "overslaan" zette (keuze ""), worden niet aangemaakt.
+export function ontbrekendeSpelers(rijen, keuzes = {}) {
+  return rijen.filter(r => !r.gekozen && keuzes[r.sleutel] !== '')
+    .map(r => ({ naam: r.initialen, rugnummer: r.nr }));
+}
