@@ -5,7 +5,7 @@ import { laadSpelerData, renderOverzicht } from './overzicht.js';
 import { leesPosities, controleerPosities, positieVakjesHtml, koppelPositieVakjes } from '../lib/posities.js';
 import { zoekSpelers } from '../lib/importeer.js';
 import { koppelFotoKnoppen } from '../foto.js';
-import { xpVanSpeler, xpKaartHtml } from './xp.js';
+import { xpVanSpeler, xpKaartHtml, badgesHtml, meldNieuweBadges } from './xp.js';
 import { log } from '../logboek.js';
 
 export async function mijnView() {
@@ -13,7 +13,8 @@ export async function mijnView() {
   const speler = await q(sb.from('players').select('*').eq('user_id', sessie.user.id).maybeSingle());
   if (!speler) return wieBenJij();
   const [data, xp] = await Promise.all([laadSpelerData(speler.id), xpVanSpeler(speler.id)]);
-  const { html, tekenGrafieken } = renderOverzicht(speler, data, { eigen: true, extra: xpKaartHtml(xp) });
+  const { html, tekenGrafieken } = renderOverzicht(speler, data, { eigen: true, extra: xpKaartHtml(xp) + badgesHtml(xp.badges) });
+  meldNieuweBadges(speler.id, xp.badges);
   const gekozen = leesPosities(speler.positie);
 
   toon(`<section class="kaart" id="positieKaart" ${gekozen.length ? 'hidden' : ''}>

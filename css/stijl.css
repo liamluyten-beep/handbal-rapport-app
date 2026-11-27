@@ -631,3 +631,17 @@ body.testversie .kop { border-bottom-color: #ff8a00; }
 body.testversie .kop::before { content: 'TESTVERSIE · enkel trainers · wat je hier invult staat ook echt in de app';
   display: block; text-align: center; padding: .25rem .5rem; background: #ff8a00; color: #191b21; font: 700 .78rem var(--body); }
 body.testversie #onderbalk { border-top-color: #ff8a00; }
+
+/* ---------- Badges ---------- */
+.badges { display: grid; gap: .6rem; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.badge { display: grid; justify-items: center; text-align: center; gap: .15rem; padding: .7rem .5rem; border-radius: 12px;
+  background: var(--bg); border: 1px solid var(--lijn); filter: grayscale(1); opacity: .6; }
+.badge.behaald { filter: none; opacity: 1; border-color: var(--parket); background: color-mix(in srgb, var(--parket) 12%, var(--kaart)); }
+.badge-icoon { font-size: 2rem; line-height: 1.1; }
+.badge b { font: 700 1rem var(--display); }
+.badge small { font-size: .72rem; color: var(--tekst-zacht); line-height: 1.25; }
+.badge-balk { width: 80%; height: 6px; border-radius: 999px; background: var(--lijn); overflow: hidden; margin-top: .2rem; }
+.badge-balk span { display: block; height: 100%; background: var(--parket); }
+.badge-stand { font-weight: 700; }
+.badges-rij { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin: -.6rem 0 1.2rem; padding: .6rem 1.2rem;
+  border-radius: var(--radius); background: var(--kaart); border: 1px solid var(--lijn); color: var(--tekst); text-decoration: none; font-size: 1.4rem; }
