@@ -72,6 +72,7 @@ export async function homeView() {
       ${tegel('#/mijn', '📋', 'Mijn rapport', rapport[0] ? `laatste: ${formatDatum(rapport[0].datum)}` : 'nog geen rapport')}
       ${tegel('#/matchen', '🤾', 'Mijn matchen', `${goals.length} matchen · ${totaal} goals`)}
       ${tegel('#/schieten', '🎯', 'Schiettraining', 'noteer je schoten')}
+      ${tegel('#/playbook', '📖', 'Playbook', 'onze aanvalssystemen')}
       ${tegel('#/zelfevaluatie/nieuw', '🪞', 'Zelfevaluatie', 'hoe vind jij dat het gaat?')}
       ${sessie.watcher ? tegel('#/watcher', '📝', 'Alle matchen volgen', 'als matchwatcher') : ''}
     </div>`);
@@ -110,6 +111,7 @@ async function trainerHome() {
     <div class="tegels">
       ${tegel('#/spelers', '👥', 'Spelers', `${spelers.length} spelers${zonderRapport ? ` · ${zonderRapport} zonder rapport dit seizoen` : ''}${zonderNummer ? ` · ${zonderNummer} zonder nummer` : ''}`)}
       ${tegel('#/voorbereiding', '📋', 'Matchvoorbereiding', 'opstelling op het veld')}
+      ${tegel('#/playbook', '📖', 'Playbook', 'aanvalssystemen tekenen')}
       ${tegel('#/wedstrijden', '🤾', 'Wedstrijden', 'uitslagen, live stats, verloop')}
       <a class="tegel" href="#" id="trainingVandaag"><span class="tegel-icoon">✅</span><b>Training vandaag</b><small class="zacht">aanwezigheden afvinken</small></a>
       ${tegel('#/trainingen', '📅', 'Trainingen', 'aanwezigheid per speler')}

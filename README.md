@@ -121,6 +121,9 @@ Een andere competitie of ploeg? Voeg ze toe in `clubee.config.json` (per competi
 ### Seizoenen
 Bovenaan staat de keuze **Seizoen 2026-27** (een seizoen loopt van 1 augustus tot 31 juli). Rapporten, matchen, trainingen, schiettraining en ranglijsten tonen enkel dat seizoen. Kies **Alle seizoenen** om over de jaren heen te kijken. De keuze wordt per toestel onthouden.
 
+### Playbook (aanvalssystemen)
+Eenmalig: voer [`supabase/update-18-playbook.sql`](supabase/update-18-playbook.sql) uit. Via **Playbook** maakt de trainer aanvalssystemen: per stap sleep je de 6 aanvallers op hun plaats en geef je de bal aan een speler. Looplijnen en passen naar de volgende stap tekent de app zelf, en met **▶ Afspelen** bewegen de spelers vloeiend. Alle ingelogde spelers kunnen het playbook bekijken en afspelen.
+
 ### Matchvoorbereiding (opstelling)
 Eenmalig: voer [`supabase/update-15-opstelling.sql`](supabase/update-15-opstelling.sql) uit. Via **Home → Matchvoorbereiding** (of **📋 Opstelling** bij een match) sleep je spelers op de 7 posities van het veld en naar de bank, met de muis of je vinger (of tik een speler en dan een plek). Zet **Gedeeld met spelers** aan, dan zien de spelers de opstelling bij "Volgende match" en waar ze zelf staan.
 

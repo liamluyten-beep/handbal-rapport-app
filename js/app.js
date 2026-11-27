@@ -24,17 +24,18 @@ import { logboekView } from './views/logboek.js';
 import { kalenderView } from './views/kalender.js';
 import { opstellingView, voorbereidingView } from './views/opstelling.js';
 import { installeerView, alsApp, meldAppGebruik } from './installeer.js';
+import { playbookView, systeemView } from './views/playbook.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
 
 // Versie van de site (zichtbaar onderaan in "Meer"), handig om te zien of een gsm de nieuwste versie heeft
-export const VERSIE = '2026-11-27.5';
+export const VERSIE = '2026-11-27.6';
 
 document.title = PLOEGNAAM;
 document.getElementById('ploegnaam').textContent = PLOEGNAAM;
 
 const ICOON = { '#/': '🏠', '#/spelers': '👥', '#/wedstrijden': '🤾', '#/trainingen': '📅', '#/import': '⬇️',
-  '#/accounts': '🔑', '#/kalender': '📆', '#/app': '📲', '#/mijn': '📋', '#/matchen': '🤾', '#/watcher': '📝' };
+  '#/accounts': '🔑', '#/kalender': '📆', '#/app': '📲', '#/playbook': '📖', '#/mijn': '📋', '#/matchen': '🤾', '#/watcher': '📝' };
 
 // Menubalk onderaan op de gsm: de eerste 4 links + "Meer" (de rest en uitloggen)
 function zetOnderbalk(links) {
@@ -61,9 +62,9 @@ function zetNavigatie() {
   const nav = document.getElementById('nav');
   if (!sessie.user) { nav.innerHTML = ''; zetOnderbalk([]); return; }
   const links = sessie.rol === 'trainer'
-    ? [['#/', 'Home'], ['#/spelers', 'Spelers'], ['#/wedstrijden', 'Wedstrijden'], ['#/kalender', 'Kalender'], ['#/trainingen', 'Trainingen'], ['#/import', 'Importeren'],
+    ? [['#/', 'Home'], ['#/spelers', 'Spelers'], ['#/wedstrijden', 'Wedstrijden'], ['#/kalender', 'Kalender'], ['#/trainingen', 'Trainingen'], ['#/playbook', 'Playbook'], ['#/import', 'Importeren'],
        ['#/accounts', 'Accounts']]
-    : [['#/', 'Home'], ['#/mijn', 'Mijn rapport'], ['#/matchen', 'Mijn matchen'], ['#/kalender', 'Kalender'],
+    : [['#/', 'Home'], ['#/mijn', 'Mijn rapport'], ['#/matchen', 'Mijn matchen'], ['#/kalender', 'Kalender'], ['#/playbook', 'Playbook'],
        ...(sessie.watcher ? [['#/watcher', 'Match volgen']] : [])];
   nav.innerHTML = links.map(([h, t]) => `<a href="${h}">${t}</a>`).join('') +
     `<span id="seizoenPlek"></span><button class="knop-link" id="uitloggen">Uitloggen</button>`;
@@ -88,6 +89,7 @@ function markeerActief() {
       (doel === 'spelers' && hoofd === 'vaardigheden') ||
       (doel === 'trainingen' && hoofd === 'training') ||
       (doel === 'accounts' && hoofd === 'logboek') ||
+      (doel === 'playbook' && hoofd === 'systeem') ||
       (doel === 'wedstrijden' && ['voorbereiding', 'opstelling'].includes(hoofd)) ||
       (doel === 'mijn' && hoofd === 'zelfevaluatie');
     a.classList.toggle('actief', actief);
@@ -263,6 +265,8 @@ async function route() {
       if (pad === 'matchen') return await mijnMatchenView();
       if (pad === 'kalender') return await kalenderView();
       if (pad === 'opstelling') return await opstellingView(a);
+      if (pad === 'playbook') return await playbookView();
+      if (pad === 'systeem') return await systeemView(a);
       if (pad === 'schieten') return await schietenView();
       return await homeView();
     }
@@ -281,6 +285,8 @@ async function route() {
       case 'kalender': return await kalenderView();
       case 'voorbereiding': return await voorbereidingView();
       case 'opstelling': return await opstellingView(a);
+      case 'playbook': return await playbookView();
+      case 'systeem': return await systeemView(a);
       case 'import': return await importView();
       case 'vaardigheden': return await vaardighedenView();
       case 'spelers': return await spelersView();
