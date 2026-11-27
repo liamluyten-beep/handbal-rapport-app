@@ -726,7 +726,7 @@ declare
 begin
   if auth.uid() is null then return; end if;
   if actie not in ('ingelogd', 'uitgelogd', 'account_aangemaakt', 'speler_gekozen', 'speler_aangemaakt',
-                   'schiettraining', 'zelfevaluatie', 'fout') then
+                   'schiettraining', 'zelfevaluatie', 'fout', 'app_geinstalleerd') then
     raise exception 'Onbekende actie';
   end if;
   insert into public.logboek (user_id, email, player_id, speler_naam, actie, details)

@@ -5,8 +5,8 @@ import { formatDatum } from '../lib/voortgang.js';
 import { logTekst, SOORTEN } from '../lib/logboek.js';
 
 const ICOON = { ingelogd: '🔓', uitgelogd: '🔒', account_aangemaakt: '🆕', speler_gekozen: '🙋', speler_aangemaakt: '🙋',
-  schiettraining: '🎯', zelfevaluatie: '🪞', fout: '⚠️' };
-const FILTERNAAM = { alles: 'Alles', inloggen: 'Inloggen', activiteit: 'Activiteit', fouten: 'Fouten' };
+  schiettraining: '🎯', zelfevaluatie: '🪞', fout: '⚠️', app_geinstalleerd: '📲' };
+const FILTERNAAM = { alles: 'Alles', inloggen: 'Inloggen', activiteit: 'Activiteit', app: 'App', fouten: 'Fouten' };
 
 export async function logboekView() {
   laden();

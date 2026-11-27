@@ -23,12 +23,12 @@ import { log } from './logboek.js';
 import { logboekView } from './views/logboek.js';
 import { kalenderView } from './views/kalender.js';
 import { opstellingView, voorbereidingView } from './views/opstelling.js';
-import { installeerView, alsApp } from './installeer.js';
+import { installeerView, alsApp, meldAppGebruik } from './installeer.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
 
 // Versie van de site (zichtbaar onderaan in "Meer"), handig om te zien of een gsm de nieuwste versie heeft
-export const VERSIE = '2026-11-27.2';
+export const VERSIE = '2026-11-27.3';
 
 document.title = PLOEGNAAM;
 document.getElementById('ploegnaam').textContent = PLOEGNAAM;
@@ -294,7 +294,7 @@ async function start() {
   laden();
   const { data } = await sb.auth.getSession();
   sessie.user = data.session?.user || null;
-  if (sessie.user) await laadRol().catch(fout);
+  if (sessie.user) { await laadRol().catch(fout); meldAppGebruik(); }
   zetNavigatie();
   if (sessie.user && window.__herstel) nieuwWachtwoordView(); else await route();
 
@@ -309,7 +309,7 @@ async function start() {
     if (nieuw?.id === sessie.user?.id) return;
     sessie.user = nieuw;
     sessie.rol = null;
-    if (nieuw) await laadRol().catch(fout);
+    if (nieuw) { await laadRol().catch(fout); meldAppGebruik(); }
     zetNavigatie();
     if (location.hash === '#/') route(); else location.hash = '#/';
   });

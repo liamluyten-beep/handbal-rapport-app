@@ -20,7 +20,13 @@ test('logTekst: andere acties', () => {
 });
 
 test('soorten voor de filter', () => {
-  assert.deepEqual(Object.keys(SOORTEN), ['alles', 'inloggen', 'activiteit', 'fouten']);
+  assert.deepEqual(Object.keys(SOORTEN), ['alles', 'inloggen', 'activiteit', 'app', 'fouten']);
   assert.equal(SOORTEN.inloggen.includes('ingelogd'), true);
   assert.equal(SOORTEN.fouten.includes('fout'), true);
+});
+
+test('logTekst: app geïnstalleerd', () => {
+  assert.equal(logTekst(r('app_geinstalleerd', { details: 'Android' })), 'Nyo Luyten heeft de app geïnstalleerd (Android)');
+  assert.equal(logTekst(r('app_geinstalleerd', { speler_naam: null })), 'nyo.luyten@gmail.com heeft de app geïnstalleerd');
+  assert.equal(SOORTEN.app.includes('app_geinstalleerd'), true);
 });

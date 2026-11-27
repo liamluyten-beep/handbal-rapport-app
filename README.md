@@ -124,7 +124,7 @@ Bovenaan staat de keuze **Seizoen 2026-27** (een seizoen loopt van 1 augustus to
 Eenmalig: voer [`supabase/update-15-opstelling.sql`](supabase/update-15-opstelling.sql) uit. Via **Home → Matchvoorbereiding** (of **📋 Opstelling** bij een match) sleep je spelers op de 7 posities van het veld en naar de bank, met de muis of je vinger (of tik een speler en dan een plek). Zet **Gedeeld met spelers** aan, dan zien de spelers de opstelling bij "Volgende match" en waar ze zelf staan.
 
 ### Logboek
-Eenmalig: voer [`supabase/update-13-logboek.sql`](supabase/update-13-logboek.sql) uit. Daarna zie je via **Home → Logboek** (of **Accounts → Logboek**) wie inlogde op welke speler, wie een account aanmaakte of een speler koos, afgesloten schiettrainingen en zelfevaluaties, en welke foutmeldingen spelers kregen. Enkel de trainer kan het lezen.
+Eenmalig: voer [`supabase/update-13-logboek.sql`](supabase/update-13-logboek.sql) uit. Daarna zie je via **Home → Logboek** (of **Accounts → Logboek**) wie inlogde op welke speler, wie een account aanmaakte of een speler koos, afgesloten schiettrainingen en zelfevaluaties, wie de app installeerde (update-16), en welke foutmeldingen spelers kregen. Enkel de trainer kan het lezen.
 
 ### Ploegfoto
 Eenmalig: voer [`supabase/update-12-ploegfoto.sql`](supabase/update-12-ploegfoto.sql) uit. Daarna klik je als trainer op de startpagina rechtsboven in de banner op **Ploegfoto toevoegen**. De foto wordt in breedbeeld bijgesneden; enkel wie ingelogd is kan ze zien.

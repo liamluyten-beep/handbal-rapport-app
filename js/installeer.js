@@ -1,5 +1,6 @@
 // De site als app op je gsm zetten: blokje op de startpagina + uitlegpagina (#/app, ook via "Meer").
 import { toon } from './ui.js';
+import { sb } from './supabase.js';
 
 const WEG = 'installeerWeg';
 const ZEVEN_DAGEN = 7 * 24 * 3600 * 1000;
@@ -67,4 +68,14 @@ export function installeerView() {
     <p style="margin-top:1rem"><a href="#/">← Terug naar home</a></p>
   </section>`);
   koppelKnop(() => installeerView());
+}
+
+// ---------- Logboek: eerste keer geopend via het app-icoon (één keer per toestel, enkel als ingelogd) ----------
+const GELOGD = 'appInstallatieGelogd';
+export function meldAppGebruik() {
+  if (!alsApp() || localStorage.getItem(GELOGD)) return;
+  const toestel = { ios: 'iPhone', samsung: 'Samsung', android: 'Android', computer: 'computer' }[browser()];
+  // Pas als "gelogd" markeren als het logboek het aanvaardde (bv. update-16 nog niet uitgevoerd: later opnieuw)
+  sb?.rpc('log_actie', { actie: 'app_geinstalleerd', details: toestel })
+    .then(({ error }) => { if (!error) localStorage.setItem(GELOGD, String(Date.now())); }, () => {});
 }
