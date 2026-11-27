@@ -669,3 +669,6 @@ label.vinkje input { width: auto; margin: 0; flex: none; }
   .av-voorbeeld { position: static; justify-items: center; }
   .av-groot { max-width: 200px; }
 }
+
+/* Wisselen tussen U16 en Heren 1 */
+#nav .ploeg-wissel { border: 1px solid rgba(255,255,255,.35); border-radius: 999px; }

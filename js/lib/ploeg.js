@@ -26,3 +26,14 @@ export const PLOEGEN = {
 export const ploegVanPad = pad => (/\/heren1(\/|$)/.test(pad) ? 'heren1' : 'u16');
 export const isTestPad = pad => /\/test\//.test(pad);
 export const heeftFunctie = (profiel, naam) => !!profiel?.functies?.[naam];
+
+// Pagina's die bij een onderdeel horen dat niet elke ploeg heeft (Heren 1: enkel matchstats)
+export const ROUTE_FUNCTIE = { mijn: 'rapporten', zelfevaluatie: 'rapporten', rapport: 'rapporten', vaardigheden: 'rapporten',
+  avatar: 'xp', xp: 'xp', trainingen: 'trainingen', training: 'trainingen', schieten: 'schieten', schietstats: 'schieten',
+  playbook: 'playbook', systeem: 'playbook', opstelling: 'opstelling', voorbereiding: 'opstelling', ploegstats: 'ploegstats' };
+
+// Mag deze ploeg deze pagina openen? pad: "#/mijn", "#/rapport/nieuw/x" of gewoon "mijn"
+export function routeMag(profiel, pad) {
+  const naam = String(pad).replace(/^#?\/?/, '').split('/')[0];
+  return !ROUTE_FUNCTIE[naam] || heeftFunctie(profiel, ROUTE_FUNCTIE[naam]);
+}
