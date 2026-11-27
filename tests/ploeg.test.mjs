@@ -35,3 +35,16 @@ test('profielen: aparte sessie en data voor Heren 1, U16 onveranderd', () => {
   assert.equal(PLOEGEN.heren1.dataBestand, 'clubee-heren1.json');
   assert.notEqual(PLOEGEN.heren1.supabaseUrl, PLOEGEN.u16.supabaseUrl);
 });
+
+import { routeMag } from '../js/lib/ploeg.js';
+
+test('routeMag: Heren 1 kan geen U16-pagina openen, wel matchpagina\'s', () => {
+  const h = PLOEGEN.heren1, u = PLOEGEN.u16;
+  for (const p of ['#/mijn', '#/schieten', 'xp', '#/rapport/nieuw/p1', '#/playbook', '#/voorbereiding', '#/trainingen']) {
+    assert.equal(routeMag(h, p), false, p);
+    assert.equal(routeMag(u, p), true, p);
+  }
+  for (const p of ['#/', '#/wedstrijden', '#/live/m1', '#/kalender', '#/accounts', '#/watcher', 'kies']) assert.equal(routeMag(h, p), true, p);
+  assert.equal(routeMag(h, '#/ploegstats'), true);
+  assert.equal(routeMag(u, '#/ploegstats'), false);
+});

@@ -28,6 +28,7 @@ import { opstellingView, voorbereidingView } from './views/opstelling.js';
 import { installeerView, alsApp, meldAppGebruik } from './installeer.js';
 import { playbookView, systeemView } from './views/playbook.js';
 import { xpRanglijstView } from './views/xp.js';
+import { ploegstatsView } from './views/ploegstats.js';
 import { IS_TEST } from './omgeving.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
@@ -51,7 +52,7 @@ if (IS_TEST) document.body.classList.add('testversie');
 document.getElementById('ploegnaam').textContent = PLOEGNAAM;
 
 const ICOON = { '#/': '🏠', '#/spelers': '👥', '#/wedstrijden': '🤾', '#/trainingen': '📅', '#/import': '⬇️',
-  '#/accounts': '🔑', '#/kalender': '📆', '#/app': '📲', '#/playbook': '📖', '#/mijn': '📋', '#/matchen': '🤾', '#/watcher': '📝' };
+  '#/accounts': '🔑', '#/kalender': '📆', '#/app': '📲', '#/playbook': '📖', '#/mijn': '📋', '#/matchen': '🤾', '#/watcher': '📝', '#/ploegstats': '📊' };
 
 // Menubalk onderaan op de gsm: de eerste 4 links + "Meer" (de rest en uitloggen)
 function zetOnderbalk(links) {
@@ -297,6 +298,7 @@ async function route() {
       if (pad === 'playbook') return await playbookView();
       if (pad === 'systeem') return await systeemView(a);
       if (pad === 'schieten') return await schietenView();
+      if (pad === 'ploegstats') return await ploegstatsView();
       return await homeView();
     }
     switch (pad) {
@@ -316,6 +318,7 @@ async function route() {
       case 'opstelling': return await opstellingView(a);
       case 'playbook': return await playbookView();
       case 'xp': return await xpRanglijstView();
+      case 'ploegstats': return await ploegstatsView();
       case 'avatar': return await avatarView();
       case 'systeem': return await systeemView(a);
       case 'import': return await importView();
