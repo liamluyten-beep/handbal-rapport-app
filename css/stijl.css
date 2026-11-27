@@ -469,3 +469,54 @@ a { color: var(--accent); }
 .log-rij { display: grid; grid-template-columns: 3.2rem 1.6rem 1fr; gap: .5rem; align-items: baseline; padding: .45rem 0;
   border-bottom: 1px solid var(--lijn); }
 .log-rij.log-fout span:last-child { color: var(--fout); }
+
+/* ---------- Volgende match (startpagina) ---------- */
+.volgende-match { display: grid; grid-template-columns: 1fr auto; gap: .1rem 1rem; align-items: center; margin-bottom: 1.2rem;
+  padding: 1rem 1.2rem; border-radius: var(--radius); text-decoration: none; color: var(--tekst);
+  background: var(--kaart); border: 1px solid var(--lijn); border-left: 6px solid var(--accent); }
+.volgende-match:hover { border-color: var(--accent); }
+.vm-label { font-size: .85rem; color: var(--tekst-zacht); }
+.vm-wanneer { font: 700 1.5rem/1.1 var(--display); text-transform: capitalize; }
+.vm-wie { color: var(--tekst-zacht); }
+.vm-wie b { color: var(--tekst); }
+.vm-pijl { grid-row: 1 / 4; grid-column: 2; font-size: 1.8rem; }
+
+/* ---------- Kalender ---------- */
+.kal-kop { display: flex; align-items: center; gap: .6rem; margin-bottom: 1rem; }
+.kal-kop h2 { margin: 0; min-width: 10ch; text-align: center; text-transform: capitalize; }
+.kal-kop .knop.klein { font-size: 1.2rem; padding: .2rem .8rem; }
+.kal-kop .knop:disabled { opacity: .3; }
+.kal-kop .knop-link { color: var(--accent); margin-left: auto; }
+.kal-raster { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.kal-dagnaam { text-align: center; font-size: .8rem; color: var(--tekst-zacht); padding-bottom: .2rem; }
+.kal-cel { min-height: 92px; border-radius: 8px; background: var(--bg); padding: .3rem; display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+.kal-cel.buiten { opacity: .35; }
+.kal-cel.vandaag { outline: 2px solid var(--accent); outline-offset: -2px; }
+.kal-cel.vandaag .kal-nr { background: var(--accent); color: #fff; border-radius: 999px; padding: 0 .4rem; }
+.kal-nr { font-size: .8rem; font-weight: 600; align-self: flex-start; }
+.kal-match { display: grid; gap: 0; padding: .2rem .35rem; border-radius: 6px; font-size: .72rem; line-height: 1.25;
+  background: color-mix(in srgb, var(--accent) 16%, var(--kaart)); border-left: 3px solid var(--accent); }
+.kal-match.uit { background: color-mix(in srgb, var(--tekst-zacht) 14%, var(--kaart)); border-left-color: var(--tekst-zacht); }
+.kal-match.afgelast { text-decoration: line-through; opacity: .55; }
+.km-uur { font-weight: 700; }
+.km-naam { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kal-lijn { display: grid; grid-template-columns: 3rem 1fr auto; gap: .8rem; align-items: center; padding: .6rem 0;
+  border-bottom: 1px solid var(--lijn); color: var(--tekst); text-decoration: none; }
+a.kal-lijn:hover b { color: var(--accent); }
+.kal-lijn.afgelast { opacity: .55; }
+.kal-lijn.afgelast .kl-tekst b { text-decoration: line-through; }
+.kl-datum { display: grid; justify-items: center; line-height: 1; }
+.kl-datum b { font: 800 1.6rem var(--display); }
+.kl-datum small { color: var(--tekst-zacht); text-transform: capitalize; }
+.kl-tekst { display: grid; }
+.uitslag { font: 800 1.2rem var(--display); padding: .15rem .5rem; border-radius: 6px; }
+.uitslag.w { background: var(--goed-bg); color: var(--goed); }
+.uitslag.v { background: color-mix(in srgb, var(--fout) 14%, var(--kaart)); color: var(--fout); }
+.uitslag.g { background: var(--bg); }
+@media (max-width: 720px) {
+  .kal-cel { min-height: 54px; padding: .2rem; }
+  .kal-match { padding: 0; border: 0; background: none; }
+  .kal-match .km-uur, .kal-match .km-naam { display: none; }
+  .kal-cel.heeft::after { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); align-self: center; margin-top: auto; }
+}
+@media (max-width: 720px) { .kal-kop h2 { font-size: 1.3rem; white-space: nowrap; min-width: 0; } .kal-kop { gap: .4rem; } }

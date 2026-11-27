@@ -126,3 +126,24 @@ test('bouwClubeeImport: twee Clubee-regels op dezelfde speler worden opgeteld', 
   assert.equal(r.goals.length, 1);
   assert.equal(r.goals[0].aantal, 8);
 });
+
+import { parseKalender } from '../js/lib/clubee.js';
+
+test('parseKalender: alle matchen van de ploeg, ook komende en afgelaste', () => {
+  const k = parseKalender(competitie, 'Uilenspiegel');
+  assert.equal(k.length, 20);
+  assert.deepEqual(k.find(x => x.clubee_id === 2850917), {
+    clubee_id: 2850917, datum: '2026-10-10', uur: '14:30', status: 'gespeeld',
+    thuis: 'Uilenspiegel U16 VHV R (U16 M)', uit: 'Merksplas U16 VHV R (U16 M)', score_thuis: 34, score_uit: 24,
+  });
+  assert.deepEqual(k.find(x => x.clubee_id === 2850934), {
+    clubee_id: 2850934, datum: '2026-11-28', uur: '17:30', status: 'gepland',
+    thuis: 'Olse Merksem U16 VHV R (U16 M)', uit: 'Uilenspiegel U16 VHV R (U16 M)', score_thuis: null, score_uit: null,
+  });
+  const afgelast = k.find(x => x.clubee_id === 2850919);
+  assert.equal(afgelast.status, 'afgelast');
+  assert.equal(afgelast.thuis, 'Uilenspiegel U16 VHV R (U16 M)');
+  assert.equal(afgelast.uit, 'Welta U16 VHV-B R (U16 M)');
+  // gesorteerd op datum
+  assert.deepEqual(k.map(x => x.datum), [...k.map(x => x.datum)].sort());
+});

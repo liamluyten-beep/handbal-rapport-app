@@ -2,7 +2,7 @@
 // en schrijft ze naar data/clubee.json. Draait dagelijks via GitHub Actions,
 // of lokaal met:  node tools/clubee-ophalen.mjs
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { parseCompetitie, parseLineup } from '../js/lib/clubee.js';
+import { parseCompetitie, parseLineup, parseKalender } from '../js/lib/clubee.js';
 
 const root = new URL('../', import.meta.url);
 const config = JSON.parse(await readFile(new URL('clubee.config.json', root), 'utf8'));
@@ -16,8 +16,11 @@ async function haal(url) {
 
 const basis = new URL(config.competities[0]).origin + '/' + new URL(config.competities[0]).pathname.split('/')[1];
 const wedstrijden = new Map();
+const kalender = new Map();
 for (const url of config.competities) {
-  for (const w of parseCompetitie(await haal(url), config.ploeg)) wedstrijden.set(w.clubee_id, w);
+  const html = await haal(url);
+  for (const w of parseCompetitie(html, config.ploeg)) wedstrijden.set(w.clubee_id, w);
+  for (const k of parseKalender(html, config.ploeg)) kalender.set(k.clubee_id, k);
   await pauze(1000);
 }
 
@@ -38,11 +41,12 @@ for (const w of [...wedstrijden.values()].sort((a, b) => a.datum.localeCompare(b
   await pauze(1000);
 }
 
-const nieuw = { ploeg: config.ploeg, wedstrijden: resultaat };
-if (JSON.stringify(nieuw.wedstrijden) === JSON.stringify(vorige.wedstrijden)) {
+const nieuw = { ploeg: config.ploeg, wedstrijden: resultaat,
+  kalender: [...kalender.values()].sort((a, b) => a.datum.localeCompare(b.datum)) };
+if (JSON.stringify([nieuw.wedstrijden, nieuw.kalender]) === JSON.stringify([vorige.wedstrijden, vorige.kalender])) {
   console.log('Geen nieuwe wedstrijden.');
 } else {
   await mkdir(new URL('data/', root), { recursive: true });
   await writeFile(pad, JSON.stringify({ ...nieuw, bijgewerkt: new Date().toISOString() }, null, 1) + '\n');
-  console.log(`data/clubee.json bijgewerkt: ${resultaat.length} wedstrijden.`);
+  console.log(`data/clubee.json bijgewerkt: ${resultaat.length} gespeeld, ${nieuw.kalender.length} in de kalender.`);
 }

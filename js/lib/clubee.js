@@ -130,3 +130,40 @@ export function bouwClubeeImport(data, spelers, keuzes = {}) {
 }
 
 const sleutelIn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+
+// Alle wedstrijden van de ploeg (gespeeld, gepland en afgelast) voor de kalender
+export function parseKalender(html, ploegFilter) {
+  const res = new Map();
+  const filter = ploegFilter.toLowerCase();
+  const linkRe = /href="\/[^"]*\/games\/(\d+)"/g;
+  let m, vorige = 0;
+  while ((m = linkRe.exec(html))) {
+    const start = html.lastIndexOf('_date', m.index);
+    if (start < vorige) { vorige = m.index; continue; }
+    vorige = m.index;
+    const c = naarCellen('<x ' + html.slice(start, m.index)).split('|').map(s => s.trim()).filter(Boolean);
+    const di = c.findIndex(x => /^\d{2}\/\d{2}\/\d{4}$/.test(x));
+    if (di < 0) continue;
+    const rest = c.slice(di + 1);
+    const isUur = x => /^\d{1,2}:\d{2}$/.test(x);
+    let w = null;
+    const si = rest.indexOf(':');
+    if (si >= 2 && /^\d+$/.test(rest[si - 1]) && /^\d+$/.test(rest[si + 1])) {
+      // gespeeld: [uur] thuis a : b uit
+      w = { uur: isUur(rest[0]) ? rest[0] : null, status: 'gespeeld', thuis: rest[si - 2], uit: rest[si + 2],
+        score_thuis: Number(rest[si - 1]), score_uit: Number(rest[si + 1]) };
+    } else {
+      // gepland: thuis uur uit — afgelast: Cancelled thuis uur uit
+      const afgelast = /cancel|afgelast|uitgesteld|postponed/i.test(rest[0]);
+      const r = afgelast ? rest.slice(1) : rest;
+      const ui = r.findIndex(isUur);
+      if (ui < 1 || !r[ui + 1]) continue;
+      w = { uur: r[ui], status: afgelast ? 'afgelast' : 'gepland', thuis: r[ui - 1], uit: r[ui + 1], score_thuis: null, score_uit: null };
+    }
+    if (!w.thuis.toLowerCase().includes(filter) && !w.uit.toLowerCase().includes(filter)) continue;
+    const id = Number(m[1]);
+    res.set(id, { clubee_id: id, datum: naarIso(c[di]), uur: w.uur, status: w.status,
+      thuis: w.thuis, uit: w.uit, score_thuis: w.score_thuis, score_uit: w.score_uit });
+  }
+  return [...res.values()].sort((a, b) => a.datum.localeCompare(b.datum) || String(a.uur).localeCompare(String(b.uur)));
+}

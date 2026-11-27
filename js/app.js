@@ -21,6 +21,7 @@ import { schietStatsView } from './views/schietstats.js';
 import { seizoenKeuzeHtml, kiesSeizoen } from './seizoen-keuze.js';
 import { log } from './logboek.js';
 import { logboekView } from './views/logboek.js';
+import { kalenderView } from './views/kalender.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
 
@@ -28,7 +29,7 @@ document.title = PLOEGNAAM;
 document.getElementById('ploegnaam').textContent = PLOEGNAAM;
 
 const ICOON = { '#/': '🏠', '#/spelers': '👥', '#/wedstrijden': '🤾', '#/trainingen': '📅', '#/import': '⬇️',
-  '#/accounts': '🔑', '#/mijn': '📋', '#/matchen': '🤾', '#/watcher': '📝' };
+  '#/accounts': '🔑', '#/kalender': '📆', '#/mijn': '📋', '#/matchen': '🤾', '#/watcher': '📝' };
 
 // Menubalk onderaan op de gsm: de eerste 4 links + "Meer" (de rest en uitloggen)
 function zetOnderbalk(links) {
@@ -54,9 +55,9 @@ function zetNavigatie() {
   const nav = document.getElementById('nav');
   if (!sessie.user) { nav.innerHTML = ''; zetOnderbalk([]); return; }
   const links = sessie.rol === 'trainer'
-    ? [['#/', 'Home'], ['#/spelers', 'Spelers'], ['#/wedstrijden', 'Wedstrijden'], ['#/trainingen', 'Trainingen'], ['#/import', 'Importeren'],
+    ? [['#/', 'Home'], ['#/spelers', 'Spelers'], ['#/wedstrijden', 'Wedstrijden'], ['#/kalender', 'Kalender'], ['#/trainingen', 'Trainingen'], ['#/import', 'Importeren'],
        ['#/accounts', 'Accounts']]
-    : [['#/', 'Home'], ['#/mijn', 'Mijn rapport'], ['#/matchen', 'Mijn matchen'],
+    : [['#/', 'Home'], ['#/mijn', 'Mijn rapport'], ['#/matchen', 'Mijn matchen'], ['#/kalender', 'Kalender'],
        ...(sessie.watcher ? [['#/watcher', 'Match volgen']] : [])];
   nav.innerHTML = links.map(([h, t]) => `<a href="${h}">${t}</a>`).join('') +
     `<span id="seizoenPlek"></span><button class="knop-link" id="uitloggen">Uitloggen</button>`;
@@ -249,6 +250,7 @@ async function route() {
       if (pad === 'zelfevaluatie') return await zelfevaluatieView(a === 'nieuw' ? null : a);
       if (pad === 'mijn' || pad === 'kies') return await mijnView();
       if (pad === 'matchen') return await mijnMatchenView();
+      if (pad === 'kalender') return await kalenderView();
       if (pad === 'schieten') return await schietenView();
       return await homeView();
     }
@@ -264,6 +266,7 @@ async function route() {
       case 'training': return await trainingView(a);
       case 'schietstats': return await schietStatsView();
       case 'logboek': return await logboekView();
+      case 'kalender': return await kalenderView();
       case 'import': return await importView();
       case 'vaardigheden': return await vaardighedenView();
       case 'spelers': return await spelersView();

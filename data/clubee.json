@@ -1426,5 +1426,207 @@
    ]
   }
  ],
- "bijgewerkt": "2026-11-25T09:00:31.392Z"
+ "kalender": [
+  {
+   "clubee_id": 2850920,
+   "datum": "2026-09-05",
+   "uur": "11:00",
+   "status": "gespeeld",
+   "thuis": "Merksplas U16 VHV R (U16 M)",
+   "uit": "Uilenspiegel U16 VHV R (U16 M)",
+   "score_thuis": 23,
+   "score_uit": 21
+  },
+  {
+   "clubee_id": 2850915,
+   "datum": "2026-09-12",
+   "uur": "15:30",
+   "status": "gespeeld",
+   "thuis": "Uilenspiegel U16 VHV R (U16 M)",
+   "uit": "Biobest Sasja U16 VHV R (U16 M/F)",
+   "score_thuis": 16,
+   "score_uit": 31
+  },
+  {
+   "clubee_id": 2850906,
+   "datum": "2026-09-19",
+   "uur": "12:15",
+   "status": "gespeeld",
+   "thuis": "Schoten U16 VHV R (U16 M)",
+   "uit": "Uilenspiegel U16 VHV R (U16 M)",
+   "score_thuis": 25,
+   "score_uit": 40
+  },
+  {
+   "clubee_id": 2850911,
+   "datum": "2026-09-27",
+   "uur": "09:30",
+   "status": "gespeeld",
+   "thuis": "Welta U16 VHV-B R (U16 M)",
+   "uit": "Uilenspiegel U16 VHV R (U16 M)",
+   "score_thuis": 17,
+   "score_uit": 54
+  },
+  {
+   "clubee_id": 2850916,
+   "datum": "2026-10-03",
+   "uur": "15:30",
+   "status": "gespeeld",
+   "thuis": "Uilenspiegel U16 VHV R (U16 M)",
+   "uit": "Olse Merksem U16 VHV R (U16 M)",
+   "score_thuis": 36,
+   "score_uit": 25
+  },
+  {
+   "clubee_id": 2850917,
+   "datum": "2026-10-10",
+   "uur": "14:30",
+   "status": "gespeeld",
+   "thuis": "Uilenspiegel U16 VHV R (U16 M)",
+   "uit": "Merksplas U16 VHV R (U16 M)",
+   "score_thuis": 34,
+   "score_uit": 24
+  },
+  {
+   "clubee_id": 2850928,
+   "datum": "2026-10-17",
+   "uur": "17:30",
+   "status": "gespeeld",
+   "thuis": "Biobest Sasja U16 VHV R (U16 M/F)",
+   "uit": "Uilenspiegel U16 VHV R (U16 M)",
+   "score_thuis": 34,
+   "score_uit": 13
+  },
+  {
+   "clubee_id": 2850918,
+   "datum": "2026-11-14",
+   "uur": "15:30",
+   "status": "gespeeld",
+   "thuis": "Uilenspiegel U16 VHV R (U16 M)",
+   "uit": "Schoten U16 VHV R (U16 M)",
+   "score_thuis": 38,
+   "score_uit": 38
+  },
+  {
+   "clubee_id": 2850919,
+   "datum": "2026-11-22",
+   "uur": "12:40",
+   "status": "afgelast",
+   "thuis": "Uilenspiegel U16 VHV R (U16 M)",
+   "uit": "Welta U16 VHV-B R (U16 M)",
+   "score_thuis": null,
+   "score_uit": null
+  },
+  {
+   "clubee_id": 2850934,
+   "datum": "2026-11-28",
+   "uur": "17:30",
+   "status": "gepland",
+   "thuis": "Olse Merksem U16 VHV R (U16 M)",
+   "uit": "Uilenspiegel U16 VHV R (U16 M)",
+   "score_thuis": null,
+   "score_uit": null
+  },
+  {
+   "clubee_id": 3054135,
+   "datum": "2027-01-16",
+   "uur": "17:30",
+   "status": "gepland",
+   "thuis": "Welta U16 VHV-B R (U16 M)",
+   "uit": "Uilenspiegel U16 VHV R (U16 M)",
+   "score_thuis": null,
+   "score_uit": null
+  },
+  {
+   "clubee_id": 3054138,
+   "datum": "2027-01-23",
+   "uur": "17:30",
+   "status": "gepland",
+   "thuis": "Uilenspiegel U16 VHV R (U16 M)",
+   "uit": "Biobest Sasja U16 VHV R (U16 M/F)",
+   "score_thuis": null,
+   "score_uit": null
+  },
+  {
+   "clubee_id": 3054141,
+   "datum": "2027-01-30",
+   "uur": "17:30",
+   "status": "gepland",
+   "thuis": "Uilenspiegel U16 VHV R (U16 M)",
+   "uit": "Lebbeke U16 VHV R (U16 M)",
+   "score_thuis": null,
+   "score_uit": null
+  },
+  {
+   "clubee_id": 3054145,
+   "datum": "2027-02-06",
+   "uur": "17:30",
+   "status": "gepland",
+   "thuis": "Olse Merksem U16 VHV R (U16 M)",
+   "uit": "Uilenspiegel U16 VHV R (U16 M)",
+   "score_thuis": null,
+   "score_uit": null
+  },
+  {
+   "clubee_id": 3054147,
+   "datum": "2027-02-20",
+   "uur": "17:30",
+   "status": "gepland",
+   "thuis": "Uilenspiegel U16 VHV R (U16 M)",
+   "uit": "Heist o/d Berg U16 VHV R (U16 M)",
+   "score_thuis": null,
+   "score_uit": null
+  },
+  {
+   "clubee_id": 3054150,
+   "datum": "2027-02-27",
+   "uur": "17:30",
+   "status": "gepland",
+   "thuis": "Uilenspiegel U16 VHV R (U16 M)",
+   "uit": "Welta U16 VHV-B R (U16 M)",
+   "score_thuis": null,
+   "score_uit": null
+  },
+  {
+   "clubee_id": 3054153,
+   "datum": "2027-03-13",
+   "uur": "17:30",
+   "status": "gepland",
+   "thuis": "Biobest Sasja U16 VHV R (U16 M/F)",
+   "uit": "Uilenspiegel U16 VHV R (U16 M)",
+   "score_thuis": null,
+   "score_uit": null
+  },
+  {
+   "clubee_id": 3054156,
+   "datum": "2027-04-17",
+   "uur": "17:30",
+   "status": "gepland",
+   "thuis": "Lebbeke U16 VHV R (U16 M)",
+   "uit": "Uilenspiegel U16 VHV R (U16 M)",
+   "score_thuis": null,
+   "score_uit": null
+  },
+  {
+   "clubee_id": 3054159,
+   "datum": "2027-04-24",
+   "uur": "17:30",
+   "status": "gepland",
+   "thuis": "Uilenspiegel U16 VHV R (U16 M)",
+   "uit": "Olse Merksem U16 VHV R (U16 M)",
+   "score_thuis": null,
+   "score_uit": null
+  },
+  {
+   "clubee_id": 3054162,
+   "datum": "2027-05-08",
+   "uur": "13:30",
+   "status": "gepland",
+   "thuis": "Heist o/d Berg U16 VHV R (U16 M)",
+   "uit": "Uilenspiegel U16 VHV R (U16 M)",
+   "score_thuis": null,
+   "score_uit": null
+  }
+ ],
+ "bijgewerkt": "2026-11-27T14:10:11.196Z"
 }
