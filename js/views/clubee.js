@@ -3,7 +3,7 @@ import { sb, q } from '../supabase.js';
 import { esc, melding } from '../ui.js';
 import { bouwClubeeImport } from '../lib/clubee.js';
 import { formatDatum } from '../lib/voortgang.js';
-import { DATA_MAP } from '../omgeving.js';
+import { DATA_MAP, DATA_BESTAND } from '../omgeving.js';
 
 const KEUZES = 'clubeeKeuzes';
 const leesKeuzes = () => { try { return JSON.parse(localStorage.getItem(KEUZES)) || {}; } catch { return {}; } };
@@ -21,7 +21,7 @@ export async function clubeeStart(spelers) {
   const inhoud = document.getElementById('clubeeInhoud');
   let data;
   try {
-    const res = await fetch(`${DATA_MAP}clubee.json?t=${Date.now()}`, { cache: 'no-store' });
+    const res = await fetch(`${DATA_MAP}${DATA_BESTAND}?t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error();
     data = await res.json();
   } catch {

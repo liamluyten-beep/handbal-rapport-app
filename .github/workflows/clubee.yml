@@ -22,14 +22,16 @@ jobs:
           node-version: 22
       - name: Tests
         run: npm test
-      - name: Wedstrijden ophalen
+      - name: Wedstrijden ophalen (U16)
         run: node tools/clubee-ophalen.mjs
+      - name: Wedstrijden ophalen (Heren 1)
+        run: node tools/clubee-ophalen.mjs heren1
       - name: Opslaan als er iets veranderd is
         run: |
           if [ -n "$(git status --porcelain data/)" ]; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add data/clubee.json
+            git add data/clubee*.json
             git commit -m "data: Clubee-wedstrijden bijgewerkt"
             git push
           else

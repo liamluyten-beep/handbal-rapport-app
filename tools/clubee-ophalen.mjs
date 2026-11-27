@@ -1,11 +1,20 @@
 // Haalt de gespeelde wedstrijden + line-up-statistieken van de ploeg op bij Clubee
 // en schrijft ze naar data/clubee.json. Draait dagelijks via GitHub Actions,
-// of lokaal met:  node tools/clubee-ophalen.mjs
+// of lokaal met:  node tools/clubee-ophalen.mjs          (U16 -> data/clubee.json)
+//                  node tools/clubee-ophalen.mjs heren1   (Heren 1 -> data/clubee-heren1.json)
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { parseCompetitie, parseLineup, parseKalender } from '../js/lib/clubee.js';
 
 const root = new URL('../', import.meta.url);
-const config = JSON.parse(await readFile(new URL('clubee.config.json', root), 'utf8'));
+const alles = JSON.parse(await readFile(new URL('clubee.config.json', root), 'utf8'));
+// Zonder argument: de U16-instellingen bovenaan. Met een ploeg (bv. heren1): het blok met die naam.
+const ploegId = process.argv[2] || null;
+const config = ploegId ? alles[ploegId] : alles;
+const bestand = ploegId ? `data/clubee-${ploegId}.json` : 'data/clubee.json';
+if (!config?.competities?.length) {
+  console.log(`${ploegId || 'U16'}: nog geen competitie ingesteld in clubee.config.json.`);
+  process.exit(0);
+}
 const pauze = ms => new Promise(r => setTimeout(r, ms));
 
 async function haal(url) {
@@ -28,7 +37,7 @@ for (const c of competities) {
 }
 
 // Bestaande data hergebruiken: line-ups van oude wedstrijden niet opnieuw ophalen
-const pad = new URL('data/clubee.json', root);
+const pad = new URL(bestand, root);
 let vorige = { wedstrijden: [] };
 try { vorige = JSON.parse(await readFile(pad, 'utf8')); } catch { /* eerste keer */ }
 const bekend = new Map(vorige.wedstrijden.filter(w => w.spelers?.length).map(w => [w.clubee_id, w]));
@@ -51,5 +60,5 @@ if (JSON.stringify([nieuw.wedstrijden, nieuw.kalender]) === JSON.stringify([vori
 } else {
   await mkdir(new URL('data/', root), { recursive: true });
   await writeFile(pad, JSON.stringify({ ...nieuw, bijgewerkt: new Date().toISOString() }, null, 1) + '\n');
-  console.log(`data/clubee.json bijgewerkt: ${resultaat.length} gespeeld, ${nieuw.kalender.length} in de kalender.`);
+  console.log(`${bestand} bijgewerkt: ${resultaat.length} gespeeld, ${nieuw.kalender.length} in de kalender.`);
 }

@@ -15,8 +15,11 @@ import { VELD7 } from '../lib/opstelling.js';
 import { xpVanSpeler, xpKaartHtml, meldNieuweBadges } from './xp.js';
 import { vandaag } from '../ui.js';
 import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
+import { PLOEG } from '../config.js';
+import { routeMag, heeftFunctie } from '../lib/ploeg.js';
 
-const tegel = (href, icoon, titel, sub = '') =>
+// Tegels naar onderdelen die deze ploeg niet heeft, worden niet getoond
+const tegel = (href, icoon, titel, sub = '') => !routeMag(PLOEG, href) ? '' :
   `<a class="tegel" href="${href}"><span class="tegel-icoon">${icoon}</span><b>${titel}</b>${sub ? `<small class="zacht">${sub}</small>` : ''}</a>`;
 
 const voornaam = naam => esc((naam || '').split(' ')[0]);
@@ -63,7 +66,14 @@ export async function homeView() {
     const matchen = await laadMatchenVanVandaag();
     delen.push(matchStartHtml(matchen));
   }
-  if (speler) {
+  if (speler && !heeftFunctie(PLOEG, 'xp')) {
+    // Heren 1: enkel matchstats
+    delen.push(`<div class="tegels">
+      ${tegel('#/ploegstats', '📊', 'Ploegstats', 'topschutters en uitslagen')}
+      ${tegel('#/kalender', '📆', 'Kalender', 'alle matchen')}
+      ${sessie.watcher ? tegel('#/watcher', '📝', 'Alle matchen volgen', 'als matchwatcher') : ''}
+    </div>`);
+  } else if (speler) {
     const xp = await xpVanSpeler(speler.id);
     delen.push(xpKaartHtml(xp, { link: '#/mijn' }));
     const behaald = xp.badges.filter(b => b.behaald);
@@ -116,12 +126,13 @@ async function trainerHome() {
     ${matchStartHtml(matchen, { trainer: true })}
     ${await volgendeMatchHtml(true)}
     <div class="tegels">
-      ${tegel('#/spelers', '👥', 'Spelers', `${spelers.length} spelers${zonderRapport ? ` · ${zonderRapport} zonder rapport dit seizoen` : ''}${zonderNummer ? ` · ${zonderNummer} zonder nummer` : ''}`)}
+      ${tegel('#/spelers', '👥', 'Spelers', `${spelers.length} spelers${zonderRapport && heeftFunctie(PLOEG, 'rapporten') ? ` · ${zonderRapport} zonder rapport dit seizoen` : ''}${zonderNummer ? ` · ${zonderNummer} zonder nummer` : ''}`)}
       ${tegel('#/voorbereiding', '📋', 'Matchvoorbereiding', 'opstelling op het veld')}
       ${tegel('#/playbook', '📖', 'Playbook', 'aanvalssystemen tekenen')}
       ${tegel('#/xp', '🏆', 'XP-ranglijst', 'wie verzamelt het meest')}
       ${tegel('#/wedstrijden', '🤾', 'Wedstrijden', 'uitslagen, live stats, verloop')}
-      <a class="tegel" href="#" id="trainingVandaag"><span class="tegel-icoon">✅</span><b>Training vandaag</b><small class="zacht">aanwezigheden afvinken</small></a>
+      ${tegel('#/ploegstats', '📊', 'Ploegstats', 'topschutters en uitslagen')}
+      ${!heeftFunctie(PLOEG, 'trainingen') ? '' : `<a class="tegel" href="#" id="trainingVandaag"><span class="tegel-icoon">✅</span><b>Training vandaag</b><small class="zacht">aanwezigheden afvinken</small></a>`}
       ${tegel('#/trainingen', '📅', 'Trainingen', 'aanwezigheid per speler')}
       ${tegel('#/schietstats', '🎯', 'Schiettraining-stats', 'ranglijst spelers en doelmannen')}
       ${tegel('#/import', '⬇️', 'Importeren', 'Clubee of een lijst plakken')}
@@ -134,5 +145,6 @@ async function trainerHome() {
   koppelInstalleer();
   koppelMatchStart({ trainer: true, herlaad: trainerHome });
   koppelHero(trainerHome);
-  document.getElementById('trainingVandaag').onclick = e => { e.preventDefault(); openTraining().catch(err => melding(err.message, 'fout')); };
+  const tv = document.getElementById('trainingVandaag');
+  if (tv) tv.onclick = e => { e.preventDefault(); openTraining().catch(err => melding(err.message, 'fout')); };
 }

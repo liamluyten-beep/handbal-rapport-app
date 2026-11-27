@@ -4,6 +4,8 @@ import { sb, q } from '../supabase.js';
 import { esc, tekstBlok, lijnGrafiek, staafGrafiek } from '../ui.js';
 import { scoreReeksen, goalsReeks, formatDatum } from '../lib/voortgang.js';
 import { fotoUrls, avatarHtml, fotoKnoppenHtml } from '../foto.js';
+import { PLOEG } from '../config.js';
+import { heeftFunctie } from '../lib/ploeg.js';
 import { opSeizoen } from '../seizoen-keuze.js';
 import { schotStats, telSoort } from '../lib/live.js';
 import { aanwezigheidStats } from '../lib/aanwezig.js';
@@ -181,6 +183,8 @@ export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], f
     ? Math.round(100 * metPogingen.reduce((t, g) => t + g.aantal, 0) / metPogingen.reduce((t, g) => t + g.pogingen, 0)) + '%'
     : null;
 
+  // Heren 1: enkel matchstats (geen rapporten, zelfevaluatie, schiettraining of avatar)
+  const rap = heeftFunctie(PLOEG, 'rapporten'), sch = heeftFunctie(PLOEG, 'schieten'), avt = heeftFunctie(PLOEG, 'xp');
   const html = `
     <div class="paginakop speler-kop">
       ${speler.rugnummer != null ? `<span class="rug-groot" aria-hidden="true">${esc(speler.rugnummer)}</span>` : ''}
@@ -188,12 +192,12 @@ export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], f
         ${avatarHtml(fotoUrl, speler.rugnummer, 'groot', speler)}
         <div><h1>${esc(speler.naam)}</h1><p class="zacht">${esc(speler.positie || '')}</p>
           ${trainer || eigen ? `<div class="rij geen-print" style="gap:.4rem;margin-top:.4rem">${fotoKnoppenHtml(!!fotoUrl)}
-            ${eigen ? `<a class="knop tweede" href="#/avatar">${speler.avatar ? 'Avatar wijzigen' : 'Avatar maken'}</a>` : ''}</div>` : ''}</div>
+            ${eigen && avt ? `<a class="knop tweede" href="#/avatar">${speler.avatar ? 'Avatar wijzigen' : 'Avatar maken'}</a>` : ''}</div>` : ''}</div>
       </div>
       ${trainer ? `<div class="rij geen-print">
-        <a class="knop" href="#/rapport/nieuw/${speler.id}">+ Nieuw rapport</a>
+        ${rap ? `<a class="knop" href="#/rapport/nieuw/${speler.id}">+ Nieuw rapport</a>` : ''}
         <button class="knop tweede" id="bewerkSpeler">Gegevens</button></div>` : ''}
-      ${eigen ? `<div class="rij geen-print">
+      ${eigen && rap ? `<div class="rij geen-print">
         <a class="knop" href="#/zelfevaluatie/nieuw">+ Zelfevaluatie</a>
         <button class="knop tweede" id="mijnPosities">Mijn posities</button></div>` : ''}
     </div>
@@ -207,35 +211,35 @@ export function renderOverzicht(speler, { skills, rapporten, goals, zelf = [], f
       ${som(goals, 'twee_min') ? `<div class="stat"><div class="titel">2 minuten</div><div class="waarde">${som(goals, 'twee_min')}</div></div>` : ''}
       ${som(goals, 'geel') + som(goals, 'rood') + som(goals, 'blauw') ? `<div class="stat"><div class="titel">Kaarten</div><div class="waarde">${kaarten(goals)}</div></div>` : ''}
       ${verlies ? `<div class="stat"><div class="titel">Balverlies</div><div class="waarde">${verlies}</div><small class="zacht">live genoteerd</small></div>` : ''}
-      ${aw.totaal ? `<div class="stat"><div class="titel">Op training</div><div class="waarde">${aw.pct}%</div><small class="zacht">${aw.aanwezig}/${aw.totaal} aanwezig${aw.verwittigd ? ` · ${aw.verwittigd} verwittigd` : ''}</small></div>` : ''}
-      <div class="stat"><div class="titel">Laatste rapport</div><div class="waarde">${gemiddelde(laatste) ?? '–'}<small class="zacht"> / 5</small></div></div>
+      ${aw.totaal && heeftFunctie(PLOEG, 'trainingen') ? `<div class="stat"><div class="titel">Op training</div><div class="waarde">${aw.pct}%</div><small class="zacht">${aw.aanwezig}/${aw.totaal} aanwezig${aw.verwittigd ? ` · ${aw.verwittigd} verwittigd` : ''}</small></div>` : ''}
+      ${rap ? `<div class="stat"><div class="titel">Laatste rapport</div><div class="waarde">${gemiddelde(laatste) ?? '–'}<small class="zacht"> / 5</small></div></div>` : ''}
     </div>
     ${extra}
 
-    ${laatste ? `<section class="kaart">${rapportHtml(laatste, rapporten[1], skills, trainer)}</section>`
+    ${!rap ? '' : laatste ? `<section class="kaart">${rapportHtml(laatste, rapporten[1], skills, trainer)}</section>`
       : `<section class="kaart leeg"><span class="bal"></span><p>${trainer
         ? 'Nog geen rapport voor deze speler. Maak het eerste aan met “Nieuw rapport”.'
         : 'Je trainer heeft nog geen rapport voor je gemaakt.'}</p></section>`}
 
-    ${zelf.length ? `<section class="kaart">${zelfHtml(zelf[0], laatste, skills, eigen)}
+    ${!rap ? '' : zelf.length ? `<section class="kaart">${zelfHtml(zelf[0], laatste, skills, eigen)}
       ${zelf.length > 1 ? `<h3 style="margin-top:1.2rem">Eerdere zelfevaluaties</h3>${zelf.slice(1).map(z => `<details class="ouder">
         <summary>${formatDatum(z.datum)}</summary>${zelfHtml(z, null, skills, eigen)}</details>`).join('')}` : ''}</section>`
       : eigen ? `<section class="kaart leeg"><p>Je hebt nog geen zelfevaluatie ingevuld.
           <a href="#/zelfevaluatie/nieuw">Vul er nu een in</a>: hoe vind jij zelf dat het gaat?</p></section>` : ''}
 
     <div class="raster">
-      <section class="kaart"><h3>Vooruitgang per vaardigheid</h3>
+      ${rap ? `<section class="kaart"><h3>Vooruitgang per vaardigheid</h3>
         ${rapporten.length >= 2 ? '<div class="grafiek"><canvas id="gScores"></canvas></div>'
-          : '<p class="leeg">De grafiek verschijnt vanaf twee rapporten.</p>'}</section>
+          : '<p class="leeg">De grafiek verschijnt vanaf twee rapporten.</p>'}</section>` : ''}
       <section class="kaart"><h3>Goals per wedstrijd</h3>
         ${gr.data.length ? '<div class="grafiek"><canvas id="gGoals"></canvas></div>'
           : '<p class="leeg">Nog geen goals ingevoerd.</p>'}</section>
     </div>
 
     ${schotenHtml(events)}
-    ${schietHtml(schiet, alsDoelman, doelmannen, sessies, dmRapport)}
+    ${sch ? schietHtml(schiet, alsDoelman, doelmannen, sessies, dmRapport) : ''}
 
-    ${rapporten.length > 1 ? `<section class="kaart"><h3>Eerdere rapporten</h3>
+    ${rap && rapporten.length > 1 ? `<section class="kaart"><h3>Eerdere rapporten</h3>
       ${rapporten.slice(1).map((r, i) => `<details class="ouder"><summary>${formatDatum(r.datum)}
         ${gemiddelde(r) ? `<span class="label">gem. ${gemiddelde(r)}</span>` : ''}</summary>
         ${rapportHtml(r, rapporten[i + 2], skills, trainer)}</details>`).join('')}

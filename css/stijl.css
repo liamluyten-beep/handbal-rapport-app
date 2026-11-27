@@ -669,3 +669,12 @@ label.vinkje input { width: auto; margin: 0; flex: none; }
   .av-voorbeeld { position: static; justify-items: center; }
   .av-groot { max-width: 200px; }
 }
+
+/* Wisselen tussen U16 en Heren 1 */
+#nav .ploeg-wissel { border: 1px solid rgba(255,255,255,.35); border-radius: 999px; }
+.tabel-scroll { overflow-x: auto; }
+.tabel tr.eigen-rij td { background: rgba(210, 20, 44, .12); font-weight: 700; }
+.uitslag-rij { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .6rem 0;
+  border-bottom: 1px solid var(--lijn); color: inherit; text-decoration: none; }
+.uitslag-rij:last-child { border-bottom: 0; }
+.uitslag-score { font-family: var(--display); font-size: 1.25rem; font-weight: 700; white-space: nowrap; }
