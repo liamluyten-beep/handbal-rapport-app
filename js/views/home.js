@@ -11,6 +11,7 @@ import { heroHtml, koppelHero } from './hero.js';
 import { laadKalender } from '../kalender-data.js';
 import { volgendeMatch } from '../lib/kalender.js';
 import { compTag } from '../comp-tag.js';
+import { VELD7 } from '../lib/opstelling.js';
 import { vandaag } from '../ui.js';
 import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
 
@@ -22,17 +23,29 @@ const DAG = ['zondag', 'maandag', 'dinsdag', 'woensdag', 'donderdag', 'vrijdag',
 const MAAND = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
 
 // "Volgende match" uit de kalender (als die vandaag is en al bovenaan staat, de match erna)
-async function volgendeMatchHtml(naVandaag = false) {
+async function volgendeMatchHtml(naVandaag = false, spelerId = null) {
   const items = await laadKalender().catch(() => []);
   const v = volgendeMatch(items, naVandaag ? vandaagPlusEen() : vandaag());
   if (!v) return '';
   const d = new Date(v.datum + 'T12:00:00Z');
   const wanneer = v.datum === vandaag() ? 'Vandaag' : `${DAG[d.getUTCDay()]} ${d.getUTCDate()} ${MAAND[d.getUTCMonth()]}`;
+
+  // Gedeelde opstelling? Dan een link, en voor een speler: waar hij zelf staat
+  let opst = '';
+  if (v.match_id && sessie.rol !== 'trainer') {
+    const o = await q(sb.rpc('gedeelde_opstelling', { wedstrijd: v.match_id })).catch(() => null);
+    if (o) {
+      const pos = spelerId && Object.entries(o.posities || {}).find(([, id]) => id === spelerId)?.[0];
+      const naam = pos && VELD7.find(p => p.code === pos)?.naam;
+      const ik = naam ? `Jij start als <b>${esc(naam.toLowerCase())}</b>.` : spelerId && (o.bank || []).includes(spelerId) ? 'Jij zit in de selectie.' : '';
+      opst = `<a class="vm-opstelling" href="#/opstelling/${v.match_id}">📋 Bekijk de opstelling ${ik ? `· ${ik}` : ''}</a>`;
+    }
+  }
   return `<a class="volgende-match" href="#/kalender">
     <span class="vm-label">Volgende match</span>
     <span class="vm-wanneer"><b>${wanneer}</b>${v.uur ? ` · ${esc(v.uur)}` : ''}</span>
     <span class="vm-wie">${v.thuis ? 'Thuis tegen' : 'Uit bij'} <b>${esc(v.tegenstander)}</b> ${compTag(v.competitie)}</span>
-    <span class="vm-pijl" aria-hidden="true">📆</span></a>`;
+    <span class="vm-pijl" aria-hidden="true">📆</span></a>${opst}`;
 }
 function vandaagPlusEen() { const d = new Date(vandaag() + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + 1); return d.toISOString().slice(0, 10); }
 
@@ -68,7 +81,7 @@ export async function homeView() {
   }
 
   const held = await heroHtml({ groet: `Hoi ${speler ? voornaam(speler.naam) : 'matchwatcher'} 👋` });
-  const volgende = await volgendeMatchHtml(sessie.watcher);
+  const volgende = await volgendeMatchHtml(sessie.watcher, speler?.id ?? null);
   toon(`<div class="home">
     ${held}
     ${volgende}
@@ -96,6 +109,7 @@ async function trainerHome() {
     ${await volgendeMatchHtml(true)}
     <div class="tegels">
       ${tegel('#/spelers', '👥', 'Spelers', `${spelers.length} spelers${zonderRapport ? ` · ${zonderRapport} zonder rapport dit seizoen` : ''}${zonderNummer ? ` · ${zonderNummer} zonder nummer` : ''}`)}
+      ${tegel('#/voorbereiding', '📋', 'Matchvoorbereiding', 'opstelling op het veld')}
       ${tegel('#/wedstrijden', '🤾', 'Wedstrijden', 'uitslagen, live stats, verloop')}
       <a class="tegel" href="#" id="trainingVandaag"><span class="tegel-icoon">✅</span><b>Training vandaag</b><small class="zacht">aanwezigheden afvinken</small></a>
       ${tegel('#/trainingen', '📅', 'Trainingen', 'aanwezigheid per speler')}

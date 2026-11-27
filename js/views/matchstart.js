@@ -19,7 +19,8 @@ export function matchStartHtml(matchen, { trainer = false } = {}) {
     ${matchen.length ? matchen.map((m, i) => `<div class="match-vandaag">
         <div><b>${m.thuis ? 'Thuis' : 'Uit'} tegen ${esc(m.tegenstander)}</b> ${compTag(m.competitie)}${m.uur ? ` <span class="zacht">om ${esc(m.uur)}</span>` : ''}</div>
         <div class="rij">
-          ${trainer ? `<button class="knop" data-i="${i}" data-naar="stats">📊 Live statistieken</button>` : ''}
+          ${trainer ? `<button class="knop tweede" data-i="${i}" data-naar="opstelling">📋 Opstelling</button>
+          <button class="knop" data-i="${i}" data-naar="stats">📊 Live statistieken</button>` : ''}
           <button class="knop ${trainer ? 'tweede' : ''}" data-i="${i}" data-naar="live">▶ Match volgen${trainer ? ' (zelf ingeven)' : ''}</button>
         </div></div>`).join('')
       : '<p class="zacht" style="margin:.4rem 0">Er staat vandaag geen match in de kalender.</p>'}

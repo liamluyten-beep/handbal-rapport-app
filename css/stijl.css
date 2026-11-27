@@ -526,3 +526,39 @@ a.kal-lijn:hover b { color: var(--accent); }
   border: 1px solid var(--lijn); color: var(--tekst-zacht); letter-spacing: .02em; }
 .comp-tag.vhv { border-color: var(--accent); color: var(--accent); }
 .km-vhv { color: var(--accent); }
+
+/* ---------- Matchvoorbereiding / opstelling ---------- */
+.opst-raster { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.2rem; align-items: start; }
+@media (max-width: 860px) { .opst-raster { grid-template-columns: 1fr; } }
+.veld-kaart { border-radius: 16px; padding: .8rem; background: linear-gradient(180deg, #2f6fb8, #255a97); border: 1px solid var(--lijn); }
+.veld7 { position: relative; aspect-ratio: 200 / 220; touch-action: none; }
+.veld-tekening { position: absolute; inset: 0; width: 100%; height: 100%; }
+.veld-tekening rect, .veld-tekening path { fill: none; stroke: rgba(255,255,255,.75); stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+.veld-tekening .stippel { stroke-dasharray: 6 5; }
+.veld-tekening .doel { stroke: var(--accent); stroke-width: 6; }
+.slot { position: absolute; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: .15rem; min-width: 84px;
+  min-height: 56px; padding: .3rem; border-radius: 14px; border: 2px dashed rgba(255,255,255,.55); background: rgba(15,17,21,.25);
+  color: #fff; text-align: center; cursor: pointer; transition: background .15s, border-color .15s; }
+.slot.vol { border-style: solid; border-color: transparent; background: none; }
+.slot.past { border-color: var(--parket); background: color-mix(in srgb, var(--parket) 25%, transparent); }
+.slot.hover, .zone.hover { border-color: #fff; background: rgba(255,255,255,.22); }
+.slot small { font-size: .7rem; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.slot-leeg { font-size: .78rem; font-weight: 700; padding: .5rem .2rem; }
+.zone { display: flex; flex-wrap: wrap; gap: .45rem; min-height: 56px; padding: .4rem; border-radius: 12px; border: 2px dashed var(--lijn); }
+.zone-leeg { align-self: center; padding: .3rem; }
+.sp-chip { display: inline-flex; align-items: center; gap: .4rem; padding: .3rem .65rem .3rem .3rem; border-radius: 999px; cursor: grab;
+  background: var(--kaart); border: 2px solid var(--lijn); color: var(--tekst); font-weight: 600; font-size: .9rem; user-select: none; touch-action: none; }
+.sp-chip b { display: grid; place-items: center; min-width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff;
+  font: 800 1rem var(--display); }
+.sp-chip.op-veld { background: #fff; color: #191b21; border-color: #fff; box-shadow: 0 4px 14px rgba(0,0,0,.3); }
+.sp-chip.gekozen, .slot.gekozen .sp-chip { outline: 3px solid var(--parket); outline-offset: 2px; }
+.sp-chip.ik, .slot.ik .sp-chip { outline: 3px solid var(--parket); outline-offset: 2px; }
+.sp-chip.spook { position: fixed; z-index: 60; pointer-events: none; transform: translate(-50%, -60%) scale(1.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,.4); }
+@media (max-width: 560px) { .slot { min-width: 66px; min-height: 46px; } .sp-chip.op-veld span { max-width: 4.5rem; overflow: hidden; text-overflow: ellipsis; } }
+.vm-opstelling { display: block; margin: -1rem 0 1.2rem; padding: .7rem 1.2rem; border-radius: 0 0 var(--radius) var(--radius);
+  background: color-mix(in srgb, var(--accent) 14%, var(--kaart)); border: 1px solid var(--lijn); border-top: 0; border-left: 6px solid var(--accent);
+  color: var(--tekst); text-decoration: none; font-weight: 600; }
+.volgende-match:has(+ .vm-opstelling) { border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 1rem; }
+.veld-kaart { width: 100%; max-width: min(520px, calc((100vh - 230px) * 200 / 220 + 1.6rem)); justify-self: center; }
+.slot-leeg { white-space: nowrap; }

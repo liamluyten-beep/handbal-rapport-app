@@ -22,6 +22,7 @@ import { seizoenKeuzeHtml, kiesSeizoen } from './seizoen-keuze.js';
 import { log } from './logboek.js';
 import { logboekView } from './views/logboek.js';
 import { kalenderView } from './views/kalender.js';
+import { opstellingView, voorbereidingView } from './views/opstelling.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
 
@@ -82,6 +83,7 @@ function markeerActief() {
       (doel === 'spelers' && hoofd === 'vaardigheden') ||
       (doel === 'trainingen' && hoofd === 'training') ||
       (doel === 'accounts' && hoofd === 'logboek') ||
+      (doel === 'wedstrijden' && ['voorbereiding', 'opstelling'].includes(hoofd)) ||
       (doel === 'mijn' && hoofd === 'zelfevaluatie');
     a.classList.toggle('actief', actief);
   });
@@ -251,6 +253,7 @@ async function route() {
       if (pad === 'mijn' || pad === 'kies') return await mijnView();
       if (pad === 'matchen') return await mijnMatchenView();
       if (pad === 'kalender') return await kalenderView();
+      if (pad === 'opstelling') return await opstellingView(a);
       if (pad === 'schieten') return await schietenView();
       return await homeView();
     }
@@ -267,6 +270,8 @@ async function route() {
       case 'schietstats': return await schietStatsView();
       case 'logboek': return await logboekView();
       case 'kalender': return await kalenderView();
+      case 'voorbereiding': return await voorbereidingView();
+      case 'opstelling': return await opstellingView(a);
       case 'import': return await importView();
       case 'vaardigheden': return await vaardighedenView();
       case 'spelers': return await spelersView();
