@@ -13,7 +13,9 @@ async function schotenQuery(filter) {
 }
 
 // filterKeeper: schoten op deze speler als doelman (null = al in de schoten zitten, zoals bij de trainer)
-async function gegevens(filterSpeler, filterKeeper = null) {
+// alle = true: over alle seizoenen samen (voor de avatar-spullen), anders enkel het gekozen seizoen
+async function gegevens(filterSpeler, filterKeeper = null, alle = false) {
+  const f = alle ? (lijst => lijst || []) : opSeizoen;
   const [schoten, aanwezig, zelf, sessies, goals, rapporten, tegenApart] = await Promise.all([
     schotenQuery(filterSpeler),
     q(filterSpeler(sb.from('aanwezigheden').select('player_id, status, trainingen(datum)'))).catch(() => []),
@@ -24,18 +26,18 @@ async function gegevens(filterSpeler, filterKeeper = null) {
     filterKeeper ? schotenQuery(filterKeeper) : null,
   ]);
   return {
-    schoten: opSeizoen(schoten, s => s.datum),
-    aanwezig: opSeizoen(aanwezig, a => a.trainingen?.datum),
-    zelf: opSeizoen(zelf, z => z.datum),
-    sessies: opSeizoen(sessies, s => s.datum),
-    goals: opSeizoen(goals, g => g.matches?.datum),
-    rapporten: opSeizoen(rapporten, r => r.datum),
-    tegen: opSeizoen(tegenApart ?? schoten, s => s.datum),
+    schoten: f(schoten, s => s.datum),
+    aanwezig: f(aanwezig, a => a.trainingen?.datum),
+    zelf: f(zelf, z => z.datum),
+    sessies: f(sessies, s => s.datum),
+    goals: f(goals, g => g.matches?.datum),
+    rapporten: f(rapporten, r => r.datum),
+    tegen: f(tegenApart ?? schoten, s => s.datum),
   };
 }
 
-export async function xpVanSpeler(playerId) {
-  const d = await gegevens(qb => qb.eq('player_id', playerId), qb => qb.eq('doelman_id', playerId));
+export async function xpVanSpeler(playerId, { alleSeizoenen = false } = {}) {
+  const d = await gegevens(qb => qb.eq('player_id', playerId), qb => qb.eq('doelman_id', playerId), alleSeizoenen);
   return { ...berekenXP(d), badges: berekenBadges(d) };
 }
 

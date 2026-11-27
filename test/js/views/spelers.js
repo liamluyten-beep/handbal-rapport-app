@@ -4,6 +4,7 @@ import { parseSpelersTekst, normaliseer } from '../lib/importeer.js';
 import { leesPosities, positieVakjesHtml, koppelPositieVakjes } from '../lib/posities.js';
 import { fotoUrls, avatarHtml } from '../foto.js';
 import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
+import { log } from '../logboek.js';
 
 export function spelerFormulier(s = {}) {
   return `<div class="velden">
@@ -154,8 +155,22 @@ function toonWieSchiet() {
       if (sessie) {
         const eigen = schoten.filter(x => x.sessie_id === sessie.id);
         const goals = eigen.filter(x => x.resultaat === 'goal').length;
-        k.querySelector('.info')?.insertAdjacentHTML('beforebegin', `<div class="bezig-label">🎯 schiettraining bezig · ${goals}/${eigen.length}</div>`);
+        k.querySelector('.info')?.insertAdjacentHTML('beforebegin', `<div class="bezig-label">🎯 schiettraining bezig · ${goals}/${eigen.length}
+          <button type="button" class="stop-schiet" data-sessie="${sessie.id}">■ Stop</button></div>`);
       }
+    });
+    // Trainer stopt de schiettraining van een speler (bv. vergeten af te sluiten)
+    document.querySelectorAll('.stop-schiet').forEach(b => b.onclick = async e => {
+      e.preventDefault(); e.stopPropagation();          // de kaart zelf is een link
+      const naam = b.closest('.speler-kaart')?.querySelector('.naam')?.textContent || 'deze speler';
+      if (!confirm(`Schiettraining van ${naam} stoppen? Zijn schoten blijven bewaard.`)) return;
+      b.disabled = true;
+      try {
+        await q(sb.from('schiet_sessies').update({ gestopt_op: new Date().toISOString() }).eq('id', b.dataset.sessie));
+        log('schiettraining_gestopt', naam);
+        melding(`Schiettraining van ${naam} gestopt`);
+        teken();
+      } catch (err) { melding(err.message, 'fout'); b.disabled = false; }
     });
   }
   let wacht = null;
