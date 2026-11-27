@@ -60,7 +60,7 @@ Noah Janssens</code></pre>
 
     ${spelers.length ? `<div class="spelers">${spelers.map(s => `
       <a class="speler-kaart ${s.rugnummer == null ? 'zonder-nummer' : ''}" href="#/speler/${s.id}">
-        ${avatarHtml(fotos[s.id], s.rugnummer)}
+        ${avatarHtml(fotos[s.id], s.rugnummer, '', s)}
         <div><div class="naam">${esc(s.naam)}</div>
           <div class="info">${s.rugnummer == null ? '<span class="rood">Nog geen rugnummer</span> · ' : ''}${esc(s.positie || 'Geen positie')} · ${opSeizoen(s.reports, r => r.datum).length} rapport${opSeizoen(s.reports, r => r.datum).length === 1 ? '' : 'en'}</div>
           <div class="info">${s.user_id ? '<span class="label ok">kan inloggen</span>' : s.email ? '<span class="label">nog niet geregistreerd</span>' : '<span class="label">geen e-mail</span>'}</div></div></a>`).join('')}</div>`

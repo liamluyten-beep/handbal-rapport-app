@@ -2,6 +2,7 @@
 import { sb } from './supabase.js';
 import { esc, melding } from './ui.js';
 import { FOTO_ZIJDE, fotoPad, uitsnede, effenRand } from './lib/foto.js';
+import { avatarSvg } from './lib/avatar.js';
 
 const BUCKET = 'profielfotos';
 
@@ -59,8 +60,11 @@ export async function verwijderFoto(playerId) {
   if (error) throw new Error(error.message);
 }
 
-// Foto (of rugnummer als er geen foto is)
-export function avatarHtml(url, rugnummer, extraKlasse = '') {
+// Avatar (als de speler die kiest, of geen foto heeft), anders foto, anders rugnummer
+export function avatarHtml(url, rugnummer, extraKlasse = '', speler = null) {
+  if (speler?.avatar && (speler.toon_avatar || !url)) {
+    return `<div class="nummer avatar getekend ${extraKlasse}">${avatarSvg(speler.avatar, rugnummer)}</div>`;
+  }
   return url
     ? `<div class="nummer avatar ${extraKlasse}"><img src="${esc(url)}" alt="">${rugnummer != null ? `<span class="avatar-nr">${esc(rugnummer)}</span>` : ''}</div>`
     : `<div class="nummer ${extraKlasse}">${esc(rugnummer ?? '?')}</div>`;
