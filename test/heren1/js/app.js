@@ -45,7 +45,7 @@ function wisselLink() {
 }
 
 // Versie van de site (zichtbaar onderaan in "Meer"), handig om te zien of een gsm de nieuwste versie heeft
-export const VERSIE = '2026-11-28.9';
+export const VERSIE = '2026-11-28.10';
 
 document.title = (IS_TEST ? 'TEST · ' : '') + PLOEGNAAM;
 if (IS_TEST) document.body.classList.add('testversie');
@@ -132,7 +132,7 @@ function loginView(modus = 'login') {
     <h2>${reg ? 'Account aanmaken' : 'Inloggen'}</h2>
     <p class="zacht">${reg
       ? 'Maak een account aan met je e-mailadres. Daarna kies je wie je bent.'
-      : 'Log in om je rapporten en goals te bekijken.'}</p>
+      : heeftFunctie(PLOEG, 'rapporten') ? 'Log in om je rapporten en goals te bekijken.' : 'Log in om de stats en uitslagen van de ploeg te bekijken.'}</p>
     <form id="loginForm" class="formulier">
       <label>E-mailadres<input type="email" name="email" required autocomplete="email"></label>
       <label>Wachtwoord<input type="password" name="wachtwoord" required minlength="6"
