@@ -169,3 +169,20 @@ test('bouwClubeeImport: elke wedstrijd met zijn eigen ploeg en competitie', () =
     { clubee_id: 8, datum: '2027-01-16', tegenstander: 'Welta', thuis: false, score_voor: 30, score_tegen: 10, competitie: 'Regionaal' },
   ]);
 });
+
+test('korteNaam: ook seniorenploegen (D1 M VHV) worden kort, ploegnummer blijft', async () => {
+  const { korteNaam } = await import('../js/lib/clubee.js');
+  assert.equal(korteNaam('Besox Izegem D1 M VHV (Senior M)'), 'Besox Izegem');
+  assert.equal(korteNaam('P. Kortessem D1 M VHV 1 (Senior M)'), 'P. Kortessem 1');
+  assert.equal(korteNaam('Biobest Sasja U16 VHV R (U16 M/F)'), 'Biobest Sasja');
+});
+
+test('koppelClubeeSpeler: drie of meer initialen (Clubee geeft elk woord)', async () => {
+  const { koppelClubeeSpeler } = await import('../js/lib/clubee.js');
+  const spelers = [{ id: 'a', naam: 'Cedric Van Bael', rugnummer: 1 }, { id: 'b', naam: 'Sam Van De Velde', rugnummer: 24 },
+    { id: 'c', naam: 'Liam Luyten', rugnummer: 77 }];
+  assert.equal(koppelClubeeSpeler({ nr: 1, initialen: 'C V B' }, spelers)?.id, 'a');
+  assert.equal(koppelClubeeSpeler({ nr: 24, initialen: 'S V D V' }, spelers)?.id, 'b');
+  assert.equal(koppelClubeeSpeler({ nr: 77, initialen: 'L L' }, spelers)?.id, 'c');
+  assert.equal(koppelClubeeSpeler({ nr: 5, initialen: 'X Y' }, spelers), null);
+});

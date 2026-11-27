@@ -78,15 +78,21 @@ export function initialenVan(naam) {
 // (het ploegnummer blijft, anders zijn Hubo 1 en Hubo 2 niet te onderscheiden)
 export function korteNaam(ploeg) {
   const zonder = ploeg.replace(/\s*\([^)]*\)\s*$/, '').trim();
-  const m = zonder.match(/^(.*?)\s+U\d+\b(.*)$/);
+  // Reeks na de clubnaam: U16 (jeugd) of D1 (senioren)
+  const m = zonder.match(/^(.*?)\s+[UD]\d+\b(.*)$/);
   if (!m) return zonder;
   const laatste = m[2].trim().split(/\s+/).pop();
   return /^\d+$/.test(laatste) ? `${m[1].trim()} ${laatste}` : m[1].trim();
 }
 
 // Zoek de speler bij een Clubee-regel. Enkel bij zekerheid, anders null.
+// Initialen van elk woord: "Sam Van De Velde" -> "S V D V" (zo schrijft Clubee ze bij langere namen)
+export function alleInitialen(naam) {
+  return zonderAccent(naam || '').trim().split(/\s+/).filter(Boolean).map(w => w[0].toUpperCase()).join(' ');
+}
+
 export function koppelClubeeSpeler({ nr, initialen }, spelers) {
-  const kandidaten = spelers.filter(s => initialenVan(s.naam) === initialen);
+  const kandidaten = spelers.filter(s => initialenVan(s.naam) === initialen || alleInitialen(s.naam) === initialen);
   const metNummer = kandidaten.filter(s => s.rugnummer != null && Number(s.rugnummer) === nr);
   if (metNummer.length === 1) return metNummer[0];
   if (kandidaten.length === 1) return kandidaten[0];
