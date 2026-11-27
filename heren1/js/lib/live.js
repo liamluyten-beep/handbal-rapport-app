@@ -1,0 +1,137 @@
+// Rekenregels voor de live matchwatcher (zonder DOM, testbaar)
+
+export const VELDPOSITIES = [
+  { code: 'LH', naam: 'Linkerhoek' },
+  { code: 'LO', naam: 'Linkeropbouw' },
+  { code: 'MO', naam: 'Midden' },
+  { code: 'RO', naam: 'Rechteropbouw' },
+  { code: 'RH', naam: 'Rechterhoek' },
+  { code: 'CIR', naam: 'Cirkel' },
+  { code: '7M', naam: '7 meter' },
+  { code: 'TA', naam: 'Tegenaanval' },
+];
+const positieNaam = code => VELDPOSITIES.find(p => p.code === code)?.naam ?? code;
+
+export const RESULTATEN = { goal: 'Goal', redding: 'Redding', mis: 'Mis' };
+export const STRAF_SECONDEN = 120;
+
+const pct = (goals, schoten) => (schoten ? Math.round((100 * goals) / schoten) : null);
+
+export function scoreUitEvents(events) {
+  return {
+    voor: events.filter(e => e.soort === 'schot' && e.resultaat === 'goal').length,
+    tegen: events.filter(e => e.soort === 'tegengoal').length,
+  };
+}
+
+export function schotStats(events) {
+  const schoten = events.filter(e => e.soort === 'schot');
+  const goals = schoten.filter(e => e.resultaat === 'goal').length;
+  const perPositie = VELDPOSITIES.map(p => {
+    const s = schoten.filter(e => e.positie === p.code);
+    const g = s.filter(e => e.resultaat === 'goal').length;
+    return { code: p.code, naam: p.naam, schoten: s.length, goals: g, pct: pct(g, s.length) };
+  }).filter(p => p.schoten);
+  const perZone = Array.from({ length: 9 }, (_, i) => ({
+    zone: i + 1,
+    goals: schoten.filter(e => e.doelzone === i + 1 && e.resultaat === 'goal').length,
+    gestopt: schoten.filter(e => e.doelzone === i + 1 && e.resultaat === 'redding').length,
+  }));
+  return { schoten: schoten.length, goals, pct: pct(goals, schoten.length), perPositie, perZone };
+}
+
+export function formatKlok(seconden) {
+  const s = Math.max(0, Math.floor(seconden));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+// ---------- Wedstrijdklok (puur: elke functie geeft een nieuwe toestand) ----------
+export const nieuweKlok = (helftMinuten = 25) => ({ helft: 1, basis: 0, sinds: null, helftDuur: helftMinuten * 60 });
+export const klokSeconden = (k, nuMs) => k.basis + (k.sinds != null ? Math.floor((nuMs - k.sinds) / 1000) : 0);
+export const startKlok = (k, nuMs) => (k.sinds != null ? k : { ...k, sinds: nuMs });
+export const pauzeerKlok = (k, nuMs) => (k.sinds == null ? k : { ...k, basis: klokSeconden(k, nuMs), sinds: null });
+export const volgendeHelft = k => ({ ...k, helft: k.helft + 1, basis: 0, sinds: null });
+
+export const absoluteSeconde = (e, helftDuur) => (e.helft - 1) * helftDuur + e.seconde;
+
+// Lopende 2 minuten op dit moment van de wedstrijdklok
+// Eigen spelers: een nieuwe straf tijdens een lopende straf komt erbij (start pas als de vorige afloopt),
+// dus één bolletje per speler. Tegenstander: elke straf apart (we weten niet welke speler).
+export function actieveStraffen(events, nu, helftDuur) {
+  const nuAbs = absoluteSeconde(nu, helftDuur);
+  const opTijd = (a, b) => absoluteSeconde(a, helftDuur) - absoluteSeconde(b, helftDuur);
+  const straffen = events.filter(e => e.soort === 'twee_min' || e.soort === 'twee_min_tegen')
+    .filter(e => absoluteSeconde(e, helftDuur) <= nuAbs)
+    .sort(opTijd);
+
+  const eindePerSpeler = new Map();
+  const res = [];
+  for (const e of straffen) {
+    const start = absoluteSeconde(e, helftDuur);
+    if (e.soort === 'twee_min_tegen') {
+      res.push({ player_id: null, tegen: true, einde: start + STRAF_SECONDEN });
+    } else {
+      const vorige = eindePerSpeler.get(e.player_id) ?? 0;
+      eindePerSpeler.set(e.player_id, Math.max(vorige, start) + STRAF_SECONDEN);
+    }
+  }
+  for (const [player_id, einde] of eindePerSpeler) res.push({ player_id, tegen: false, einde });
+  return res
+    .map(s => ({ player_id: s.player_id, tegen: s.tegen, resterend: s.einde - nuAbs }))
+    .filter(s => s.resterend > 0)
+    .sort((a, b) => a.resterend - b.resterend);
+}
+
+// Spelers waar het aantal live goals verschilt van Clubee (goals-rijen: {player_id, aantal})
+export function verschilMetClubee(events, clubeeGoals) {
+  const live = {};
+  events.filter(e => e.soort === 'schot' && e.resultaat === 'goal')
+    .forEach(e => { live[e.player_id] = (live[e.player_id] || 0) + 1; });
+  const ids = new Set([...Object.keys(live), ...clubeeGoals.map(g => g.player_id)]);
+  const clubee = Object.fromEntries(clubeeGoals.map(g => [g.player_id, g.aantal]));
+  return [...ids]
+    .map(id => ({ player_id: id, live: live[id] || 0, clubee: clubee[id] || 0 }))
+    .filter(r => r.live !== r.clubee);
+}
+
+export { positieNaam };
+
+// Verdeling van alle schoten over goal / redding / mis
+export function resultaatVerdeling(events) {
+  const schoten = events.filter(e => e.soort === 'schot');
+  const tel = r => {
+    const aantal = schoten.filter(e => e.resultaat === r).length;
+    return { aantal, pct: pct(aantal, schoten.length) };
+  };
+  return { schoten: schoten.length, goal: tel('goal'), redding: tel('redding'), mis: tel('mis') };
+}
+
+// 0 = hele match, anders enkel die helft
+export const filterHelft = (events, helft) => (helft ? events.filter(e => e.helft === helft) : events);
+
+// Overzicht per wedstrijd voor één speler.
+// goals: rijen met matches(*) (Clubee/handmatig), events: zijn live schoten, matches: extra wedstrijden met enkel live data
+export function perMatchOverzicht(goals, events, matches = []) {
+  const per = new Map();
+  const leeg = m => ({ match: m, goals: null, zeven_m: null, twee_min: null, uitslag: null, live: null, balverlies: 0 });
+  for (const g of goals) {
+    if (!g.matches) continue;
+    per.set(g.matches.id, { ...leeg(g.matches), goals: g.aantal, zeven_m: g.zeven_m ?? 0, twee_min: g.twee_min ?? 0 });
+  }
+  for (const m of matches) if (!per.has(m.id)) per.set(m.id, leeg(m));
+  for (const r of per.values()) {
+    const m = r.match;
+    if (m.score_voor != null && m.score_tegen != null) r.uitslag = m.score_voor > m.score_tegen ? 'W' : m.score_voor < m.score_tegen ? 'V' : 'G';
+    r.balverlies = events.filter(e => e.match_id === m.id && e.soort === 'balverlies').length;
+    const eigen = events.filter(e => e.match_id === m.id && e.soort === 'schot');
+    if (eigen.length) {
+      const tel = x => eigen.filter(e => e.resultaat === x).length;
+      r.live = { schoten: eigen.length, goal: tel('goal'), redding: tel('redding'), mis: tel('mis') };
+    }
+  }
+  return [...per.values()].sort((a, b) => b.match.datum.localeCompare(a.match.datum));
+}
+
+// Aantal gebeurtenissen van een soort (optioneel voor één speler)
+export const telSoort = (events, soort, playerId) =>
+  events.filter(e => e.soort === soort && (playerId === undefined || e.player_id === playerId)).length;
