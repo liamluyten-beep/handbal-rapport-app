@@ -1,5 +1,6 @@
 import { sb, q, isGeconfigureerd } from './supabase.js';
-import { PLOEGNAAM } from './config.js';
+import { PLOEGNAAM, PLOEG } from './config.js';
+import { heeftFunctie, PLOEGEN, routeMag } from './lib/ploeg.js';
 import { toon, esc, laden, fout, melding } from './ui.js';
 import { spelersView } from './views/spelers.js';
 import { spelerView } from './views/speler.js';
@@ -27,19 +28,31 @@ import { opstellingView, voorbereidingView } from './views/opstelling.js';
 import { installeerView, alsApp, meldAppGebruik } from './installeer.js';
 import { playbookView, systeemView } from './views/playbook.js';
 import { xpRanglijstView } from './views/xp.js';
+import { ploegstatsView } from './views/ploegstats.js';
 import { IS_TEST } from './omgeving.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
 
+const mag = pad => routeMag(PLOEG, pad);
+const linkMag = ([h]) => routeMag(PLOEG, h);
+
+// Link naar het andere deel van de site (U16 <-> Heren 1). Naar Heren 1 enkel als je daar al eens ingelogd was.
+function wisselLink() {
+  if (sessie.rol !== 'trainer') return null;
+  const test = IS_TEST ? '/test/' : '/';
+  if (PLOEG.id === 'heren1') return [test, '⇄ ' + PLOEGEN.u16.kort];
+  return localStorage.getItem(PLOEGEN.heren1.opslagSleutel) ? [test + 'heren1/', '⇄ ' + PLOEGEN.heren1.kort] : null;
+}
+
 // Versie van de site (zichtbaar onderaan in "Meer"), handig om te zien of een gsm de nieuwste versie heeft
-export const VERSIE = '2026-11-28.7';
+export const VERSIE = '2026-11-28.8';
 
 document.title = (IS_TEST ? 'TEST · ' : '') + PLOEGNAAM;
 if (IS_TEST) document.body.classList.add('testversie');
 document.getElementById('ploegnaam').textContent = PLOEGNAAM;
 
 const ICOON = { '#/': '🏠', '#/spelers': '👥', '#/wedstrijden': '🤾', '#/trainingen': '📅', '#/import': '⬇️',
-  '#/accounts': '🔑', '#/kalender': '📆', '#/app': '📲', '#/playbook': '📖', '#/mijn': '📋', '#/matchen': '🤾', '#/watcher': '📝' };
+  '#/accounts': '🔑', '#/kalender': '📆', '#/app': '📲', '#/playbook': '📖', '#/mijn': '📋', '#/matchen': '🤾', '#/watcher': '📝', '#/ploegstats': '📊' };
 
 // Menubalk onderaan op de gsm: de eerste 4 links + "Meer" (de rest en uitloggen)
 function zetOnderbalk(links) {
@@ -65,12 +78,16 @@ function zetOnderbalk(links) {
 function zetNavigatie() {
   const nav = document.getElementById('nav');
   if (!sessie.user) { nav.innerHTML = ''; zetOnderbalk([]); return; }
-  const links = sessie.rol === 'trainer'
-    ? [['#/', 'Home'], ['#/spelers', 'Spelers'], ['#/wedstrijden', 'Wedstrijden'], ['#/kalender', 'Kalender'], ['#/trainingen', 'Trainingen'], ['#/playbook', 'Playbook'], ['#/import', 'Importeren'],
-       ['#/accounts', 'Accounts']]
-    : [['#/', 'Home'], ['#/mijn', 'Mijn rapport'], ['#/matchen', 'Mijn matchen'], ['#/kalender', 'Kalender'], ['#/playbook', 'Playbook'],
-       ...(sessie.watcher ? [['#/watcher', 'Match volgen']] : [])];
+  const links = (sessie.rol === 'trainer'
+    ? [['#/', 'Home'], ['#/spelers', 'Spelers'], ['#/wedstrijden', 'Wedstrijden'], ['#/kalender', 'Kalender'], ['#/ploegstats', 'Ploegstats'],
+       ['#/trainingen', 'Trainingen'], ['#/playbook', 'Playbook'], ['#/import', 'Importeren'], ['#/accounts', 'Accounts']]
+    : heeftFunctie(PLOEG, 'ploegstats')
+      ? [['#/', 'Home'], ['#/ploegstats', 'Ploegstats'], ['#/kalender', 'Kalender'], ...(sessie.watcher ? [['#/watcher', 'Match volgen']] : [])]
+      : [['#/', 'Home'], ['#/mijn', 'Mijn rapport'], ['#/matchen', 'Mijn matchen'], ['#/kalender', 'Kalender'], ['#/playbook', 'Playbook'],
+         ...(sessie.watcher ? [['#/watcher', 'Match volgen']] : [])]).filter(linkMag);
+  const wissel = wisselLink();
   nav.innerHTML = links.map(([h, t]) => `<a href="${h}">${t}</a>`).join('') +
+    (wissel ? `<a class="ploeg-wissel" href="${wissel[0]}">${wissel[1]}</a>` : '') +
     `<span id="seizoenPlek"></span><button class="knop-link" id="uitloggen">Uitloggen</button>`;
   seizoenKeuzeHtml().then(html => {
     const plek = document.getElementById('seizoenPlek');
@@ -79,13 +96,13 @@ function zetNavigatie() {
     document.getElementById('seizoenKeuze').onchange = e => { kiesSeizoen(e.target.value); route(); };
   });
   document.getElementById('uitloggen').onclick = async () => { log('uitgelogd'); await sb.auth.signOut(); location.hash = '#/'; };
-  zetOnderbalk(links);
+  zetOnderbalk(wissel ? [...links, wissel] : links);
   markeerActief();
 }
 
 function markeerActief() {
   const hoofd = location.hash.split('/')[1] || '';   // '' = home
-  document.querySelectorAll('#nav a, #onderbalk a').forEach(a => {
+  document.querySelectorAll('#nav a[href^="#"], #onderbalk a[href^="#"]').forEach(a => {
     const doel = a.getAttribute('href').split('/')[1] || '';
     const actief = doel === hoofd || (doel === 'spelers' && ['speler', 'rapport'].includes(hoofd)) ||
       (doel === 'wedstrijden' && ['wedstrijd', 'live', 'stats'].includes(hoofd)) ||
@@ -103,8 +120,9 @@ function markeerActief() {
 function nietGeconfigureerd() {
   toon(`<section class="kaart smal">
     <h2>Nog even instellen</h2>
-    <p>De app is nog niet verbonden met een database. Open <code>js/config.js</code> en vul je
-    Supabase-gegevens in. In <code>README.md</code> staat stap voor stap hoe dat gaat.</p>
+    <p>Het deel <b>${esc(PLOEGNAAM)}</b> is nog niet verbonden met een database. De trainer moet eerst het
+    Supabase-project instellen (<code>js/lib/ploeg.js</code>).</p>
+    ${PLOEG.id !== 'u16' ? '<p><a class="knop" href="../">Naar U16</a></p>' : ''}
   </section>`);
 }
 
@@ -267,6 +285,7 @@ async function route() {
         <p><a class="knop" href="../">Naar de app</a></p></section>`);
     }
     if (pad === 'app') return installeerView();
+    if (!mag(pad)) return await homeView();   // onderdeel bestaat niet voor deze ploeg
     if (sessie.rol !== 'trainer') {
       if (sessie.watcher && pad === 'live') return await liveView(a);
       if (sessie.watcher && pad === 'watcher') return await watcherView();
@@ -279,6 +298,7 @@ async function route() {
       if (pad === 'playbook') return await playbookView();
       if (pad === 'systeem') return await systeemView(a);
       if (pad === 'schieten') return await schietenView();
+      if (pad === 'ploegstats') return await ploegstatsView();
       return await homeView();
     }
     switch (pad) {
@@ -298,6 +318,7 @@ async function route() {
       case 'opstelling': return await opstellingView(a);
       case 'playbook': return await playbookView();
       case 'xp': return await xpRanglijstView();
+      case 'ploegstats': return await ploegstatsView();
       case 'avatar': return await avatarView();
       case 'systeem': return await systeemView(a);
       case 'import': return await importView();

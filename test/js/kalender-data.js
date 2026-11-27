@@ -1,14 +1,14 @@
 // Kalender laden: komende en gespeelde matchen uit Clubee (data/clubee.json) + eigen matchen uit de database.
 import { sb, q } from './supabase.js';
 import { kalenderItems } from './lib/kalender.js';
-import { DATA_MAP } from './omgeving.js';
+import { DATA_MAP, DATA_BESTAND } from './omgeving.js';
 
 let cache = null;
 
 export async function laadKalender({ vers = false } = {}) {
   if (cache && !vers) return cache;
   const [clubee, db] = await Promise.all([
-    fetch(`${DATA_MAP}clubee.json?t=${Date.now()}`, { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).catch(() => null),
+    fetch(`${DATA_MAP}${DATA_BESTAND}?t=${Date.now()}`, { cache: 'no-store' }).then(r => (r.ok ? r.json() : null)).catch(() => null),
     // competitie bestaat pas na update-14: anders zonder die kolom
     q(sb.from('matches').select('id, clubee_id, datum, tegenstander, thuis, score_voor, score_tegen, competitie'))
       .catch(() => q(sb.from('matches').select('id, clubee_id, datum, tegenstander, thuis, score_voor, score_tegen')))
