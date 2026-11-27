@@ -26,13 +26,15 @@ import { opstellingView, voorbereidingView } from './views/opstelling.js';
 import { installeerView, alsApp, meldAppGebruik } from './installeer.js';
 import { playbookView, systeemView } from './views/playbook.js';
 import { xpRanglijstView } from './views/xp.js';
+import { IS_TEST } from './omgeving.js';
 
 export const sessie = { user: null, rol: null, watcher: false };
 
 // Versie van de site (zichtbaar onderaan in "Meer"), handig om te zien of een gsm de nieuwste versie heeft
 export const VERSIE = '2026-11-27.7';
 
-document.title = PLOEGNAAM;
+document.title = (IS_TEST ? 'TEST · ' : '') + PLOEGNAAM;
+if (IS_TEST) document.body.classList.add('testversie');
 document.getElementById('ploegnaam').textContent = PLOEGNAAM;
 
 const ICOON = { '#/': '🏠', '#/spelers': '👥', '#/wedstrijden': '🤾', '#/trainingen': '📅', '#/import': '⬇️',
@@ -257,6 +259,12 @@ async function route() {
   markeerActief();
   const [, pad, a, b] = location.hash.split('/');
   try {
+    // Testversie: enkel voor trainers
+    if (IS_TEST && sessie.rol !== 'trainer') {
+      return toon(`<section class="kaart smal leeg"><h2>Testversie</h2>
+        <p>Deze testversie is enkel voor trainers. Gebruik de gewone app:</p>
+        <p><a class="knop" href="../">Naar de app</a></p></section>`);
+    }
     if (pad === 'app') return installeerView();
     if (sessie.rol !== 'trainer') {
       if (sessie.watcher && pad === 'live') return await liveView(a);

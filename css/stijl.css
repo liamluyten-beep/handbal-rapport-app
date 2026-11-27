@@ -625,3 +625,9 @@ a.kal-lijn:hover b { color: var(--accent); }
   #nav a, #nav .knop-link { padding: .35rem .55rem; font-size: .92rem; }
   .logo { font-size: 1.25rem; }
 }
+
+/* ---------- Testversie (enkel trainers) ---------- */
+body.testversie .kop { border-bottom-color: #ff8a00; }
+body.testversie .kop::before { content: 'TESTVERSIE · enkel trainers · wat je hier invult staat ook echt in de app';
+  display: block; text-align: center; padding: .25rem .5rem; background: #ff8a00; color: #191b21; font: 700 .78rem var(--body); }
+body.testversie #onderbalk { border-top-color: #ff8a00; }
