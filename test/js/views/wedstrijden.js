@@ -3,6 +3,8 @@ import { toon, esc, laden, melding, vandaag } from '../ui.js';
 import { formatDatum } from '../lib/voortgang.js';
 import { schotStats, scoreUitEvents, verschilMetClubee, formatKlok } from '../lib/live.js';
 import { compTag } from '../comp-tag.js';
+import { PLOEG } from '../config.js';
+import { heeftFunctie } from '../lib/ploeg.js';
 import { opSeizoen, gekozenSeizoen } from '../seizoen-keuze.js';
 
 export async function wedstrijdenView() {
@@ -61,7 +63,7 @@ export async function wedstrijdView(id) {
     <section class="kaart">
       <div class="rapport-kop"><div><h1>${esc(m.tegenstander)}</h1>
         <p class="zacht">${formatDatum(m.datum)} · ${m.thuis ? 'thuis' : 'uit'}${m.score_voor != null ? ` · <b>${m.score_voor} – ${m.score_tegen}</b> (Clubee)` : ''}</p></div>
-        <div class="rij"><a class="knop tweede" href="#/opstelling/${m.id}">📋 Opstelling</a>
+        <div class="rij">${heeftFunctie(PLOEG, 'opstelling') ? `<a class="knop tweede" href="#/opstelling/${m.id}">📋 Opstelling</a>` : ''}
           <a class="knop tweede" href="#/stats/${m.id}">📊 Live statistieken</a>
           <a class="knop" href="#/live/${m.id}">▶ Zelf ingeven</a></div></div>
       <form id="goalsForm">
