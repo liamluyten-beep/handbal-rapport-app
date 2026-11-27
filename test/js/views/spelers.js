@@ -160,7 +160,7 @@ function toonWieSchiet() {
   }
   let wacht = null;
   const binnenkort = () => { clearTimeout(wacht); wacht = setTimeout(teken, 400); };
-  const kanaal = sb.channel('spelers-schieten')
+  const kanaal = sb.channel(`spelers-schieten-${Date.now()}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'schiet_sessies' }, binnenkort)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'training_schoten' }, binnenkort)
     .subscribe();

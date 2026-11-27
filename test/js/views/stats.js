@@ -129,7 +129,7 @@ export async function statsView(matchId) {
   }
   let wacht = null;
   const binnenkort = () => { clearTimeout(wacht); wacht = setTimeout(herlaad, 300); };
-  const kanaal = sb.channel(`stats-${matchId}`)
+  const kanaal = sb.channel(`stats-${matchId}-${Date.now()}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'match_events', filter: `match_id=eq.${matchId}` }, binnenkort)
     .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'matches', filter: `id=eq.${matchId}` }, binnenkort)
     .subscribe();
