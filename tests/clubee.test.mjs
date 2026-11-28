@@ -186,3 +186,18 @@ test('koppelClubeeSpeler: drie of meer initialen (Clubee geeft elk woord)', asyn
   assert.equal(koppelClubeeSpeler({ nr: 77, initialen: 'L L' }, spelers)?.id, 'c');
   assert.equal(koppelClubeeSpeler({ nr: 5, initialen: 'X Y' }, spelers), null);
 });
+
+test('ontbrekendeSpelers: niet-gekoppelde Clubee-regels worden nieuwe spelers (initialen + nummer)', async () => {
+  const { ontbrekendeSpelers } = await import('../js/lib/clubee.js');
+  const rijen = [
+    { sleutel: '15|N M', nr: 15, initialen: 'N M', gekozen: null },
+    { sleutel: '77|L L', nr: 77, initialen: 'L L', gekozen: 'p77' },
+    { sleutel: '24|S V D V', nr: 24, initialen: 'S V D V', gekozen: null },
+  ];
+  assert.deepEqual(ontbrekendeSpelers(rijen), [
+    { naam: 'N M', rugnummer: 15 },
+    { naam: 'S V D V', rugnummer: 24 },
+  ]);
+  // Bewust overgeslagen (keuze "") niet aanmaken
+  assert.deepEqual(ontbrekendeSpelers(rijen, { '15|N M': '' }), [{ naam: 'S V D V', rugnummer: 24 }]);
+});
